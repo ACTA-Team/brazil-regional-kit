@@ -45,6 +45,22 @@ pnpm lint         # eslint + prettier
 pnpm build        # build every package and the hub
 ```
 
+### Walking the full demo without an Etherfuse key
+
+The mock on-ramp replays an anchor conversation; it cannot mint real TESOURO,
+because only Etherfuse can. The corridor's DEX swap and the off-ramp both need
+the asset to genuinely be in the wallet, so there is one bridge:
+
+```bash
+pnpm demo:fund G...YOUR_ADDRESS
+```
+
+A disposable testnet account buys TESOURO and USDC on the open order books and
+sends them over. No minting and no pretending — the assets are real, the trade
+is on-chain, and every downstream step behaves exactly as it will with a live
+on-ramp. Connect the wallet and sign the trustline prompts first, or it has
+nowhere to deliver.
+
 ## Anchor status
 
 The credibility table. Nothing below is dressed up as more than it is, and the

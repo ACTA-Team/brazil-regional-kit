@@ -147,7 +147,12 @@ async function main() {
             destination: address,
             destAsset: asset,
             destMin,
-            path: [],
+            // Horizon's route, not an empty path — see fund-demo.ts.
+            path: best.path.map((hop) =>
+              hop.asset_type === 'native'
+                ? Asset.native()
+                : new Asset(hop.asset_code as string, hop.asset_issuer as string),
+            ),
           }),
         ),
       );

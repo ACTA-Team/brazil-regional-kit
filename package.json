@@ -22,6 +22,7 @@
     "lint:fix": "eslint . --fix && prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r --parallel exec tsc --noEmit",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "demo:fund": "tsx scripts/fund-demo.ts",
     "setup:etherfuse": "tsx scripts/etherfuse-setup.ts",
     "fixtures:record": "tsx scripts/record-fixtures.ts",
     "seed:liquidity": "tsx scripts/seed-liquidity.ts",
