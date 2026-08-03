@@ -176,5 +176,6 @@
   "anchors.manteca.note": "Simulated — Manteca requires commercial onboarding. The adapter is production-shaped.",
   "anchors.koywe.note": "Simulated — Koywe is not live in Brazil yet. The adapter is production-shaped.",
   "onramp.tryAnotherAmount": "Try another amount",
-  "onramp.duplicateHint": "The anchor already has a pending order for this bank account and amount, and offers no way to cancel it. A different amount clears it."
+  "onramp.duplicateHint": "The anchor already has a pending order for this bank account and amount, and offers no way to cancel it. A different amount clears it.",
+  "onramp.amountAdjusted": "The anchor already had a pending order for that exact amount, so this one was placed for {amount} instead."
 }

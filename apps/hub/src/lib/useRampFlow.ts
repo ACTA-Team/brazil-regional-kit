@@ -21,6 +21,23 @@ import {
   type PublicQuote,
 } from '@/lib/api';
 
+/**
+ * Etherfuse rejects a duplicate pending order keyed on (bank account, amount)
+ * and offers no cancel endpoint, so this is worth recognising precisely.
+ */
+function isDuplicateOrder(e: unknown): boolean {
+  return (
+    e instanceof ApiError && e.code === 'INVALID_ORDER_STATE' && /already exists/i.test(e.message)
+  );
+}
+
+/** A few centavos is enough to clear the collision without moving the price. */
+function nudgeAmount(amount: string): string {
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value <= 0) return amount;
+  return (value + 0.01 + Math.random() * 0.9).toFixed(2);
+}
+
 export type FlowStage = 'input' | 'quoted' | 'ordered' | 'done';
 
 export interface RampFlowOptions {
@@ -38,6 +55,8 @@ export interface RampFlowState {
   order: PublicOrder | null;
   busy: null | 'quoting' | 'ordering' | 'simulating' | 'polling';
   error: ApiError | Error | null;
+  /** Set when a duplicate-order collision forced the amount to change. */
+  adjustedAmount: string | null;
 
   getQuote: (sellAmount: string, account?: string) => Promise<void>;
   confirm: (account: string) => Promise<void>;
@@ -57,6 +76,10 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
 
   // Remembered so `getQuote` can be re-run on expiry without the page re-passing them.
   const lastRequest = useRef<{ amount: string; account?: string } | null>(null);
+  /** Guards the duplicate-order retry, so a genuine failure cannot loop. */
+  const retriedRef = useRef(false);
+  /** Set when the amount had to be nudged, so the UI can say so. */
+  const [adjustedFrom, setAdjustedFrom] = useState<string | null>(null);
 
   const stage: FlowStage = order
     ? isTerminal(order.status)
@@ -95,26 +118,70 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
       if (!quote) return;
       setBusy('ordering');
       setError(null);
+
       try {
-        const { order: next } = await createOrderCall({
-          anchorId,
-          quoteId: quote.id,
-          account,
-        });
+        const { order: next } = await createOrderCall({ anchorId, quoteId: quote.id, account });
         setOrder(next);
+        return;
       } catch (e) {
         // A quote that expired between display and confirmation is routine, not
         // a failure: re-quote silently and let the user press confirm again.
         if (e instanceof ApiError && e.code === 'QUOTE_EXPIRED' && lastRequest.current) {
           setQuote(null);
           await getQuote(lastRequest.current.amount, lastRequest.current.account);
+          setError(e);
+          setBusy(null);
+          return;
         }
+
+        /*
+         * Etherfuse refuses a second pending order for the same bank account
+         * and amount, and gives you no way to cancel the first — so a sandbox
+         * littered with test orders can block round numbers like 250 or 500
+         * permanently. Nudging the amount by a few centavos and retrying once
+         * is what a person would do by hand; doing it for them keeps a
+         * bookkeeping quirk from looking like a broken integration.
+         */
+        if (isDuplicateOrder(e) && lastRequest.current && !retriedRef.current) {
+          retriedRef.current = true;
+          const nudged = nudgeAmount(lastRequest.current.amount);
+
+          try {
+            const { quote: requoted } = await requestQuote({
+              anchorId,
+              sellAsset,
+              buyAsset,
+              sellAmount: nudged,
+              account: lastRequest.current.account,
+              country,
+            });
+            const { order: next } = await createOrderCall({
+              anchorId,
+              quoteId: requoted.id,
+              account,
+            });
+
+            lastRequest.current = { ...lastRequest.current, amount: nudged };
+            setQuote(requoted);
+            setOrder(next);
+            // The UI needs the amount actually charged, so the user is never
+            // surprised by a total they did not type.
+            setAdjustedFrom(nudged);
+            return;
+          } catch (retryError) {
+            setError(retryError as Error);
+            return;
+          } finally {
+            setBusy(null);
+          }
+        }
+
         setError(e as Error);
       } finally {
         setBusy(null);
       }
     },
-    [anchorId, quote, getQuote],
+    [anchorId, quote, getQuote, sellAsset, buyAsset, country],
   );
 
   const refresh = useCallback(async () => {
@@ -166,6 +233,8 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
   }, [order, anchorId, pollMs]);
 
   const reset = useCallback(() => {
+    retriedRef.current = false;
+    setAdjustedFrom(null);
     setQuote(null);
     setOrder(null);
     setError(null);
@@ -179,6 +248,7 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
     order,
     busy,
     error,
+    adjustedAmount: adjustedFrom,
     getQuote,
     confirm,
     simulate,

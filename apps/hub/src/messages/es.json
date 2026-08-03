@@ -176,5 +176,6 @@
   "anchors.manteca.note": "Simulado — Manteca exige contrato comercial. El adaptador tiene forma de producción.",
   "anchors.koywe.note": "Simulado — Koywe todavía no opera en Brasil. El adaptador tiene forma de producción.",
   "onramp.tryAnotherAmount": "Probar otro monto",
-  "onramp.duplicateHint": "El anchor ya tiene una orden pendiente para esta cuenta y este monto, y no ofrece forma de cancelarla. Con otro monto se destraba."
+  "onramp.duplicateHint": "El anchor ya tiene una orden pendiente para esta cuenta y este monto, y no ofrece forma de cancelarla. Con otro monto se destraba.",
+  "onramp.amountAdjusted": "El anchor ya tenía una orden pendiente por ese monto exacto, así que esta se creó por {amount}."
 }

@@ -131,6 +131,15 @@ export default function OnRampPage() {
         </>
       ) : null}
 
+      {/*
+        The anchor blocked the exact amount, so the flow retried a few centavos
+        up. Saying so is not optional — a total the user did not type needs an
+        explanation, however small the difference.
+      */}
+      {flow.adjustedAmount ? (
+        <Alert tone="warning">{t('onramp.amountAdjusted', { amount: flow.adjustedAmount })}</Alert>
+      ) : null}
+
       {order ? (
         <div className="space-y-6">
           <div className="card space-y-4 p-5">
