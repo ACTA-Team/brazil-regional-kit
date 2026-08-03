@@ -8,9 +8,10 @@ description: Check out, install pnpm and Node, and install dependencies from the
 runs:
   using: composite
   steps:
+    # No `version` here on purpose. The root package.json pins `packageManager`,
+    # and specifying both makes the action error out rather than pick one — so
+    # the lockfile stays the single source of truth for the pnpm version.
     - uses: pnpm/action-setup@v4
-      with:
-        version: 11
 
     - uses: actions/setup-node@v5
       with:
