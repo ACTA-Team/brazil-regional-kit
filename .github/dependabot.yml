@@ -1,0 +1,74 @@
+version: 2
+
+updates:
+  # ── npm ────────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 10
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # One PR per concern instead of fifteen. CI runs on each, so a grouped
+      # bump that breaks something still fails loudly.
+      stellar:
+        patterns:
+          - '@stellar/*'
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      next:
+        patterns:
+          - next
+          - '@next/*'
+      tooling:
+        patterns:
+          - eslint
+          - eslint-*
+          - '@eslint/*'
+          - typescript-eslint
+          - prettier
+          - prettier-*
+          - husky
+          - lint-staged
+          - tsup
+          - tsx
+      testing:
+        patterns:
+          - vitest
+          - '@vitest/*'
+      types:
+        patterns:
+          - '@types/*'
+        exclude-patterns:
+          - '@types/react'
+          - '@types/react-dom'
+    ignore:
+      # The Stellar SDK renames core types across majors; that is a deliberate
+      # migration, not something to merge from a bot at 6am.
+      - dependency-name: '@stellar/stellar-sdk'
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+
+  # ── GitHub Actions ─────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      actions:
+        patterns: ['*']
