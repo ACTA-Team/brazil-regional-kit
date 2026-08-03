@@ -120,7 +120,7 @@ async function main() {
       report(
         'ok',
         'Quotes',
-        dim(`500 BRL → ${Number(quote.destinationAmount).toFixed(2)} TESOURO`),
+        dim(`${probeAmount} BRL → ${Number(quote.destinationAmount).toFixed(2)} TESOURO`),
       );
     } catch (e) {
       report('fail', 'Quotes', red((e as Error).message.slice(0, 60)));
