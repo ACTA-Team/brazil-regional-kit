@@ -14,13 +14,17 @@ export function errorResponse(e: unknown, anchorId?: string): NextResponse {
   const status =
     err.code === 'AUTH_FAILED'
       ? 502 // our credentials, not the caller's
-      : err.code === 'ANCHOR_UNAVAILABLE'
-        ? 503
-        : err.code === 'UNSUPPORTED_PAIR' || err.code === 'INVALID_REQUEST'
-          ? 400
-          : err.code === 'QUOTE_EXPIRED' || err.code === 'INVALID_ORDER_STATE'
-            ? 409
-            : 500;
+      : // The customer exists but has not finished onboarding. A 500 would send
+        // everyone hunting for a server bug; this is a state the user resolves.
+        err.code === 'KYC_REQUIRED'
+        ? 403
+        : err.code === 'ANCHOR_UNAVAILABLE'
+          ? 503
+          : err.code === 'UNSUPPORTED_PAIR' || err.code === 'INVALID_REQUEST'
+            ? 400
+            : err.code === 'QUOTE_EXPIRED' || err.code === 'INVALID_ORDER_STATE'
+              ? 409
+              : 500;
 
   if (err.code === 'UNKNOWN' || status >= 500) {
     console.error('[brk]', err.code, err.message, err.raw ?? '');

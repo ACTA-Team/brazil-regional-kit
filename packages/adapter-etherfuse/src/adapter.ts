@@ -40,6 +40,18 @@ import { EtherfuseMockClient, type EtherfuseMockOptions } from './mock';
 export const ETHERFUSE_ID = 'etherfuse';
 export const ETHERFUSE_NAME = 'Etherfuse';
 
+/**
+ * Etherfuse rejects a quote whose `walletAddress` is not a valid Stellar
+ * account — including an empty one. But a price is a price: it does not depend
+ * on who is asking, and comparing anchors before connecting a wallet is a
+ * perfectly reasonable thing for a user to do.
+ *
+ * So when no account is supplied we quote against a well-known address purely
+ * to satisfy the validator. Orders are a different matter and still demand the
+ * customer's real account — `createOrder` never substitutes anything.
+ */
+const QUOTE_PROBE_ACCOUNT = TESOURO_ISSUER_TESTNET;
+
 // ── Asset translation ─────────────────────────────────────────────────────────
 
 /** `iso4217:BRL` → `BRL`; `stellar:TESOURO:GC3C…` → `TESOURO:GC3C…`. */
@@ -287,7 +299,7 @@ export class EtherfuseAdapter implements RampAdapter {
         quoteId,
         customerId: req.customerId ?? this.config.customerId ?? '',
         blockchain: 'stellar',
-        walletAddress: req.account ?? '',
+        walletAddress: req.account?.startsWith('G') ? req.account : QUOTE_PROBE_ACCOUNT,
         quoteAssets: {
           type: direction,
           sourceAsset: toEtherfuseAsset(req.sellAsset),
