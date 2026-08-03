@@ -1,0 +1,74 @@
+name: Anchor support
+description: Add an on/off-ramp provider to the router.
+labels: [anchor]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the anchor speaks the SEPs, there is likely nothing to write — see
+        [docs/anchors.md](../blob/main/docs/anchors.md). Point `adapter-sep` at
+        its home domain and it works.
+
+  - type: input
+    id: name
+    attributes:
+      label: Anchor
+      placeholder: Alfred Pay
+    validations:
+      required: true
+
+  - type: input
+    id: home-domain
+    attributes:
+      label: Home domain
+      description: If it publishes a `stellar.toml`, this is all that is needed to try it.
+      placeholder: anchor.example.com
+
+  - type: checkboxes
+    id: protocols
+    attributes:
+      label: What it supports
+      options:
+        - label: SEP-1 (stellar.toml)
+        - label: SEP-10 (authentication)
+        - label: SEP-24 (interactive deposit/withdraw)
+        - label: SEP-38 (quotes)
+        - label: SEP-6 / SEP-31
+        - label: A proprietary API only
+
+  - type: textarea
+    id: corridors
+    attributes:
+      label: Corridors
+      placeholder: |
+        BRL ↔ USDC via PIX (BR)
+        MXN ↔ USDC via SPEI (MX)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: access
+    attributes:
+      label: How a developer gets access
+      description: This decides whether the adapter can be live or has to ship simulated and labelled.
+      options:
+        - Self-service sandbox — sign up and get a key
+        - Commercial onboarding required
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: docs
+    attributes:
+      label: API documentation
+      placeholder: https://…
+
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: Understood
+      options:
+        - label: An anchor with no self-service access ships as a simulated adapter, permanently labelled as such in the UI.
+          required: true

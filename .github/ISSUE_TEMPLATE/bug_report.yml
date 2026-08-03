@@ -1,0 +1,86 @@
+name: Bug report
+description: Something behaves differently from what it says it does.
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: [docs/gotchas.md](../blob/main/docs/gotchas.md) lists the
+        traps that look like bugs and are not — memo byte limits, the two USDC
+        issuers, Freighter defaulting to mainnet, quotes expiring in seconds.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: And what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. pnpm install && pnpm dev
+        2. Go to /corridor
+        3. …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - ramp-core
+        - ramp-router
+        - adapter-etherfuse
+        - adapter-sep
+        - adapter-mocks
+        - stablecoin-kit
+        - hub (the demo app)
+        - sample-remit
+        - scripts
+        - docs
+        - not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Adapter mode
+      description: A failure that only happens live points somewhere quite different from one that also happens in mock.
+      options:
+        - mock (no credentials — the default)
+        - live (Etherfuse sandbox key configured)
+        - both
+        - not applicable
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Environment
+      placeholder: 'Node 22.1.0 · pnpm 11.20.0 · Windows 11 · Chrome 141 · Freighter 6.0.1'
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors
+      description: Console, terminal, or the `error` object from an API response. Redact keys and addresses you care about.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: Freighter is on **testnet**, not mainnet
+        - label: I ran `pnpm install` after pulling
+        - label: I searched existing issues

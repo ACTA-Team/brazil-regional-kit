@@ -1,0 +1,41 @@
+name: Feature request
+description: Something the kit should do and does not.
+labels: [enhancement]
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The problem, not the solution. What are you building, and where does the kit stop helping?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: Rough API sketches welcome.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where it belongs
+      options:
+        - ramp-core (the adapter contract)
+        - ramp-router
+        - an adapter
+        - stablecoin-kit
+        - hub (the demo app)
+        - docs
+        - not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: Including "nothing fits" — that is useful to know.
