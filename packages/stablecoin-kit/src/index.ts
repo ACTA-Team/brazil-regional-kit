@@ -6,7 +6,7 @@
  * `@brk/stablecoin-kit/x402` on its own if you only want the payment middleware.
  */
 
-export * from './freighter';
+export * from './wallet';
 export * from './horizon';
 export * from './offramp';
 export * from './swap';

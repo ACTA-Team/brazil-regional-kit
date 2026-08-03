@@ -22,19 +22,19 @@
     "@brk/ramp-core": "workspace:*"
   },
   "peerDependencies": {
-    "@stellar/freighter-api": ">=6",
-    "@stellar/stellar-sdk": ">=16"
+    "@stellar/stellar-sdk": ">=16",
+    "@creit.tech/stellar-wallets-kit": ">=2.5"
   },
   "peerDependenciesMeta": {
-    "@stellar/freighter-api": {
+    "@creit.tech/stellar-wallets-kit": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^16.2.0",
     "typescript": "^5.7.2",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "@creit.tech/stellar-wallets-kit": "^2.5.0"
   },
   "publishConfig": {
     "main": "./dist/index.js",

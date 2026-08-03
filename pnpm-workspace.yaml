@@ -2,8 +2,24 @@ packages:
   - 'packages/*'
   - 'apps/*'
 
-# esbuild powers `tsx` (the setup/fixture/seed scripts); sharp powers Next's
-# image optimizer. Both are trusted, standard toolchain dependencies.
+# Build scripts are opt-in. Only the two the toolchain genuinely needs are
+# allowed: esbuild powers `tsx` for the CLI scripts, sharp powers Next's image
+# optimizer.
+#
+# Everything else here arrives through Stellar Wallets Kit, which bundles
+# support for hardware wallets and WalletConnect. We use neither — the browser
+# extension modules need no native build — so their postinstall scripts are
+# denied rather than run. Fewer compilers invoked on install is strictly better.
 allowBuilds:
   esbuild: true
   sharp: true
+
+  '@reown/appkit': false
+  '@stellar/stellar-sdk': false
+  blake-hash: false
+  bufferutil: false
+  protobufjs: false
+  secp256k1: false
+  tiny-secp256k1: false
+  usb: false
+  utf-8-validate: false

@@ -5,12 +5,12 @@ import { shortAddress, useWallet } from '@/lib/wallet';
 
 export function WalletButton() {
   const { t } = useI18n();
-  const { status, address, connect, disconnect } = useWallet();
+  const { status, address, connect, openProfile } = useWallet();
 
   if (status === 'unavailable') {
     return (
       <a
-        href="https://www.freighter.app/"
+        href="https://stellar.org/ecosystem/wallets"
         target="_blank"
         rel="noreferrer"
         title={t('wallet.installPrompt')}
@@ -22,10 +22,11 @@ export function WalletButton() {
   }
 
   if (status === 'connected') {
+    // The kit owns the account modal — copy address, switch wallet, disconnect.
     return (
       <button
         type="button"
-        onClick={disconnect}
+        onClick={() => void openProfile()}
         title={address}
         className="btn btn-ghost font-mono text-xs"
       >
@@ -48,7 +49,7 @@ export function WalletButton() {
 }
 
 /**
- * Freighter defaults to mainnet. Every hackathon demo that skips this check
+ * Wallets default to mainnet. Every hackathon demo that skips this check
  * eventually signs a testnet transaction against the public network and spends
  * ten confused minutes on it.
  */
