@@ -1,0 +1,78 @@
+name: Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zero-config:
+    name: Works with no configuration at all
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Deliberately no env block. No .env, no keys, no anchor credentials — the
+    # exact state someone lands in when they clone this repo. If that state ever
+    # stops working, the quickstart in the README is a lie.
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Start
+        run: pnpm start &
+
+      - name: Wait for it to answer
+        run: npx --yes wait-on http://localhost:3000 --timeout 90000
+
+      - name: Every page renders
+        run: |
+          for path in / /onramp /offramp /router /corridor /x402; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$path")
+            echo "$path -> $code"
+            [ "$code" = "200" ] || exit 1
+          done
+
+      - name: All four anchors are registered
+        run: |
+          body=$(curl -sf http://localhost:3000/api/anchors)
+          echo "$body"
+          for anchor in etherfuse testanchor manteca koywe; do
+            echo "$body" | grep -q "\"$anchor\"" || { echo "missing $anchor"; exit 1; }
+          done
+
+      - name: The multi-anchor endpoint returns quotes
+        run: |
+          body=$(curl -sf "http://localhost:3000/api/quotes?sell=iso4217:BRL&amount=500&country=BR")
+          echo "$body"
+          echo "$body" | grep -q '"quotes"'
+          echo "$body" | grep -q '"anchors"'
+
+      - name: A single-anchor quote round-trips
+        run: |
+          curl -sf -X POST http://localhost:3000/api/ramp/quote \
+            -H 'Content-Type: application/json' \
+            -d '{"anchorId":"etherfuse","sellAsset":"iso4217:BRL","buyAsset":"stellar:TESOURO:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4","sellAmount":"500","account":"GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4","country":"BR"}' \
+            | grep -q '"quote"'
+
+      - name: x402 challenges an unpaid request
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/premium-fx)
+          echo "premium-fx -> $code"
+          [ "$code" = "402" ] || exit 1
+
+      - name: x402 refuses a forged payment
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "x-payment: 0000000000000000000000000000000000000000000000000000000000000000" \
+            http://localhost:3000/api/premium-fx)
+          echo "forged proof -> $code"
+          [ "$code" = "402" ] || exit 1
