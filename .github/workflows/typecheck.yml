@@ -1,0 +1,27 @@
+name: Typecheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: typecheck-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      - name: Scripts
+        run: pnpm exec tsc --noEmit -p tsconfig.json
+
+      - name: Packages and apps
+        run: pnpm -r --parallel exec tsc --noEmit

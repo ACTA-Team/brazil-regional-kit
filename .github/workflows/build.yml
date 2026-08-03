@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RAMP_MODE: mock
+
+jobs:
+  packages:
+    name: Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      - name: Build with tsup
+        run: pnpm build:packages
+
+      - name: Every package emits ESM and types
+        run: |
+          for pkg in ramp-core ramp-router adapter-etherfuse adapter-sep adapter-mocks stablecoin-kit; do
+            test -f "packages/$pkg/dist/index.js"   || { echo "$pkg: missing dist/index.js"; exit 1; }
+            test -f "packages/$pkg/dist/index.d.ts" || { echo "$pkg: missing dist/index.d.ts"; exit 1; }
+            echo "$pkg ok"
+          done
+          test -f packages/stablecoin-kit/dist/x402.js
+
+  hub:
+    name: Hub
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+  sample:
+    name: Sample app
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      # The README claims the packages work outside the app they were written
+      # for. This is what stops that claim from quietly rotting.
+      - name: Run the second app against the packages
+        run: pnpm sample

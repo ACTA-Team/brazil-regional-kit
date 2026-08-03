@@ -1,0 +1,22 @@
+name: Setup
+description: Check out, install pnpm and Node, and install dependencies from the lockfile.
+
+# Every workflow needs the same four steps. Keeping them here means a change to
+# the Node version or the install flags happens once instead of in five files
+# that then drift apart.
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 11
+
+    - uses: actions/setup-node@v5
+      with:
+        node-version: 22
+        cache: pnpm
+
+    - name: Install
+      shell: bash
+      run: pnpm install --frozen-lockfile
