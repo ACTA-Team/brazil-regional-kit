@@ -1,0 +1,29 @@
+{
+  "$comment": "Base rates and fee schedule for mock mode. These are placeholders shaped like the sandbox's own numbers; `pnpm fixtures:record` overwrites this file with values captured from the live Etherfuse sandbox. The UI always labels mock quotes as simulated, so nothing here is ever presented as a real market price.",
+  "recordedAt": null,
+  "source": "placeholder",
+  "pairs": {
+    "BRL>TESOURO": { "rate": "0.9850000", "feeBps": 120 },
+    "TESOURO>BRL": { "rate": "0.9820000", "feeBps": 150 },
+    "MXN>CETES": { "rate": "0.9880000", "feeBps": 120 },
+    "CETES>MXN": { "rate": "0.9850000", "feeBps": 150 },
+    "TESOURO>USDC": { "rate": "0.1845000", "feeBps": 30 },
+    "USDC>TESOURO": { "rate": "5.4200000", "feeBps": 30 },
+    "USDC>MXN": { "rate": "17.2000000", "feeBps": 140 },
+    "USDC>BRL": { "rate": "5.3800000", "feeBps": 140 }
+  },
+  "limits": {
+    "BRL": { "min": "10", "max": "20000" },
+    "MXN": { "min": "50", "max": "100000" },
+    "TESOURO": { "min": "10", "max": "20000" },
+    "USDC": { "min": "2", "max": "5000" }
+  },
+  "quoteTtlSeconds": 45,
+  "pix": {
+    "$comment": "Non-routable sandbox PIX key. Structurally valid BR Codes, payable by nobody.",
+    "key": "sandbox@brazil-regional-kit.demo",
+    "merchantName": "BRK Sandbox Ramps",
+    "merchantCity": "Sao Paulo"
+  },
+  "anchorAccount": "GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4"
+}
