@@ -49,13 +49,58 @@ describe('status mapping', () => {
 });
 
 describe('capabilities', () => {
-  it('reports mock mode and its Brazilian corridors', () => {
+  it('reports mock mode', () => {
     const caps = adapter().capabilities();
     expect(caps.id).toBe('etherfuse');
     expect(caps.mode).toBe('mock');
-    expect(caps.corridors).toHaveLength(2);
-    expect(caps.corridors.map((c) => c.direction).sort()).toEqual(['offramp', 'onramp']);
     expect(caps.note).toMatch(/fixtures/i);
+  });
+
+  it('serves Brazil over PIX in both directions', () => {
+    const br = adapter()
+      .capabilities()
+      .corridors.filter((c) => c.country === 'BR');
+    // TESOURO and USDC, each way.
+    expect(br).toHaveLength(4);
+    expect([...new Set(br.map((c) => c.direction))].sort()).toEqual(['offramp', 'onramp']);
+    expect(br.every((c) => c.rail === 'PIX')).toBe(true);
+  });
+
+  /**
+   * The Mexican corridor is real, not aspirational — MEXe and CETES were
+   * confirmed against the live sandbox. The 500 cap is the sandbox's own,
+   * enforced with a `SandboxAmountExceeded` error.
+   */
+  it('serves Mexico over SPEI, capped at the sandbox limit', () => {
+    const mx = adapter()
+      .capabilities()
+      .corridors.filter((c) => c.country === 'MX');
+    // MEXe and USDC, each way.
+    expect(mx).toHaveLength(4);
+    expect(mx.every((c) => c.rail === 'SPEI')).toBe(true);
+    // Sandbox on-ramps from MXN are capped at 500 by the anchor itself.
+    expect(mx.filter((c) => c.direction === 'onramp').every((c) => c.max === '500')).toBe(true);
+  });
+});
+
+describe('live response contract', () => {
+  /**
+   * The sandbox issues its own quote id and ignores the one it was sent. An
+   * order that references the request's id fails with an unknown quote, so the
+   * simulator has to behave the same way or the bug only appears in production.
+   */
+  it('returns the anchor’s quote id, not the one we generated', async () => {
+    const a = adapter();
+    const quote = await a.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: ACCOUNT,
+    });
+
+    // Whatever id came back must be the one an order can be created against.
+    const order = await a.createOrder({ quoteId: quote.id, account: ACCOUNT });
+    expect(order.quoteId).toBe(quote.id);
   });
 });
 
@@ -118,8 +163,29 @@ describe('off-ramp lifecycle', () => {
 
 describe('guard rails', () => {
   it('rejects a corridor it does not serve', async () => {
+    // EUR is not a currency Etherfuse ramps from.
     await expect(
-      adapter().getQuote({ sellAsset: BRL, buyAsset: USDC, sellAmount: '500', account: ACCOUNT }),
+      adapter().getQuote({
+        sellAsset: 'iso4217:EUR',
+        buyAsset: USDC,
+        sellAmount: '500',
+        account: ACCOUNT,
+      }),
+    ).rejects.toMatchObject({ code: 'UNSUPPORTED_PAIR' });
+  });
+
+  /**
+   * A ramp is not an exchange: the anchor answers an on-chain-to-on-chain quote
+   * with `expected MXN or BRL`, so the adapter refuses before the round trip.
+   */
+  it('refuses a quote with fiat on neither side', async () => {
+    await expect(
+      adapter().getQuote({
+        sellAsset: TESOURO,
+        buyAsset: USDC,
+        sellAmount: '100',
+        account: ACCOUNT,
+      }),
     ).rejects.toMatchObject({ code: 'UNSUPPORTED_PAIR' });
   });
 
