@@ -5,9 +5,16 @@
  * `adapter.ts` has a single code path regardless of mode. That is the whole
  * point: mock mode is not a parallel implementation that can drift, it is the
  * same adapter talking to a different transport.
+ *
+ * These shapes were captured from the live sandbox, not from documentation.
+ * Several of them differ from what the published guides describe — the response
+ * field names in particular. Where they differ, the sandbox wins; see the notes
+ * on each type.
  */
 
 export type EtherfuseDirection = 'onramp' | 'offramp';
+
+// ── Quotes ────────────────────────────────────────────────────────────────────
 
 export interface EtherfuseQuoteRequest {
   quoteId: string;
@@ -24,22 +31,45 @@ export interface EtherfuseQuoteRequest {
 }
 
 export interface EtherfuseQuoteResponse {
+  /**
+   * The server issues its OWN id and ignores the one you sent. Orders must
+   * reference this one; using the request's id fails with an unknown quote.
+   */
   quoteId: string;
+  blockchain: string;
+  quoteAssets: {
+    type: EtherfuseDirection;
+    sourceAsset: string;
+    targetAsset: string;
+  };
   sourceAmount: string;
-  targetAmount: string;
-  /** targetAmount per 1 sourceAsset. */
-  rate?: string;
-  fee?: string;
-  feeCurrency?: string;
+  /** NOT `targetAmount` — what the customer actually receives. */
+  destinationAmount: string;
+  /** NOT `rate` — destination units per source unit, after fees. */
+  exchangeRate: string;
+  /** The pre-fee rate, at much higher precision. */
+  nominalRate?: string;
+  /** Basis points, as a string. `"20"` is 0.2%. */
+  feeBps?: string;
+  /** NOT `fee` — absolute fee in the source currency. */
+  feeAmount?: string;
+  /** Roughly two minutes from creation. Honour it. */
   expiresAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  /** True when the anchor has to route through another asset to fill. */
+  requiresSwap?: boolean;
   [key: string]: unknown;
 }
+
+// ── Orders ────────────────────────────────────────────────────────────────────
 
 export interface EtherfuseOrderRequest {
   orderId: string;
   bankAccountId: string;
   /** Classic `G…` address. Passkey/contract `C…` addresses are rejected. */
   publicKey: string;
+  /** The id from the quote RESPONSE. */
   quoteId: string;
 }
 
@@ -48,7 +78,7 @@ export interface EtherfuseOrderResponse {
   quoteId?: string;
   status: string;
   sourceAmount?: string;
-  targetAmount?: string;
+  destinationAmount?: string;
 
   /** On-ramp: how the customer pays. Field naming varies; we read defensively. */
   pixCode?: string;
@@ -71,27 +101,53 @@ export interface EtherfuseOrderResponse {
   [key: string]: unknown;
 }
 
+// ── Assets ────────────────────────────────────────────────────────────────────
+
+/** All three parameters are mandatory; omitting any is a 400. */
+export interface EtherfuseAssetsQuery {
+  blockchain: string;
+  /** `BRL`, `MXN`. Case-insensitive. */
+  currency: string;
+  /** A Stellar account — the endpoint reports per-wallet balances. */
+  wallet: string;
+}
+
 export interface EtherfuseAsset {
-  code?: string;
   symbol?: string;
-  blockchain?: string;
-  currency?: string;
-  issuer?: string;
+  /** `TESOURO:GC3C…` — ready to use as a quote asset. */
+  identifier?: string;
+  name?: string;
+  /** Lowercase ISO code, or null for assets not tied to this currency. */
+  currency?: string | null;
+  balance?: string | null;
+  image?: string;
   [key: string]: unknown;
 }
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
 
 export interface EtherfuseOnboardingRequest {
   customerId: string;
-  /** Where Etherfuse sends the customer back after KYC. */
-  redirectUrl?: string;
+  /** Required at onboarding — it is NOT handed back to you afterwards. */
+  bankAccountId: string;
+  publicKey: string;
+  blockchain: string;
+  userInfo: {
+    email: string;
+    displayName: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface EtherfuseOnboardingResponse {
-  url: string;
-  customerId?: string;
-  bankAccountId?: string;
+  /** Snake case, unlike everything else in the API. Signed and short-lived. */
+  presigned_url?: string;
+  /** Tolerated in case the field is ever renamed to match the rest. */
+  url?: string;
   [key: string]: unknown;
 }
+
+// ── The transport ─────────────────────────────────────────────────────────────
 
 export interface EtherfuseApi {
   readonly mode: 'live' | 'mock';
@@ -101,7 +157,7 @@ export interface EtherfuseApi {
   createOrder(req: EtherfuseOrderRequest): Promise<EtherfuseOrderResponse>;
   getOrder(orderId: string): Promise<EtherfuseOrderResponse>;
   regenerateTx(orderId: string): Promise<EtherfuseOrderResponse>;
-  listAssets(): Promise<EtherfuseAsset[]>;
+  listAssets(query: EtherfuseAssetsQuery): Promise<EtherfuseAsset[]>;
 
   /** Sandbox only. */
   simulateFiatReceived(orderId: string): Promise<EtherfuseOrderResponse>;

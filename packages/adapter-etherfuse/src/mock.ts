@@ -17,6 +17,7 @@ import { RampError, applyBps, multiply, subtract } from '@brk/ramp-core';
 import type {
   EtherfuseApi,
   EtherfuseAsset,
+  EtherfuseAssetsQuery,
   EtherfuseOnboardingRequest,
   EtherfuseOnboardingResponse,
   EtherfuseOrderRequest,
@@ -117,10 +118,14 @@ export class EtherfuseMockClient implements EtherfuseApi {
 
   async createOnboardingUrl(req: EtherfuseOnboardingRequest): Promise<EtherfuseOnboardingResponse> {
     await this.delay();
+    // `presigned_url` in snake case, matching the live response exactly.
     return {
-      url: `https://devnet.etherfuse.com/ramp?mock=1&customerId=${encodeURIComponent(req.customerId)}`,
-      customerId: req.customerId,
-      bankAccountId: `mock-bank-${req.customerId.slice(0, 8)}`,
+      presigned_url:
+        `https://sandbox.etherfuse.com/ramp/onboarding?mock=1` +
+        `&customer_id=${encodeURIComponent(req.customerId)}` +
+        `&bank_account_id=${encodeURIComponent(req.bankAccountId)}` +
+        `&blockchain=${encodeURIComponent(req.blockchain)}` +
+        `&public_key=${encodeURIComponent(req.publicKey)}`,
     };
   }
 
@@ -156,23 +161,38 @@ export class EtherfuseMockClient implements EtherfuseApi {
 
     const rate = multiply(pair.rate, jitterFactor(req.quoteId, this.jitterBps));
     const fee = applyBps(req.sourceAmount, pair.feeBps);
-    const targetAmount = multiply(subtract(req.sourceAmount, fee), rate);
+    const destinationAmount = multiply(subtract(req.sourceAmount, fee), rate);
 
     const ttlMs = ratesFixture.quoteTtlSeconds * 1000;
-    const expiresAtMs = this.now() + ttlMs;
+    const nowMs = this.now();
+    const expiresAtMs = nowMs + ttlMs;
+
+    /*
+     * The server issues its own quote id and ignores the one it was sent — so
+     * the simulator does too. If it echoed the request id instead, an
+     * integration bug that only bites against the live sandbox would sail
+     * through mock mode, which defeats the point of having a simulator.
+     */
+    const quoteId = crypto.randomUUID();
 
     const response: EtherfuseQuoteResponse = {
-      quoteId: req.quoteId,
+      quoteId,
+      blockchain: 'stellar',
+      quoteAssets: req.quoteAssets,
       sourceAmount: req.sourceAmount,
-      targetAmount,
-      rate,
-      fee,
-      feeCurrency: sourceSymbol,
+      destinationAmount,
+      exchangeRate: rate,
+      nominalRate: pair.rate,
+      feeBps: String(pair.feeBps),
+      feeAmount: fee,
+      createdAt: new Date(nowMs).toISOString(),
+      updatedAt: new Date(nowMs).toISOString(),
       expiresAt: new Date(expiresAtMs).toISOString(),
+      requiresSwap: false,
       _mock: true,
     };
 
-    store().quotes.set(req.quoteId, { request: req, response, expiresAtMs });
+    store().quotes.set(quoteId, { request: req, response, expiresAtMs });
     return response;
   }
 
@@ -203,7 +223,7 @@ export class EtherfuseMockClient implements EtherfuseApi {
       quoteId: req.quoteId,
       status: direction === 'onramp' ? 'PENDING_PAYMENT' : 'AWAITING_CRYPTO',
       sourceAmount: held.response.sourceAmount,
-      targetAmount: held.response.targetAmount,
+      destinationAmount: held.response.destinationAmount,
       createdAt: nowIso,
       updatedAt: nowIso,
       _mock: true,
@@ -278,9 +298,14 @@ export class EtherfuseMockClient implements EtherfuseApi {
     return stored.order;
   }
 
-  async listAssets(): Promise<EtherfuseAsset[]> {
+  async listAssets(query: EtherfuseAssetsQuery): Promise<EtherfuseAsset[]> {
     await this.delay();
-    return assetsFixture.assets as EtherfuseAsset[];
+    const wanted = query.currency.toLowerCase();
+    // The live endpoint returns the whole catalogue for a currency, including
+    // assets whose `currency` is null. Filter the same way it does.
+    return (assetsFixture.assets as EtherfuseAsset[]).filter(
+      (a) => !a.currency || a.currency.toLowerCase() === wanted,
+    );
   }
 
   simulateFiatReceived(orderId: string): Promise<EtherfuseOrderResponse> {

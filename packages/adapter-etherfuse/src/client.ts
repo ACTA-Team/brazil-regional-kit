@@ -6,12 +6,20 @@
  *   - the Authorization header is the RAW key, `Bearer ` breaks it
  *   - the order endpoint is `/ramp/order`, SINGULAR — `/ramp/orders` 404s
  *   - orders are not queryable for a few seconds after creation
+ *   - `/ramp/assets` needs blockchain + currency + wallet, all three
+ *   - onboarding needs a bankAccountId you generate, and returns
+ *     `presigned_url` in snake case
+ *   - a quote response carries its OWN quoteId; orders must use that one
+ *
+ * The request and response shapes here were captured against the live sandbox
+ * rather than taken from documentation, because several of them differ.
  */
 
 import { RampError } from '@brk/ramp-core';
 import type {
   EtherfuseApi,
   EtherfuseAsset,
+  EtherfuseAssetsQuery,
   EtherfuseOnboardingRequest,
   EtherfuseOnboardingResponse,
   EtherfuseOrderRequest,
@@ -117,23 +125,35 @@ export class EtherfuseHttpClient implements EtherfuseApi {
   }
 
   private toError(status: number, payload: unknown, method: string, path: string): RampError {
+    /*
+     * Etherfuse answers some failures with a JSON object and others with a bare
+     * string — `Proxy account not found` arrives as plain text. Reading only the
+     * JSON fields turns the single most useful diagnostic in the whole
+     * integration ("your customer has not finished KYC") into an anonymous 400.
+     */
+    const body = payload as { message?: string; error?: string; raw?: string };
     const message =
-      (payload as { message?: string; error?: string })?.message ??
-      (payload as { error?: string })?.error ??
+      body?.message ??
+      body?.error ??
+      body?.raw?.trim() ??
       `Etherfuse ${method} ${path} returned ${status}`;
 
     const code =
       status === 401 || status === 403
         ? 'AUTH_FAILED'
-        : status === 404
-          ? 'INVALID_REQUEST'
-          : status === 409 || status === 422
-            ? 'INVALID_ORDER_STATE'
-            : status >= 500
-              ? 'ANCHOR_UNAVAILABLE'
-              : /expir/i.test(message)
-                ? 'QUOTE_EXPIRED'
-                : 'INVALID_REQUEST';
+        : // The customer exists but has not finished onboarding. Distinct from a
+          // malformed request, and the only fix is completing the KYC form.
+          /proxy account not found/i.test(message)
+          ? 'KYC_REQUIRED'
+          : status === 404
+            ? 'INVALID_REQUEST'
+            : status === 409 || status === 422
+              ? 'INVALID_ORDER_STATE'
+              : status >= 500
+                ? 'ANCHOR_UNAVAILABLE'
+                : /expir/i.test(message)
+                  ? 'QUOTE_EXPIRED'
+                  : 'INVALID_REQUEST';
 
     return new RampError({ code, anchorId: 'etherfuse', message, status, raw: payload });
   }
@@ -158,10 +178,17 @@ export class EtherfuseHttpClient implements EtherfuseApi {
     return this.request('POST', ENDPOINTS.regenerateTx(orderId), {});
   }
 
-  async listAssets(): Promise<EtherfuseAsset[]> {
+  async listAssets(query: EtherfuseAssetsQuery): Promise<EtherfuseAsset[]> {
+    // All three parameters are mandatory — the endpoint 400s on any omission,
+    // and reports the wallet's balance per asset, which is why it wants one.
+    const params = new URLSearchParams({
+      blockchain: query.blockchain,
+      currency: query.currency,
+      wallet: query.wallet,
+    });
     const payload = await this.request<EtherfuseAsset[] | { assets?: EtherfuseAsset[] }>(
       'GET',
-      ENDPOINTS.assets,
+      `${ENDPOINTS.assets}?${params}`,
     );
     return Array.isArray(payload) ? payload : (payload.assets ?? []);
   }

@@ -1,24 +1,64 @@
 {
-  "$comment": "Base rates and fee schedule for mock mode. These are placeholders shaped like the sandbox's own numbers; `pnpm fixtures:record` overwrites this file with values captured from the live Etherfuse sandbox. The UI always labels mock quotes as simulated, so nothing here is ever presented as a real market price.",
-  "recordedAt": null,
-  "source": "placeholder",
+  "$comment": "Rates captured from the live Etherfuse sandbox. The UI labels every mock quote as simulated regardless of how accurate these are.",
+  "recordedAt": "2026-08-03",
+  "source": "live-sandbox",
   "pairs": {
-    "BRL>TESOURO": { "rate": "0.9850000", "feeBps": 120 },
-    "TESOURO>BRL": { "rate": "0.9820000", "feeBps": 150 },
-    "MXN>CETES": { "rate": "0.9880000", "feeBps": 120 },
-    "CETES>MXN": { "rate": "0.9850000", "feeBps": 150 },
-    "TESOURO>USDC": { "rate": "0.1845000", "feeBps": 30 },
-    "USDC>TESOURO": { "rate": "5.4200000", "feeBps": 30 },
-    "USDC>MXN": { "rate": "17.2000000", "feeBps": 140 },
-    "USDC>BRL": { "rate": "5.3800000", "feeBps": 140 }
+    "BRL>TESOURO": {
+      "rate": "0.86206",
+      "feeBps": 20
+    },
+    "TESOURO>BRL": {
+      "rate": "1.1553",
+      "feeBps": 20
+    },
+    "BRL>USDC": {
+      "rate": "0.19621",
+      "feeBps": 20
+    },
+    "USDC>BRL": {
+      "rate": "5.07624716",
+      "feeBps": 20
+    },
+    "MXN>USDC": {
+      "rate": "0.0575983",
+      "feeBps": 20
+    },
+    "USDC>MXN": {
+      "rate": "17.2922462",
+      "feeBps": 20
+    },
+    "MXN>MEXE": {
+      "rate": "0.9900000",
+      "feeBps": 20
+    },
+    "MEXE>MXN": {
+      "rate": "1.0050000",
+      "feeBps": 20
+    }
   },
   "limits": {
-    "BRL": { "min": "10", "max": "20000" },
-    "MXN": { "min": "50", "max": "100000" },
-    "TESOURO": { "min": "10", "max": "20000" },
-    "USDC": { "min": "2", "max": "5000" }
+    "BRL": {
+      "min": "10",
+      "max": "20000"
+    },
+    "MXN": {
+      "min": "50",
+      "max": "500"
+    },
+    "TESOURO": {
+      "min": "10",
+      "max": "20000"
+    },
+    "USDC": {
+      "min": "2",
+      "max": "5000"
+    },
+    "MEXE": {
+      "min": "5",
+      "max": "500"
+    }
   },
-  "quoteTtlSeconds": 45,
+  "quoteTtlSeconds": 120,
   "pix": {
     "$comment": "Non-routable sandbox PIX key. Structurally valid BR Codes, payable by nobody.",
     "key": "sandbox@brazil-regional-kit.demo",

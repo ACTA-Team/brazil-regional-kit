@@ -1,23 +1,49 @@
 {
-  "$comment": "Shape of GET /ramp/assets. Overwritten by `pnpm fixtures:record` with the sandbox's real catalogue — that recording is also what answers whether MXN/CETES is available for an off-ramp.",
-  "recordedAt": null,
-  "source": "placeholder",
+  "$comment": "Captured from the live Etherfuse sandbox: GET /ramp/assets?blockchain=stellar&currency={BRL,MXN}&wallet=G… All three query parameters are mandatory. Note that every stablebond shares one issuer account, and that assets whose `currency` is null are returned regardless of the currency asked for.",
+  "recordedAt": "2026-08-03",
+  "source": "live-sandbox",
   "assets": [
     {
-      "code": "TESOURO",
-      "blockchain": "stellar",
-      "issuer": "GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
-      "currency": "BRL",
-      "country": "BR",
-      "directions": ["onramp", "offramp"]
+      "symbol": "TESOURO",
+      "identifier": "TESOURO:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Etherfuse TESOURO",
+      "currency": "brl",
+      "balance": "0"
     },
     {
-      "code": "CETES",
-      "blockchain": "stellar",
-      "issuer": null,
-      "currency": "MXN",
-      "country": "MX",
-      "directions": ["onramp", "offramp"]
+      "symbol": "MEXe",
+      "identifier": "MEXe:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Etherfuse MEXe",
+      "currency": "mxn",
+      "balance": "0"
+    },
+    {
+      "symbol": "CETES",
+      "identifier": "CETES:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Cetes",
+      "currency": "mxn",
+      "balance": "0"
+    },
+    {
+      "symbol": "KTB",
+      "identifier": "KTB:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Etherfuse KTB",
+      "currency": null,
+      "balance": null
+    },
+    {
+      "symbol": "CZERO",
+      "identifier": "CZERO:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Etherfuse CETES ZERO",
+      "currency": null,
+      "balance": null
+    },
+    {
+      "symbol": "USTRY",
+      "identifier": "USTRY:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4",
+      "name": "Etherfuse USTRY",
+      "currency": null,
+      "balance": null
     }
   ]
 }

@@ -11,7 +11,12 @@
 import {
   RampError,
   TESOURO,
+  TESOURO_ISSUER_TESTNET,
   BRL,
+  MXN,
+  USDC,
+  stellarAsset,
+  applyBps,
   isFiat,
   isNative,
   parseAsset,
@@ -101,11 +106,40 @@ export interface EtherfuseAdapterConfig {
   /** Inject a client directly (tests, fixture recording). */
   api?: EtherfuseApi;
   mockOptions?: EtherfuseMockOptions;
+  /** Shown to the customer inside the anchor's KYC flow. */
+  userEmail?: string;
+  userDisplayName?: string;
   /** Overridden after `GET /ramp/assets` confirms what the sandbox serves. */
   corridors?: AdapterCapabilities['corridors'];
 }
 
+/**
+ * Etherfuse issues every stablebond from one account, so the Mexican assets
+ * share TESOURO's issuer. All of these were confirmed against the live sandbox.
+ */
+export const MEXE = stellarAsset('MEXe', TESOURO_ISSUER_TESTNET);
+export const CETES = stellarAsset('CETES', TESOURO_ISSUER_TESTNET);
+
+/**
+ * Etherfuse ramps straight to USDC — same Circle issuer this kit pins
+ * everywhere else. That matters more than it looks: it means BRL reaches the
+ * asset a remittance actually travels in without a DEX hop, and the corridor is
+ * one anchor end to end rather than anchor → order book → anchor.
+ *
+ * The DEX swap in `stablecoin-kit` is still there and still real; it is now the
+ * fallback for pairs no anchor serves, rather than a required leg.
+ */
+const ETHERFUSE_USDC = USDC;
+
+/**
+ * One side is always fiat. The sandbox rejects an on-chain-to-on-chain quote
+ * outright — `expected MXN or BRL` — because this is a ramp, not an exchange.
+ *
+ * Sandbox on-ramps from MXN are capped at 500; over that it returns
+ * `SandboxAmountExceeded`.
+ */
 const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
+  // Brazil · PIX
   {
     direction: 'onramp',
     sellAsset: BRL,
@@ -123,6 +157,62 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
     rail: 'PIX',
     min: '10',
     max: '20000',
+  },
+  {
+    direction: 'onramp',
+    sellAsset: BRL,
+    buyAsset: ETHERFUSE_USDC,
+    country: 'BR',
+    rail: 'PIX',
+    min: '10',
+    max: '20000',
+  },
+  {
+    direction: 'offramp',
+    sellAsset: ETHERFUSE_USDC,
+    buyAsset: BRL,
+    country: 'BR',
+    rail: 'PIX',
+    min: '2',
+    max: '5000',
+  },
+
+  // Mexico · SPEI
+  {
+    direction: 'onramp',
+    sellAsset: MXN,
+    buyAsset: MEXE,
+    country: 'MX',
+    rail: 'SPEI',
+    min: '50',
+    max: '500',
+  },
+  {
+    direction: 'offramp',
+    sellAsset: MEXE,
+    buyAsset: MXN,
+    country: 'MX',
+    rail: 'SPEI',
+    min: '5',
+    max: '500',
+  },
+  {
+    direction: 'onramp',
+    sellAsset: MXN,
+    buyAsset: ETHERFUSE_USDC,
+    country: 'MX',
+    rail: 'SPEI',
+    min: '50',
+    max: '500',
+  },
+  {
+    direction: 'offramp',
+    sellAsset: ETHERFUSE_USDC,
+    buyAsset: MXN,
+    country: 'MX',
+    rail: 'SPEI',
+    min: '2',
+    max: '5000',
   },
 ];
 
@@ -209,13 +299,19 @@ export class EtherfuseAdapter implements RampAdapter {
       throw toRampError(e, ETHERFUSE_ID);
     }
 
-    this.context.set(quoteId, { req, direction });
+    /*
+     * The server issues its own quote id and ignores the one we sent. Orders
+     * that reference our id fail with an unknown quote, so the response's id is
+     * the one that matters — and it is what we key the context off.
+     */
+    const resolvedId = raw.quoteId ?? quoteId;
+    this.context.set(resolvedId, { req, direction });
 
     const sellAmount = raw.sourceAmount ?? req.sellAmount;
-    const buyAmount = raw.targetAmount ?? '0';
+    const buyAmount = raw.destinationAmount ?? '0';
 
     return {
-      id: raw.quoteId ?? quoteId,
+      id: resolvedId,
       anchorId: ETHERFUSE_ID,
       anchorName: ETHERFUSE_NAME,
       mode: this.api.mode,
@@ -224,13 +320,14 @@ export class EtherfuseAdapter implements RampAdapter {
       buyAsset: req.buyAsset,
       sellAmount,
       buyAmount,
-      price: raw.rate ?? safeDivide(buyAmount, sellAmount),
+      // `exchangeRate` is post-fee, which is the rate a user actually gets.
+      price: raw.exchangeRate ?? safeDivide(buyAmount, sellAmount),
       fee: {
-        amount: raw.fee ?? '0',
+        amount: raw.feeAmount ?? feeFromBps(sellAmount, raw.feeBps) ?? '0',
         asset: req.sellAsset,
       },
-      // Etherfuse quotes are short-lived; when they omit an expiry we assume the
-      // shortest plausible window rather than the longest.
+      // Sandbox quotes live about two minutes. When the anchor omits an expiry
+      // we assume the shortest plausible window rather than the longest.
       expiresAt: raw.expiresAt ?? new Date(startedAt + 30_000).toISOString(),
       latencyMs: Date.now() - startedAt,
       firmness: 'firm',
@@ -298,15 +395,37 @@ export class EtherfuseAdapter implements RampAdapter {
     }
   }
 
+  /**
+   * KYC onboarding. Etherfuse needs the bank account id up front — it is not
+   * handed back afterwards — and returns the URL under `presigned_url`.
+   */
   async getInteractiveUrl(req: QuoteRequest): Promise<string> {
-    const customerId = req.customerId ?? this.config.customerId ?? crypto.randomUUID();
-    const res = await this.api.createOnboardingUrl({ customerId });
-    return res.url;
+    const res = await this.api.createOnboardingUrl({
+      customerId: req.customerId ?? this.config.customerId ?? crypto.randomUUID(),
+      bankAccountId: this.config.bankAccountId ?? crypto.randomUUID(),
+      publicKey: assertClassicAddress(req.account ?? ''),
+      blockchain: 'stellar',
+      userInfo: {
+        email: this.config.userEmail ?? 'sandbox@brazil-regional-kit.demo',
+        displayName: this.config.userDisplayName ?? 'BRK Sandbox',
+      },
+    });
+
+    const url = res.presigned_url ?? res.url;
+    if (!url) {
+      throw new RampError({
+        code: 'ANCHOR_UNAVAILABLE',
+        anchorId: ETHERFUSE_ID,
+        message: 'Etherfuse returned no onboarding URL.',
+        raw: res,
+      });
+    }
+    return url;
   }
 
-  /** What the sandbox actually serves — the source of truth for MXN support. */
-  listAssets() {
-    return this.api.listAssets();
+  /** What the sandbox actually serves for a currency, with per-wallet balances. */
+  listAssets(currency: string, wallet: string) {
+    return this.api.listAssets({ blockchain: 'stellar', currency, wallet });
   }
 
   // ── Mapping ─────────────────────────────────────────────────────────────────
@@ -335,7 +454,7 @@ export class EtherfuseAdapter implements RampAdapter {
       sellAsset: req?.sellAsset ?? (resolvedDirection === 'onramp' ? BRL : TESOURO),
       buyAsset: req?.buyAsset ?? (resolvedDirection === 'onramp' ? TESOURO : BRL),
       sellAmount: raw.sourceAmount ?? '0',
-      buyAmount: raw.targetAmount ?? '0',
+      buyAmount: raw.destinationAmount ?? '0',
 
       paymentInstructions: pixCode
         ? {
@@ -367,6 +486,16 @@ function safeDivide(a: string, b: string): string {
     return divide(a, b);
   } catch {
     return '0';
+  }
+}
+
+/** Some responses carry only `feeBps`; recover the absolute amount from it. */
+function feeFromBps(sellAmount: string, feeBps?: string): string | undefined {
+  if (!feeBps) return undefined;
+  try {
+    return applyBps(sellAmount, Number(feeBps));
+  } catch {
+    return undefined;
   }
 }
 
