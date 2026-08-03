@@ -47,7 +47,7 @@
     "@brk/stablecoin-kit": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@stellar/stellar-sdk": "^16.2.0",
-    "@types/node": "^22.10.2",
+    "@types/node": "^26.1.2",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
