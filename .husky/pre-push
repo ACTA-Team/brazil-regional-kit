@@ -1,0 +1,3 @@
+# The full gate, before anything reaches a remote. Slower than pre-commit on
+# purpose: a broken push costs everyone, a slow push costs you.
+pnpm typecheck && pnpm test
