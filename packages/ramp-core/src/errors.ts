@@ -43,7 +43,23 @@ export interface RampErrorOptions {
   cause?: unknown;
 }
 
+/**
+ * Structural marker, checked instead of relying on `instanceof`.
+ *
+ * A bundler can end up with two copies of this module — one compiled into a
+ * Next server bundle, one from the package — and then `err instanceof RampError`
+ * is false for an error this very file threw. The failure is quiet and nasty:
+ * the error keeps its message, so it looks fine, but its `code` is replaced
+ * with `UNKNOWN` and every caller branching on the code silently stops working.
+ *
+ * `Symbol.for` is global across realms and copies, so this survives that.
+ */
+const RAMP_ERROR_BRAND = Symbol.for('brk.RampError');
+
 export class RampError extends Error {
+  /** @internal */
+  readonly [RAMP_ERROR_BRAND] = true;
+
   readonly code: RampErrorCode;
   readonly anchorId?: string;
   readonly retryable: boolean;
@@ -80,7 +96,8 @@ const DEFAULT_RETRYABLE = new Set<RampErrorCode>([
 ]);
 
 export function isRampError(e: unknown): e is RampError {
-  return e instanceof RampError;
+  // The brand first — `instanceof` is the one that breaks across module copies.
+  return e instanceof RampError || (typeof e === 'object' && e !== null && RAMP_ERROR_BRAND in e);
 }
 
 /** Wrap an unknown thrown value so callers always get a RampError. */
