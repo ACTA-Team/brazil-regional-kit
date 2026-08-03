@@ -83,16 +83,46 @@ async function main() {
   const bankAccountId = process.env.ETHERFUSE_BANK_ACCOUNT_ID || randomUUID();
 
   heading('POST /ramp/onboarding-url');
-  const onboarding = await client.createOnboardingUrl({
-    customerId,
-    bankAccountId,
-    publicKey: probeWallet,
-    blockchain: 'stellar',
-    userInfo: {
-      email: process.env.ETHERFUSE_USER_EMAIL ?? 'sandbox@brazil-regional-kit.demo',
-      displayName: process.env.ETHERFUSE_USER_NAME ?? 'BRK Sandbox',
-    },
-  });
+
+  let onboarding;
+  try {
+    onboarding = await client.createOnboardingUrl({
+      customerId,
+      bankAccountId,
+      publicKey: probeWallet,
+      blockchain: 'stellar',
+      userInfo: {
+        email: process.env.ETHERFUSE_USER_EMAIL ?? 'sandbox@brazil-regional-kit.demo',
+        displayName: process.env.ETHERFUSE_USER_NAME ?? 'BRK Sandbox',
+      },
+    });
+  } catch (e) {
+    /*
+     * A 409 means this wallet was already onboarded — most often because the
+     * KYC was completed through Etherfuse's own portal rather than through a
+     * link this script produced. The customer id we would otherwise have no way
+     * of knowing is right there in the message: "…see org: <uuid>".
+     *
+     * Recovering it here saves the alternative, which is onboarding a second
+     * customer against the same wallet and wondering why orders still fail.
+     */
+    const message = (e as Error).message;
+    const existing = /see org:\s*([0-9a-f-]{36})/i.exec(message)?.[1];
+
+    if (!existing) throw e;
+
+    console.log(`\n  ${green('This wallet is already onboarded.')}\n`);
+    console.log(`  ${bold('Use these — they are the ids Etherfuse has on file:')}\n`);
+    console.log(`     ETHERFUSE_CUSTOMER_ID=${existing}`);
+    console.log(`     ETHERFUSE_BANK_ACCOUNT_ID=${bankAccountId}\n`);
+    console.log(
+      dim(
+        '  The bank account id above is only a guess if you did the KYC elsewhere.\n' +
+          '  Run `pnpm diagnose` — if orders work, it was right.\n',
+      ),
+    );
+    return;
+  }
 
   // Snake case here, camel case everywhere else in the API.
   const url = onboarding.presigned_url ?? onboarding.url;
