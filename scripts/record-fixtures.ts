@@ -103,7 +103,15 @@ async function main() {
   const recordedAt = new Date().toISOString();
 
   // ── Assets ─────────────────────────────────────────────────────────────────
-  const assets = await client.listAssets();
+  const assets = (
+    await Promise.all(
+      ['BRL', 'MXN'].map((currency) =>
+        client
+          .listAssets({ blockchain: 'stellar', currency, wallet: PROBE_ACCOUNT })
+          .catch(() => []),
+      ),
+    )
+  ).flat();
   writeFileSync(
     join(FIXTURES, 'assets.json'),
     `${JSON.stringify(
@@ -141,14 +149,14 @@ async function main() {
       });
 
       const source = Number(response.sourceAmount ?? probe.amount);
-      const target = Number(response.targetAmount ?? 0);
-      const fee = Number(response.fee ?? 0);
+      const target = Number(response.destinationAmount ?? 0);
+      const fee = Number(response.feeAmount ?? 0);
 
       // Recover the fee as basis points of the source amount, so the simulator
       // scales it to any amount instead of replaying one fixed number.
       const feeBps = source > 0 ? Math.round((fee / source) * 10_000) : 0;
       const net = source - fee;
-      const rate = response.rate ?? (net > 0 ? (target / net).toFixed(7) : '0');
+      const rate = response.exchangeRate ?? (net > 0 ? (target / net).toFixed(7) : '0');
 
       pairs[probe.key] = { rate: String(rate), feeBps };
       rawQuotes[probe.key] = sanitize(response);
