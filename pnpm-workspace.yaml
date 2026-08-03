@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+# esbuild powers `tsx` (the setup/fixture/seed scripts); sharp powers Next's
+# image optimizer. Both are trusted, standard toolchain dependencies.
+allowBuilds:
+  esbuild: true
+  sharp: true

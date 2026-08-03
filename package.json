@@ -1,0 +1,62 @@
+{
+  "name": "brazil-regional-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open ramp kit for Brazil and LATAM on Stellar: PIX on/off-ramp, multi-anchor router, regional stablecoin toolkit and x402 payments.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "dev": "pnpm --filter @brk/hub dev",
+    "build": "pnpm build:packages && pnpm --filter @brk/hub build",
+    "build:packages": "pnpm --filter \"./packages/*\" -r build",
+    "start": "pnpm --filter @brk/hub start",
+    "sample": "pnpm --filter @brk/sample-remit start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r --parallel exec tsc --noEmit",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "setup:etherfuse": "tsx scripts/etherfuse-setup.ts",
+    "fixtures:record": "tsx scripts/record-fixtures.ts",
+    "seed:liquidity": "tsx scripts/seed-liquidity.ts",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@brk/adapter-etherfuse": "workspace:*",
+    "@brk/adapter-mocks": "workspace:*",
+    "@brk/adapter-sep": "workspace:*",
+    "@brk/ramp-core": "workspace:*",
+    "@brk/ramp-router": "workspace:*",
+    "@brk/stablecoin-kit": "workspace:*",
+    "@eslint/js": "^10.0.1",
+    "@stellar/stellar-sdk": "^16.2.0",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
+    "tsup": "^8.5.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10"
+  }
+}

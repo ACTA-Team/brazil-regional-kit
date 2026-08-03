@@ -1,0 +1,24 @@
+node_modules/
+.pnpm-store/
+dist/
+.next/
+out/
+build/
+coverage/
+
+# Environment — never commit real keys
+.env
+.env.local
+.env.*.local
+
+# Generated demo state
+.demo/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
