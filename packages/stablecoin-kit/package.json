@@ -1,0 +1,53 @@
+{
+  "name": "@brk/stablecoin-kit",
+  "version": "0.1.0",
+  "description": "Regional stablecoin toolkit for Stellar: wallet, trustlines, balances, DEX swaps, memo-safe payments and x402 machine payments.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./x402": "./src/x402.ts"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup src/index.ts src/x402.ts --format esm --dts --clean --sourcemap"
+  },
+  "dependencies": {
+    "@brk/ramp-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@stellar/freighter-api": ">=6",
+    "@stellar/stellar-sdk": ">=16"
+  },
+  "peerDependenciesMeta": {
+    "@stellar/freighter-api": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@stellar/freighter-api": "^6.0.1",
+    "@stellar/stellar-sdk": "^16.2.0",
+    "typescript": "^5.7.2",
+    "tsup": "^8.5.0"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./x402": {
+        "types": "./dist/x402.d.ts",
+        "import": "./dist/x402.js"
+      }
+    }
+  }
+}
