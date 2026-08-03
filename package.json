@@ -26,7 +26,8 @@
     "setup:etherfuse": "tsx scripts/etherfuse-setup.ts",
     "fixtures:record": "tsx scripts/record-fixtures.ts",
     "seed:liquidity": "tsx scripts/seed-liquidity.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "diagnose": "tsx scripts/doctor.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
