@@ -142,7 +142,9 @@ async function main() {
       for (const asset of needsTrust) b.addOperation(Operation.changeTrust({ asset }));
       return b;
     });
-    console.log(`  ${green('✓')} funder trustlines: ${needsTrust.map((a) => a.getCode()).join(', ')}`);
+    console.log(
+      `  ${green('✓')} funder trustlines: ${needsTrust.map((a) => a.getCode()).join(', ')}`,
+    );
   }
 
   // ── Buy on the open books and deliver ─────────────────────────────────────
