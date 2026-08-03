@@ -17,6 +17,22 @@ import { useWallet } from '@/lib/wallet';
 
 const ANCHOR_ID = 'etherfuse';
 
+/**
+ * Etherfuse refuses a second pending order for the same bank account and
+ * amount, and offers no way to cancel the first. The only escape is a different
+ * amount, so this is worth detecting specifically rather than showing the raw
+ * anchor message and leaving the user stuck on a dead end.
+ */
+function isDuplicateOrder(error: { code?: string; message?: string }): boolean {
+  return error.code === 'INVALID_ORDER_STATE' && /already exists/i.test(error.message ?? '');
+}
+
+/** Nudge by a non-round amount so the retry cannot collide again. */
+function bumpAmount(current: string): string {
+  const value = Number(current);
+  return Number.isFinite(value) && value > 0 ? (value + 1 + Math.random()).toFixed(2) : '137.50';
+}
+
 export default function OnRampPage() {
   const { t, tag } = useI18n();
   const { address, status: walletStatus, refreshBalances } = useWallet();
@@ -56,12 +72,29 @@ export default function OnRampPage() {
         <Alert
           tone="error"
           action={
-            <button type="button" onClick={flow.clearError} className="btn btn-ghost text-xs">
-              {t('common.cancel')}
+            <button
+              type="button"
+              onClick={() => {
+                flow.clearError();
+                // A duplicate-order rejection is keyed on the amount, and the
+                // anchor has no cancel endpoint — so nudging the amount is the
+                // only thing that actually clears it. Do it for the user rather
+                // than leaving them to guess.
+                if (isDuplicateOrder(error)) {
+                  setAmount((current) => bumpAmount(current));
+                  flow.reset();
+                }
+              }}
+              className="btn btn-ghost text-xs"
+            >
+              {isDuplicateOrder(error) ? t('onramp.tryAnotherAmount') : t('common.cancel')}
             </button>
           }
         >
           {error.message}
+          {isDuplicateOrder(error) ? (
+            <span className="mt-1 block text-xs opacity-80">{t('onramp.duplicateHint')}</span>
+          ) : null}
         </Alert>
       ) : null}
 

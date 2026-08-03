@@ -73,12 +73,50 @@ export interface EtherfuseOrderRequest {
   quoteId: string;
 }
 
+/**
+ * `POST /ramp/order` wraps its payload in a direction key — `{ onramp: {…} }`
+ * or `{ offramp: {…} }` — while `GET /ramp/order/{id}` returns the object flat.
+ * Two shapes for the same resource; `unwrapOrder` in the client normalizes them.
+ */
+export interface EtherfuseOrderEnvelope {
+  onramp?: EtherfuseOrderResponse;
+  offramp?: EtherfuseOrderResponse;
+}
+
 export interface EtherfuseOrderResponse {
   orderId: string;
   quoteId?: string;
-  status: string;
+  /** Absent on the create response; fetch the order to learn it. */
+  status?: string;
+  /** `onramp` | `offramp`, on the fetched order. */
+  orderType?: string;
+
+  /** The fetched order names it `amountInFiat`; the create response `depositAmount`. */
+  amountInFiat?: string;
+  depositAmount?: string;
   sourceAmount?: string;
   destinationAmount?: string;
+
+  /** Rate and fee, on the fetched order. */
+  exchangeRate?: string;
+  feeBps?: number | string;
+  feeAmountInFiat?: string;
+
+  sourceAsset?: string;
+  targetAsset?: string;
+
+  /**
+   * Where to send the fiat. Which of these is populated depends on the bank
+   * account the customer onboarded: a Brazilian one yields PIX details, a
+   * Mexican one a CLABE. An empty `depositClabe` with `depositBankName: "STP"`
+   * on a BRL order means no Brazilian account was ever added.
+   */
+  depositClabe?: string;
+  depositBankName?: string;
+  depositAccountHolder?: string;
+
+  /** Anchor-hosted page for this order — handy to link from a UI. */
+  statusPage?: string;
 
   /** On-ramp: how the customer pays. Field naming varies; we read defensively. */
   pixCode?: string;

@@ -21,12 +21,26 @@ import type {
   EtherfuseAsset,
   EtherfuseAssetsQuery,
   EtherfuseOnboardingRequest,
+  EtherfuseOrderEnvelope,
   EtherfuseOnboardingResponse,
   EtherfuseOrderRequest,
   EtherfuseOrderResponse,
   EtherfuseQuoteRequest,
   EtherfuseQuoteResponse,
 } from './api';
+
+/**
+ * `POST /ramp/order` answers `{ onramp: {…} }` or `{ offramp: {…} }`, while
+ * `GET /ramp/order/{id}` answers the same resource flat. Reading the create
+ * response as if it were flat yields an order with `undefined` everywhere —
+ * which looks like a broken anchor and is really a shape mismatch.
+ */
+export function unwrapOrder(
+  payload: EtherfuseOrderEnvelope | EtherfuseOrderResponse,
+): EtherfuseOrderResponse {
+  const envelope = payload as EtherfuseOrderEnvelope;
+  return envelope.onramp ?? envelope.offramp ?? (payload as EtherfuseOrderResponse);
+}
 
 export const ETHERFUSE_SANDBOX_URL = 'https://api.sand.etherfuse.com';
 export const ETHERFUSE_PRODUCTION_URL = 'https://api.etherfuse.com';
@@ -166,16 +180,21 @@ export class EtherfuseHttpClient implements EtherfuseApi {
     return this.request('POST', ENDPOINTS.quote, req);
   }
 
-  createOrder(req: EtherfuseOrderRequest): Promise<EtherfuseOrderResponse> {
-    return this.request('POST', ENDPOINTS.order, req);
+  async createOrder(req: EtherfuseOrderRequest): Promise<EtherfuseOrderResponse> {
+    const payload = await this.request<EtherfuseOrderEnvelope | EtherfuseOrderResponse>(
+      'POST',
+      ENDPOINTS.order,
+      req,
+    );
+    return unwrapOrder(payload);
   }
 
-  getOrder(orderId: string): Promise<EtherfuseOrderResponse> {
-    return this.request('GET', ENDPOINTS.orderById(orderId));
+  async getOrder(orderId: string): Promise<EtherfuseOrderResponse> {
+    return unwrapOrder(await this.request('GET', ENDPOINTS.orderById(orderId)));
   }
 
-  regenerateTx(orderId: string): Promise<EtherfuseOrderResponse> {
-    return this.request('POST', ENDPOINTS.regenerateTx(orderId), {});
+  async regenerateTx(orderId: string): Promise<EtherfuseOrderResponse> {
+    return unwrapOrder(await this.request('POST', ENDPOINTS.regenerateTx(orderId), {}));
   }
 
   async listAssets(query: EtherfuseAssetsQuery): Promise<EtherfuseAsset[]> {
@@ -193,11 +212,11 @@ export class EtherfuseHttpClient implements EtherfuseApi {
     return Array.isArray(payload) ? payload : (payload.assets ?? []);
   }
 
-  simulateFiatReceived(orderId: string): Promise<EtherfuseOrderResponse> {
-    return this.request('POST', ENDPOINTS.fiatReceived, { orderId });
+  async simulateFiatReceived(orderId: string): Promise<EtherfuseOrderResponse> {
+    return unwrapOrder(await this.request('POST', ENDPOINTS.fiatReceived, { orderId }));
   }
 
-  simulateCryptoReceived(orderId: string): Promise<EtherfuseOrderResponse> {
-    return this.request('POST', ENDPOINTS.cryptoReceived, { orderId });
+  async simulateCryptoReceived(orderId: string): Promise<EtherfuseOrderResponse> {
+    return unwrapOrder(await this.request('POST', ENDPOINTS.cryptoReceived, { orderId }));
   }
 }

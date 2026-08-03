@@ -91,6 +91,17 @@ async function main() {
     });
     const probeWallet = wallet ?? 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4';
 
+    /*
+     * Etherfuse rejects a second pending order for the same bank account AND
+     * amount, so probing with a round number like 500 collides with whatever
+     * the user is doing in the UI and leaves an un-cancellable order sitting in
+     * their way — there is no cancel endpoint. An odd, sub-minimum-ish amount
+     * nobody would type by hand keeps this check out of the way.
+     */
+    const probeAmount = `${11 + Math.floor(Math.random() * 9)}.${String(
+      Math.floor(Math.random() * 90) + 10,
+    )}`;
+
     let quoteId: string | undefined;
     try {
       const quote = await client.quote({
@@ -103,7 +114,7 @@ async function main() {
           sourceAsset: 'BRL',
           targetAsset: `TESOURO:${TESOURO_ISSUER_TESTNET}`,
         },
-        sourceAmount: '500',
+        sourceAmount: probeAmount,
       });
       quoteId = quote.quoteId;
       report(
@@ -133,14 +144,22 @@ async function main() {
       } catch (e) {
         const message = (e as Error).message;
         const pending = /proxy account not found/i.test(message);
-        report(
-          pending ? 'fail' : 'warn',
-          'KYC / orders',
-          pending ? red('not finished') : dim(message.slice(0, 60)),
-          pending
-            ? 'Open the URL from `pnpm setup:etherfuse` and complete the KYC form'
-            : undefined,
-        );
+        // "An order already exists" is the anchor confirming orders work — it
+        // got far enough to check for duplicates, which needs a real customer.
+        const alreadyOrdered = /already exists/i.test(message);
+
+        if (alreadyOrdered) {
+          report('ok', 'KYC / orders', green('complete — real orders work'));
+        } else {
+          report(
+            pending ? 'fail' : 'warn',
+            'KYC / orders',
+            pending ? red('not finished') : dim(message.slice(0, 60)),
+            pending
+              ? 'Open the URL from `pnpm setup:etherfuse` and complete the KYC form'
+              : undefined,
+          );
+        }
       }
     }
   }

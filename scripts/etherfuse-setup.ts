@@ -16,11 +16,59 @@
 
 import { randomUUID } from 'node:crypto';
 import { EtherfuseHttpClient, ETHERFUSE_SANDBOX_URL } from '@brk/adapter-etherfuse';
-import { bold, cyan, dim, green, heading, loadEnv, requireEnv, yellow } from './lib/env';
+import { bold, cyan, dim, green, heading, loadEnv, red, requireEnv, yellow } from './lib/env';
 
 loadEnv();
 
 const force = process.argv.includes('--force');
+
+/**
+ * The KYC flow emails a verification code, so this address has to be a real
+ * inbox you can open. There is deliberately no default: a placeholder like
+ * `sandbox@example.demo` sails through the API and then dead-ends at
+ * "Invalid email address" on the anchor's own form, which is a confusing place
+ * to discover the problem.
+ */
+function requireUserEmail(): string {
+  const email = process.env.ETHERFUSE_USER_EMAIL;
+
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    console.error(
+      `\n  ${red('ETHERFUSE_USER_EMAIL must be a real address you can read.')}\n\n` +
+        `  Etherfuse emails a verification code during KYC, so a placeholder\n` +
+        `  domain fails at the last step. Add to ${bold('.env.local')}:\n\n` +
+        `     ETHERFUSE_USER_EMAIL=you@example.com\n` +
+        `     ETHERFUSE_USER_NAME=Your Name\n`,
+    );
+    process.exit(1);
+  }
+
+  return email;
+}
+/**
+ * Presigned onboarding links expire in about fifteen minutes. `--url` mints a
+ * fresh one against the ids already saved, which is what you want after the
+ * first link goes stale — `--force` would issue a NEW customer instead and
+ * orphan everything created so far.
+ */
+const urlOnly = process.argv.includes('--url');
+
+/**
+ * Add a SECOND bank account to the same customer — one per currency, since a
+ * Brazilian PIX account and a Mexican SPEI account are separate records.
+ *
+ *   pnpm setup:etherfuse --url --bank new          mint a fresh id
+ *   pnpm setup:etherfuse --url --bank <uuid>       reuse one you already have
+ *
+ * Reusing the id of an existing account is what produces "Bank account ID is
+ * already in use" halfway through the onboarding form.
+ */
+function requestedBankAccountId(): string | undefined {
+  const index = process.argv.indexOf('--bank');
+  if (index === -1) return undefined;
+  const value = process.argv[index + 1];
+  return !value || value === 'new' ? randomUUID() : value;
+}
 
 async function main() {
   heading('Etherfuse sandbox setup');
@@ -32,6 +80,34 @@ async function main() {
 
   const baseUrl = process.env.ETHERFUSE_BASE_URL ?? ETHERFUSE_SANDBOX_URL;
   const existingCustomer = process.env.ETHERFUSE_CUSTOMER_ID;
+
+  if (existingCustomer && urlOnly) {
+    const client = new EtherfuseHttpClient({ apiKey, baseUrl });
+    const wallet =
+      process.env.NEXT_PUBLIC_DEMO_RECIPIENT_ADDRESS ??
+      'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4';
+
+    const bankAccountId =
+      requestedBankAccountId() ?? process.env.ETHERFUSE_BANK_ACCOUNT_ID ?? randomUUID();
+
+    const fresh = await client.createOnboardingUrl({
+      customerId: existingCustomer,
+      bankAccountId,
+      publicKey: wallet,
+      blockchain: 'stellar',
+      userInfo: {
+        email: requireUserEmail(),
+        displayName: process.env.ETHERFUSE_USER_NAME ?? 'BRK Sandbox',
+      },
+    });
+
+    heading('Fresh onboarding link');
+    console.log(`\n  ${cyan(fresh.presigned_url ?? fresh.url ?? '(none returned)')}\n`);
+    console.log(`  ${dim('customer')}      ${existingCustomer}`);
+    console.log(`  ${dim('bankAccountId')} ${bold(bankAccountId)}`);
+    console.log(dim(`\n  Valid for about 15 minutes.\n`));
+    return;
+  }
 
   if (existingCustomer && !force) {
     console.log(
@@ -92,7 +168,7 @@ async function main() {
       publicKey: probeWallet,
       blockchain: 'stellar',
       userInfo: {
-        email: process.env.ETHERFUSE_USER_EMAIL ?? 'sandbox@brazil-regional-kit.demo',
+        email: requireUserEmail(),
         displayName: process.env.ETHERFUSE_USER_NAME ?? 'BRK Sandbox',
       },
     });

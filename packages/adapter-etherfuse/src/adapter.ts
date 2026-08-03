@@ -447,12 +447,25 @@ export class EtherfuseAdapter implements RampAdapter {
     req?: QuoteRequest,
     direction?: RampDirection,
   ): Order {
+    /*
+     * `orderType` is on the fetched order but not the create response, so fall
+     * back to what we remembered from the quote, then to the shape of the
+     * payload itself.
+     */
     const resolvedDirection: RampDirection =
-      direction ?? (raw.burnTransaction || raw.anchorAccount ? 'offramp' : 'onramp');
+      (raw.orderType === 'onramp' || raw.orderType === 'offramp' ? raw.orderType : undefined) ??
+      direction ??
+      (raw.burnTransaction || raw.anchorAccount ? 'offramp' : 'onramp');
 
-    const pixCode = raw.pixCode ?? raw.paymentInstructions?.pixCode;
     const nowIso = new Date().toISOString();
-    const status = mapStatus(raw.status);
+    // The create response omits `status` entirely; an order that exists but has
+    // not been fetched yet is `created`, not "unknown".
+    const status = mapStatus(raw.status ?? 'CREATED');
+
+    // The same amount is `amountInFiat` when fetched and `depositAmount` when
+    // created — and `sourceAmount` in the shape the docs describe.
+    const fiatAmount = raw.amountInFiat ?? raw.depositAmount ?? raw.sourceAmount ?? '0';
+    const pixCode = raw.pixCode ?? raw.paymentInstructions?.pixCode;
 
     return {
       id: raw.orderId,
@@ -465,7 +478,7 @@ export class EtherfuseAdapter implements RampAdapter {
 
       sellAsset: req?.sellAsset ?? (resolvedDirection === 'onramp' ? BRL : TESOURO),
       buyAsset: req?.buyAsset ?? (resolvedDirection === 'onramp' ? TESOURO : BRL),
-      sellAmount: raw.sourceAmount ?? '0',
+      sellAmount: resolvedDirection === 'onramp' ? fiatAmount : (raw.sourceAmount ?? fiatAmount),
       buyAmount: raw.destinationAmount ?? '0',
 
       paymentInstructions: pixCode
@@ -473,11 +486,26 @@ export class EtherfuseAdapter implements RampAdapter {
             type: 'pix',
             code: pixCode,
             qrImage: raw.pixQrCode ?? raw.paymentInstructions?.qrCode,
-            amount: raw.sourceAmount ?? '0',
+            amount: fiatAmount,
             currency: 'BRL',
             expiresAt: raw.paymentInstructions?.expiresAt,
           }
-        : undefined,
+        : /*
+           * No PIX payload, but the anchor named an account to deposit into.
+           * This is what a BRL order looks like when the customer only ever
+           * onboarded a Mexican bank account: `depositBankName` comes back as
+           * "STP" and there is nothing Brazilian to pay into.
+           */
+          raw.depositBankName
+          ? {
+              type: 'bank',
+              rail: raw.depositBankName,
+              reference: raw.depositClabe || undefined,
+              accountLabel: raw.depositAccountHolder,
+              amount: fiatAmount,
+              currency: req?.sellAsset === BRL ? 'BRL' : 'MXN',
+            }
+          : undefined,
 
       unsignedTxXdr: raw.burnTransaction ?? raw.stellarClaimTransaction,
       txHash: raw.transactionHash,

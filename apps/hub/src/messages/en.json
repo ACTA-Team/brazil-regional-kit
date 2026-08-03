@@ -1,14 +1,12 @@
 {
   "app.name": "Brazil Regional Kit",
   "app.tagline": "PIX on/off-ramps, a multi-anchor router and a regional stablecoin toolkit — on Stellar.",
-
   "nav.home": "Overview",
   "nav.onramp": "On-ramp",
   "nav.router": "Router",
   "nav.corridor": "Corridor",
   "nav.offramp": "Off-ramp",
   "nav.x402": "x402",
-
   "wallet.connect": "Connect wallet",
   "wallet.connecting": "Connecting…",
   "wallet.disconnect": "Disconnect",
@@ -17,12 +15,10 @@
   "wallet.wrongNetwork": "Your wallet is on {network}. Switch it to Testnet to continue.",
   "wallet.balances": "Balances",
   "wallet.noTrustline": "No trustline",
-
   "mode.live": "live",
   "mode.mock": "simulated",
   "mode.liveHint": "Talking to the anchor's real sandbox.",
   "mode.mockHint": "Replaying recorded fixtures — no network call to the anchor.",
-
   "common.amount": "Amount",
   "common.continue": "Continue",
   "common.back": "Back",
@@ -47,12 +43,10 @@
   "common.fund": "Fund with friendbot",
   "common.signing": "Waiting for your wallet…",
   "common.submitting": "Submitting to the network…",
-
   "home.title": "One kit for Brazilian and LATAM ramps",
   "home.subtitle": "Take Brazilian reais on-chain through PIX, move value across the region, and cash out to local rails — with live quotes from competing anchors at every step.",
   "home.cta.start": "Start the demo",
   "home.cta.docs": "Read the docs",
-
   "onramp.title": "Buy on-chain assets with PIX",
   "onramp.subtitle": "Pay in Brazilian reais, receive a Stellar asset in your wallet.",
   "onramp.amountLabel": "How much do you want to convert?",
@@ -65,7 +59,6 @@
   "onramp.trustlineNeeded": "Your account needs a trustline for this asset.",
   "onramp.trustlineSign": "Sign trustline",
   "onramp.done": "Done — the asset is in your wallet.",
-
   "stepper.onramp.created": "Order created",
   "stepper.onramp.action": "Waiting for the PIX payment",
   "stepper.onramp.processing": "Anchor is settling",
@@ -74,7 +67,6 @@
   "stepper.offramp.action": "Sign the return transaction",
   "stepper.offramp.processing": "Anchor is paying out",
   "stepper.offramp.completed": "BRL sent via PIX",
-
   "offramp.title": "Cash out to reais via PIX",
   "offramp.subtitle": "Send the asset back to the anchor and receive BRL in your bank account.",
   "offramp.createOrder": "Confirm and generate transaction",
@@ -91,7 +83,6 @@
   "offramp.insufficient": "Not enough {code} in this account. Run the on-ramp first, or fund the account.",
   "offramp.confirmPayout": "Confirm the anchor received it",
   "offramp.confirmHint": "Sandbox only: tells the anchor the transaction landed.",
-
   "router.title": "One API, every anchor",
   "router.subtitle": "The same request fans out to every anchor that serves this corridor. Quotes come back in parallel and are ranked by what you actually receive.",
   "router.compare": "Compare quotes",
@@ -113,7 +104,6 @@
   "router.timing": "{count} anchors consulted in parallel · {ms}ms",
   "router.autoRefresh": "Auto-refresh",
   "router.apiHint": "This whole table is one request:",
-
   "sep.title": "Speaking the standard: SEP-10, SEP-38, SEP-24",
   "sep.subtitle": "The table above uses unauthenticated SEP-38 prices — great for comparing anchors, but indicative. These three steps walk the rest of the protocol against SDF's live test anchor: authenticate, reserve a firm quote, then open the anchor's own interactive flow.",
   "sep.step1": "SEP-10 — authenticate",
@@ -128,7 +118,6 @@
   "sep.openInteractive": "Open the anchor's flow",
   "sep.expiresAt": "Expires",
   "sep.quoteId": "Reserved quote id",
-
   "corridor.title": "São Paulo → Mexico",
   "corridor.subtitle": "A full remittance corridor on a regional stablecoin: reais in, pesos out.",
   "corridor.step.swap": "Swap to USDC",
@@ -160,7 +149,6 @@
   "corridor.amountLabel": "How much do you want to send?",
   "corridor.noRecipient": "Enter the recipient's Stellar address.",
   "corridor.badRecipient": "That is not a Stellar account address (it should start with G).",
-
   "x402.title": "Machine payments with x402",
   "x402.subtitle": "The same regional stablecoin, paying for an API call over plain HTTP.",
   "x402.request": "Request the resource",
@@ -182,10 +170,11 @@
   "x402.reset": "Run it again",
   "x402.whyTitle": "Why this matters here",
   "x402.why": "An agent buying a Brazilian FX rate should be able to pay in a Brazilian asset. The guard is asset-agnostic, so pricing an endpoint in USDC, TESOURO or any regional stablecoin is a one-line change.",
-
   "anchors.status": "Anchor status",
   "anchors.etherfuse.note": "Live sandbox: quotes, orders, PIX simulation, on-chain settlement.",
   "anchors.sep.note": "Live: SEP-1 discovery and SEP-38 quotes from SDF's public test anchor.",
   "anchors.manteca.note": "Simulated — Manteca requires commercial onboarding. The adapter is production-shaped.",
-  "anchors.koywe.note": "Simulated — Koywe is not live in Brazil yet. The adapter is production-shaped."
+  "anchors.koywe.note": "Simulated — Koywe is not live in Brazil yet. The adapter is production-shaped.",
+  "onramp.tryAnotherAmount": "Try another amount",
+  "onramp.duplicateHint": "The anchor already has a pending order for this bank account and amount, and offers no way to cancel it. A different amount clears it."
 }
