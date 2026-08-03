@@ -1,0 +1,25 @@
+{
+  "name": "@brk/sample-remit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A second app that imports the kit — proof the packages work outside the hub they were written for.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@brk/adapter-etherfuse": "workspace:*",
+    "@brk/adapter-mocks": "workspace:*",
+    "@brk/adapter-sep": "workspace:*",
+    "@brk/ramp-core": "workspace:*",
+    "@brk/ramp-router": "workspace:*",
+    "@brk/stablecoin-kit": "workspace:*",
+    "@stellar/stellar-sdk": "^16.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
