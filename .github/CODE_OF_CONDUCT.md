@@ -35,7 +35,7 @@ commits — and whenever someone is representing the project in public.
 ## Enforcement
 
 Report unacceptable behaviour privately to the maintainers via
-[GitHub Security Advisories](../../security/advisories/new) or a direct message.
+[GitHub Security Advisories](https://github.com/ACTA-Team/brazil-regional-kit/security/advisories/new) or a direct message.
 Reports are handled confidentially.
 
 Maintainers may edit or remove contributions that violate this document, and

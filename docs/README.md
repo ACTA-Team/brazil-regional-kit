@@ -15,5 +15,4 @@ Package-level docs live next to the code:
 - [`packages/kit/router`](../packages/kit/router/README.md) — one API, many anchors
 - [`packages/anchors/etherfuse`](../packages/anchors/etherfuse/README.md) — PIX
 - [`packages/anchors/sep`](../packages/anchors/sep/README.md) — any SEP anchor
-- [`packages/adapter-mocks`](../packages/adapter-mocks/README.md) — simulated anchors
 - [`packages/kit/stablecoin`](../packages/kit/stablecoin/README.md) — chain, swaps, x402

@@ -1,7 +1,7 @@
 # Contributing
 
 Thanks for looking. The full guide lives in
-**[docs/contributing.md](./docs/contributing.md)** — setup, tests, style,
+**[docs/contributing.md](../docs/contributing.md)** — setup, tests, style,
 commits and what CI expects.
 
 ## The short version
@@ -25,8 +25,8 @@ of this project rests on the simulated parts being honestly labelled.
 
 ## Also worth reading
 
-- [docs/architecture.md](./docs/architecture.md) — why the kit is shaped this way
-- [docs/anchors.md](./docs/anchors.md) — how to add an anchor
-- [docs/gotchas.md](./docs/gotchas.md) — the traps, before you rediscover one
+- [docs/architecture.md](../docs/architecture.md) — why the kit is shaped this way
+- [docs/anchors.md](../docs/anchors.md) — how to add an anchor
+- [docs/gotchas.md](../docs/gotchas.md) — the traps, before you rediscover one
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - [SECURITY.md](./SECURITY.md) — report vulnerabilities privately, not in an issue

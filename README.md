@@ -211,8 +211,8 @@ environment variables to set.
 | [docs/deployment.md](./docs/deployment.md) | Deploying the hub |
 | [docs/contributing.md](./docs/contributing.md) | Local setup, tests, commit style |
 
-Also: [CONTRIBUTING](./CONTRIBUTING.md) · [Code of conduct](./CODE_OF_CONDUCT.md) ·
-[Security](./SECURITY.md) · [Privacy](./PRIVACY.md)
+Also: [CONTRIBUTING](./.github/CONTRIBUTING.md) · [Code of conduct](./.github/CODE_OF_CONDUCT.md) ·
+[Security](./.github/SECURITY.md) · [Privacy](./.github/PRIVACY.md)
 
 ## Licence
 

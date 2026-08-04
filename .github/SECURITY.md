@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Report privately through
-[GitHub Security Advisories](../../security/advisories/new). Please do not open
+[GitHub Security Advisories](https://github.com/ACTA-Team/brazil-regional-kit/security/advisories/new). Please do not open
 a public issue.
 
 Include what you can: the affected package, how to reproduce it, and what an
