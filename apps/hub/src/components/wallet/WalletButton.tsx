@@ -15,7 +15,7 @@ export function WalletButton() {
         target="_blank"
         rel="noreferrer"
         title={t('wallet.installPrompt')}
-        className="btn btn-outline btn-sm"
+        className="btn btn-outline btn-sm rounded-full"
       >
         {t('wallet.notInstalled')}
       </a>
@@ -23,18 +23,27 @@ export function WalletButton() {
   }
 
   if (status === 'connected') {
-    // The kit owns the account modal — copy address, switch wallet, disconnect.
+    /*
+     * Connected is a STATUS, so it wears the shape of one: a mono pill with a
+     * lit verde dot, not a button. The kit still owns the account modal behind
+     * it — copy address, switch wallet, disconnect — but nothing about it
+     * should invite a click the way the gold Connect does.
+     */
     return (
       <button
         type="button"
         onClick={() => void openProfile()}
         title={address}
-        className="btn btn-outline btn-sm font-mono"
+        className="flex items-center gap-2.25 rounded-full border border-line-strong bg-white/3 px-4 py-2 font-mono text-xs text-fg transition-colors hover:border-white/24 hover:bg-white/6"
       >
-        <span className="relative flex h-2 w-2" aria-hidden="true">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-        </span>
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 shrink-0 rounded-full"
+          style={{
+            background: 'oklch(0.75 0.19 152)',
+            boxShadow: '0 0 12px oklch(0.75 0.19 152)',
+          }}
+        />
         {shortAddress(address)}
       </button>
     );
@@ -43,15 +52,15 @@ export function WalletButton() {
   /*
    * Connecting is the primary action of an empty screen, so it earns gold. On
    * pages that have their own primary action the wallet is already connected
-   * and this renders as the outline variant above — the one-gold-per-screen
-   * rule holds by construction.
+   * and this renders as the status pill above — the one-gold-per-screen rule
+   * holds by construction.
    */
   return (
     <button
       type="button"
       onClick={() => void connect()}
       disabled={status === 'connecting' || status === 'checking'}
-      className="btn btn-primary btn-sm"
+      className="btn btn-primary btn-sm rounded-full"
     >
       {status === 'connecting' ? t('wallet.connecting') : t('wallet.connect')}
     </button>
