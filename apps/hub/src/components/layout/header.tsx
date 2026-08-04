@@ -9,27 +9,15 @@ import { MobileNav } from '@/components/layout/mobile-nav';
 import { LocaleSwitcher } from '@/components/layout/LocaleSwitcher';
 import { WalletButton } from '@/components/wallet/WalletButton';
 import { useI18n } from '@/client/i18n';
+import { isActivePath, navLinks } from '@/lib/nav';
 
 /**
- * The nav is the demo's running order. Numbering it turns a menu into a route:
- * someone who has never seen the app knows where to start and what comes next
- * without being told. The digits are verde and monospaced so they read as
- * indices rather than as part of the label.
+ * The nav is the demo's running order — the order itself lives in `lib/nav`,
+ * shared with the page heroes. Numbering it turns a menu into a route: someone
+ * who has never seen the app knows where to start and what comes next without
+ * being told. The digits are verde and monospaced so they read as indices
+ * rather than as part of the label.
  */
-export const navLinks = [
-  { key: 'nav.home', href: '/', step: null },
-  { key: 'nav.identity', href: '/identity', step: 1 },
-  { key: 'nav.onramp', href: '/onramp', step: 2 },
-  { key: 'nav.router', href: '/router', step: 3 },
-  { key: 'nav.corridor', href: '/corridor', step: 4 },
-  { key: 'nav.offramp', href: '/offramp', step: 5 },
-  { key: 'nav.x402', href: '/x402', step: 6 },
-] as const;
-
-export function isActivePath(pathname: string, href: string): boolean {
-  return href === '/' ? pathname === '/' : pathname.startsWith(href);
-}
-
 export function Header() {
   const scrolled = useScroll(10);
   const pathname = usePathname();

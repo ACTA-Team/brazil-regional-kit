@@ -70,7 +70,6 @@ export function OnRampPage() {
       className="space-y-7"
       intro={
         <PageIntro
-          step={1}
           title={t('onramp.title')}
           subtitle={t('onramp.subtitle')}
           plate="pao-dense"

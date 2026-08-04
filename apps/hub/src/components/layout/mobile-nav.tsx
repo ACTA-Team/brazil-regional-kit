@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Portal, PortalBackdrop } from '@/components/layout/portal';
-import { isActivePath, navLinks } from '@/components/layout/header';
+import { isActivePath, navLinks } from '@/lib/nav';
 import { ICON_WEIGHT, List, X } from '@/components/icons';
 import { useI18n } from '@/client/i18n';
 

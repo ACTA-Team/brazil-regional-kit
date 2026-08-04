@@ -95,7 +95,6 @@ export function IdentityPage() {
       className="space-y-6"
       intro={
         <PageIntro
-          step={6}
           title={t('identity.title')}
           subtitle={t('identity.subtitle')}
           plate="cristo-light"
