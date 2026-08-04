@@ -183,5 +183,7 @@
   "onramp.rail": "Meio",
   "onramp.beneficiary": "Beneficiário",
   "onramp.reference": "Referência",
-  "onramp.sandboxNoReference": "O sandbox informa o meio mas não emite uma referência pagável — não há para onde transferir de verdade. Use o botão abaixo para avisar a âncora que o pagamento chegou, que é exatamente para isso que serve o gancho de liquidação do sandbox."
+  "onramp.sandboxNoReference": "O sandbox informa o meio mas não emite uma referência pagável — não há para onde transferir de verdade. Use o botão abaixo para avisar a âncora que o pagamento chegou, que é exatamente para isso que serve o gancho de liquidação do sandbox.",
+  "onramp.autoSettle": "Liquidar automaticamente (sandbox)",
+  "onramp.autoSettleHint": "Simula o pagamento PIX assim que a ordem é criada — nenhum clique entre a cotação e a entrega. Desligue para passar pela etapa de pagamento manualmente."
 }

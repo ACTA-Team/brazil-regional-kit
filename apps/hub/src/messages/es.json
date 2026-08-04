@@ -183,5 +183,7 @@
   "onramp.rail": "Riel",
   "onramp.beneficiary": "Beneficiario",
   "onramp.reference": "Referencia",
-  "onramp.sandboxNoReference": "El sandbox nombra el riel pero no emite una referencia pagable — no hay a dónde transferir de verdad. Usá el botón de abajo para avisarle al anchor que el pago llegó, que es justo para lo que existe su gancho de liquidación."
+  "onramp.sandboxNoReference": "El sandbox nombra el riel pero no emite una referencia pagable — no hay a dónde transferir de verdad. Usá el botón de abajo para avisarle al anchor que el pago llegó, que es justo para lo que existe su gancho de liquidación.",
+  "onramp.autoSettle": "Liquidar automáticamente (sandbox)",
+  "onramp.autoSettleHint": "Simula el pago PIX apenas se crea la orden — ningún clic entre la cotización y la entrega. Apagalo para pasar por el paso de pago manualmente."
 }

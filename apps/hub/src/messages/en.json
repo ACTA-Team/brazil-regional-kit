@@ -183,5 +183,7 @@
   "onramp.rail": "Rail",
   "onramp.beneficiary": "Beneficiary",
   "onramp.reference": "Reference",
-  "onramp.sandboxNoReference": "The sandbox names the rail but does not issue a payable reference — there is nothing real to transfer to. Use the button below to tell the anchor the payment arrived, which is exactly what its sandbox settlement hook is for."
+  "onramp.sandboxNoReference": "The sandbox names the rail but does not issue a payable reference — there is nothing real to transfer to. Use the button below to tell the anchor the payment arrived, which is exactly what its sandbox settlement hook is for.",
+  "onramp.autoSettle": "Settle automatically (sandbox)",
+  "onramp.autoSettleHint": "Simulates the PIX payment the moment the order is created — no clicks between quote and delivery. Turn off to walk the payment step manually."
 }

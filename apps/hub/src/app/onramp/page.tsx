@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { Alert } from '@/components/Alert';
 import { AmountField } from '@/components/AmountField';
@@ -38,15 +38,38 @@ export default function OnRampPage() {
   const { address, status: walletStatus, refreshBalances } = useWallet();
   const [amount, setAmount] = useState('500');
 
+  /**
+   * Live-demo mode: fire the sandbox's fiat_received hook the moment the order
+   * exists, instead of waiting for someone to press the button. On for a
+   * reason — in front of an audience every manual click is a place to fumble,
+   * and the PIX being simulated is already stated on screen. Turn it off to
+   * walk the payment step deliberately.
+   */
+  const [autoSettle, setAutoSettle] = useState(true);
+  const autoSettledOrder = useRef<string | null>(null);
+
   const flow = useRampFlow({
     anchorId: ANCHOR_ID,
     sellAsset: BRL,
     buyAsset: TESOURO,
     country: 'BR',
+    // Settlement takes ~25s anchor-side; a snappier poll keeps the stepper
+    // honest about progress instead of jumping two steps at once.
+    pollMs: 1500,
   });
 
   const connected = walletStatus === 'connected' && Boolean(address);
   const { quote, order, stage, busy, error } = flow;
+
+  useEffect(() => {
+    if (!autoSettle || !order) return;
+    if (order.status !== 'awaiting_payment') return;
+    // Once per order — a failed simulation must not loop.
+    if (autoSettledOrder.current === order.id) return;
+
+    autoSettledOrder.current = order.id;
+    void flow.simulate('fiat');
+  }, [autoSettle, order, flow]);
 
   // The asset only lands once the anchor settles — refresh balances then.
   const settled = order?.status === 'completed';
@@ -115,6 +138,19 @@ export default function OnRampPage() {
           >
             {busy === 'quoting' ? t('common.loading') : t('onramp.getQuote')}
           </button>
+
+          <label className="flex items-start gap-2 text-sm text-ink-400">
+            <input
+              type="checkbox"
+              checked={autoSettle}
+              onChange={(e) => setAutoSettle(e.target.checked)}
+              className="mt-0.5 accent-brand-500"
+            />
+            <span>
+              {t('onramp.autoSettle')}
+              <span className="block text-xs text-ink-500">{t('onramp.autoSettleHint')}</span>
+            </span>
+          </label>
         </div>
       ) : null}
 
