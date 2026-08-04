@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
-import { I18nProvider } from '@/lib/i18n';
-import { WalletProvider } from '@/lib/wallet';
-import { Header } from '@/components/header';
-import { RampUIBridge } from '@/components/RampUIBridge';
+import { I18nProvider } from '@/client/i18n';
+import { WalletProvider } from '@/client/wallet';
+import { Header } from '@/components/layout/header';
+import { RampUIBridge } from '@/components/layout/RampUIBridge';
 import './globals.css';
 
 /*

@@ -19,7 +19,7 @@ An oversized memo does not bounce with a clear error. The payment can land with
 the memo truncated or missing — and for an anchor, a transfer with no memo is
 one it cannot reconcile to a customer.
 
-**Handled:** `validateMemo()` in `packages/ramp-core/src/memo.ts` throws instead
+**Handled:** `validateMemo()` in `packages/kit/core/src/memo.ts` throws instead
 of truncating, and is called inside `buildPaymentTx`, so an oversized memo fails
 at build time. `checkMemo()` drives the live byte counter in `MemoField.tsx`.
 
@@ -30,7 +30,7 @@ anchor quotes that refer to different issuers can never fill against each other,
 and the failure looks like "there is no liquidity" rather than "you picked the
 wrong asset".
 
-**Handled:** `USDC` in `packages/ramp-core/src/assets.ts` is pinned to Circle's
+**Handled:** `USDC` in `packages/kit/core/src/assets.ts` is pinned to Circle's
 issuer `GBBD47IF…`, which is also what `testanchor.stellar.org` serves — so
 anchor quotes and DEX offers refer to the same asset.
 
@@ -39,7 +39,7 @@ anchor quotes and DEX offers refer to the same asset.
 Not `Bearer <key>`. The raw key. This is the most common way to fail against
 their API.
 
-**Handled:** `packages/adapter-etherfuse/src/client.ts`, with a comment saying
+**Handled:** `packages/anchors/etherfuse/src/client.ts`, with a comment saying
 why, so nobody "fixes" it.
 
 ## Etherfuse: `/ramp/order` is singular
@@ -80,7 +80,7 @@ rejects it with an explanation naming the actual problem.
 forget to check `error` get `undefined` where an address should be, and fail
 somewhere far away with no clue why.
 
-**Handled:** `packages/stablecoin-kit/src/freighter.ts` checks every response
+**Handled:** `packages/kit/stablecoin/src/freighter.ts` checks every response
 and throws a `RampError`.
 
 ## Freighter starts on mainnet

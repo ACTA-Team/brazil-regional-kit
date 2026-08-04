@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { decodeJwtClaims } from '@brk/adapter-sep';
-import { errorResponse, readJson } from '@/lib/http';
-import { sep10 } from '@/lib/sep';
+import { errorResponse, readJson } from '@/server/http';
+import { sep10 } from '@/server/sep';
 
 export const dynamic = 'force-dynamic';
 

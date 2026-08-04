@@ -1,0 +1,1 @@
+export { CorridorPage } from './CorridorPage';

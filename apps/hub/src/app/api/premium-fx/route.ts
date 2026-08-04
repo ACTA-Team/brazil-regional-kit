@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { BRL, MXN, USDC, isRampError } from '@brk/ramp-core';
 import { PAYMENT_HEADER, createX402Guard } from '@brk/stablecoin-kit';
-import { readyAnchors } from '@/lib/anchors';
+import { readyAnchors } from '@/server/anchors';
 
 export const dynamic = 'force-dynamic';
 

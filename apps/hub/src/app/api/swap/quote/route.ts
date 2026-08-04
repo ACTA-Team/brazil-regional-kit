@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { BRL, USD, multiply, type AssetId } from '@brk/ramp-core';
 import { quoteSwap } from '@brk/stablecoin-kit';
-import { readyAnchors } from '@/lib/anchors';
-import { errorResponse } from '@/lib/http';
+import { readyAnchors } from '@/server/anchors';
+import { errorResponse } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

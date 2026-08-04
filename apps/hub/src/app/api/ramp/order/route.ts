@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { anchorById } from '@/lib/anchors';
-import { errorResponse, publicQuote, readJson } from '@/lib/http';
+import { anchorById } from '@/server/anchors';
+import { errorResponse, publicQuote, readJson } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

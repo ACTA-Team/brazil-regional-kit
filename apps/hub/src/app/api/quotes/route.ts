@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { AssetId, CountryCode, RampDirection } from '@brk/ramp-core';
-import { readyAnchors } from '@/lib/anchors';
-import { errorResponse, publicQuote } from '@/lib/http';
+import { readyAnchors } from '@/server/anchors';
+import { errorResponse, publicQuote } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

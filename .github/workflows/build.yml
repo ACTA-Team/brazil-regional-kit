@@ -33,7 +33,7 @@ jobs:
             test -f "packages/$pkg/dist/index.d.ts" || { echo "$pkg: missing dist/index.d.ts"; exit 1; }
             echo "$pkg ok"
           done
-          test -f packages/stablecoin-kit/dist/x402.js
+          test -f packages/kit/stablecoin/dist/x402.js
 
   hub:
     name: Hub

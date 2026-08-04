@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { RampError, type AssetId, assetCode } from '@brk/ramp-core';
-import { readyAnchors } from '@/lib/anchors';
-import { errorResponse, readJson } from '@/lib/http';
+import { readyAnchors } from '@/server/anchors';
+import { errorResponse, readJson } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

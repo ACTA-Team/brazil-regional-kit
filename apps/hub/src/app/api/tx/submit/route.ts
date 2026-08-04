@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { submitTransaction } from '@brk/stablecoin-kit';
-import { errorResponse, readJson } from '@/lib/http';
+import { errorResponse, readJson } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

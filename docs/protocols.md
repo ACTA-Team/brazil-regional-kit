@@ -8,7 +8,7 @@ What this kit implements, and the parts worth knowing about.
 from nothing but its domain: auth endpoint, quote server, transfer servers,
 signing key, supported currencies.
 
-`packages/adapter-sep/src/toml.ts` parses it with a purpose-built reader rather
+`packages/anchors/sep/src/toml.ts` parses it with a purpose-built reader rather
 than a TOML dependency. stellar.toml uses a tiny slice of the format — scalars,
 string arrays, `[TABLE]` and `[[ARRAY]]` sections — and the whole point of SEP-1
 is minimal bootstrap. Carrying a general-purpose parser to read fifteen keys
@@ -85,7 +85,7 @@ Browser                    Hub (server)                Anchor
    │ ◄──────── JWT ──────────── │ ◄──────── JWT ───────── │
 ```
 
-Implementation: `packages/adapter-sep/src/sep10.ts`, wired in
+Implementation: `packages/anchors/sep/src/sep10.ts`, wired in
 `apps/hub/src/lib/sep.ts` and the `/api/sep/*` routes.
 
 ## SEP-24 — interactive deposit and withdraw
@@ -152,7 +152,7 @@ regional stablecoin is one field:
 createX402Guard({ payTo: MERCHANT, asset: TESOURO, price: '0.10' });
 ```
 
-Implementation: `packages/stablecoin-kit/src/x402.ts`, demonstrated at
+Implementation: `packages/kit/stablecoin/src/x402.ts`, demonstrated at
 `/api/premium-fx` and the `/x402` page.
 
 ## Stellar primitives
