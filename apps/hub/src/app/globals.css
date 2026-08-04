@@ -283,6 +283,50 @@
     color: #ffffff;
   }
 
+  /*
+   * The scrollbar is part of the page, not part of the operating system.
+   *
+   * A default Windows scrollbar puts a light grey slab down the right edge of a
+   * black interface — the single brightest thing on screen, and it belongs to
+   * nothing. This one is the same hairline the cards are drawn with, and it
+   * takes the gold only while the pointer is on it, so it reads as a control
+   * rather than as decoration competing with the page's one accent.
+   *
+   * Firefox gets the two properties it supports; WebKit and Chromium get the
+   * pseudo-elements. Both are styled, neither is required.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
+    /* Inset by a transparent border so the thumb reads as a slim pill with room
+       around it rather than a bar wedged against the edge. */
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   /* One focus treatment everywhere: the gold ring. */
   :focus-visible {
     outline: 2px solid var(--color-gold);
