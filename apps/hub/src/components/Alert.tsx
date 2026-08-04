@@ -26,7 +26,7 @@ const TONES: Record<
     icon: Warning,
   },
   success: {
-    wrap: 'border-success/35 bg-success/8 text-[#9fe0bd]',
+    wrap: 'border-success/35 bg-success/8 text-[#7cd6a2]',
     rail: 'bg-success',
     ink: 'text-canvas',
     icon: Check,

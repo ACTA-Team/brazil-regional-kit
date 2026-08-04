@@ -8,35 +8,41 @@
  *
  *   1. Objective trust        — sober surfaces, no hype, verification visible
  *   2. Dark by default        — content floats over a cosmic canvas
- *   3. A single accent        — gold #ffd21f marks THE action, once per screen
+ *   3. A single accent        — gold #ffdf00 marks THE action, once per screen
  *   4. Clarity over decoration — space, type and contrast before ornament
  *
- * Rule 3 shapes the code most: gold is a scarce resource. It marks the primary
- * action, focus and active state — nothing else. Success is green, danger is
- * red, and "live" is green because it is a status, not an action. Where this
- * app used to paint whole surfaces in colour, it now paints a one-pixel border
- * and lets the canvas do the work.
+ * Rule 3 shapes the code most: the accent is a scarce resource. It marks the
+ * primary action, focus and active state — nothing else. Success is green,
+ * danger is red, and "live" is green because it is a status, not an action.
+ * Where this app used to paint whole surfaces in colour, it now paints a
+ * one-pixel border and lets the canvas do the work.
+ *
+ * The palette is the Brazilian flag, mapped so that only one of its colours
+ * ever competes for attention: amarelo #ffdf00 is the accent, verde #009c3b is
+ * success (which it already was), and azul #002776 is pulled almost to black to
+ * become the canvas that tints every surface. Three flag colours, one accent,
+ * hierarchy intact.
  */
 
 @theme {
   /* ── Canvas & surfaces ────────────────────────────────────────────────── */
-  --color-canvas: #06070b;
+  --color-canvas: #05070e;
   /* --card: cards float just above the canvas. */
-  --color-surface: oklch(0.18 0.005 260);
+  --color-surface: oklch(0.185 0.013 264);
   /* --secondary: chips and secondary surfaces. */
-  --color-surface-2: oklch(0.22 0.006 260);
+  --color-surface-2: oklch(0.225 0.015 264);
   /* Wells: inputs and code blocks sit BELOW the card, not above it. */
-  --color-inset: oklch(0.14 0.004 260);
+  --color-inset: oklch(0.145 0.011 264);
   /* The manual's navy, reserved for the secondary button. */
-  --color-navy: #1f2a44;
+  --color-navy: #16265c;
 
   /* ── Lines ────────────────────────────────────────────────────────────── */
   --color-line: oklch(1 0 0 / 8%);
   --color-line-strong: oklch(1 0 0 / 12%);
 
   /* ── The single accent ────────────────────────────────────────────────── */
-  --color-gold: #ffd21f;
-  --color-gold-ink: #1a1400; /* text ON gold — near-black, never white */
+  --color-gold: #ffdf00;
+  --color-gold-ink: #191400; /* text ON gold — near-black, never white */
 
   /* ── Text ─────────────────────────────────────────────────────────────── */
   --color-fg: #f3f5f9;
@@ -44,10 +50,10 @@
   --color-fg-subtle: oklch(0.5 0 0);
 
   /* ── Status ───────────────────────────────────────────────────────────── */
-  --color-success: #3cb46e;
+  --color-success: #009c3b;
   --color-danger: #ff4d4f;
-  --color-warning: #ffd21f;
-  --color-info: #7fb0ff;
+  --color-warning: #ffdf00;
+  --color-info: #5b8dee;
 
   /* ── Type ─────────────────────────────────────────────────────────────── */
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
@@ -83,25 +89,25 @@
    not name (foregrounds for each surface) are derived from ones it does. */
 
 :root {
-  --background: #06070b;
+  --background: #05070e;
   --foreground: oklch(0.96 0 0);
 
-  --card: oklch(0.18 0.005 260);
+  --card: oklch(0.185 0.013 264);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.18 0.005 260);
+  --popover: oklch(0.185 0.013 264);
   --popover-foreground: var(--foreground);
 
-  --primary: #ffd21f;
+  --primary: #ffdf00;
   /* Never white on gold: the manual's accent needs near-black to stay legible. */
-  --primary-foreground: #1a1400;
+  --primary-foreground: #191400;
 
-  --secondary: oklch(0.22 0.006 260);
+  --secondary: oklch(0.225 0.015 264);
   --secondary-foreground: var(--foreground);
 
-  --muted: oklch(0.22 0.006 260);
+  --muted: oklch(0.225 0.015 264);
   --muted-foreground: oklch(0.65 0 0);
 
-  --accent: oklch(0.22 0.006 260);
+  --accent: oklch(0.225 0.015 264);
   --accent-foreground: var(--foreground);
 
   --destructive: oklch(0.704 0.191 22);
@@ -109,18 +115,18 @@
 
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
-  --ring: #ffd21f;
+  --ring: #ffdf00;
 
   --radius: 0.625rem;
 
-  --sidebar: oklch(0.18 0.005 260);
+  --sidebar: oklch(0.185 0.013 264);
   --sidebar-foreground: var(--foreground);
-  --sidebar-primary: #ffd21f;
-  --sidebar-primary-foreground: #1a1400;
-  --sidebar-accent: oklch(0.22 0.006 260);
+  --sidebar-primary: #ffdf00;
+  --sidebar-primary-foreground: #191400;
+  --sidebar-accent: oklch(0.225 0.015 264);
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: #ffd21f;
+  --sidebar-ring: #ffdf00;
 }
 
 @theme inline {
@@ -200,13 +206,13 @@
    Gold, matching the manual's active-state rule. */
 @keyframes halo {
   0% {
-    box-shadow: 0 0 0 0 rgb(255 210 31 / 35%);
+    box-shadow: 0 0 0 0 rgb(255 223 0 / 35%);
   }
   70% {
-    box-shadow: 0 0 0 9px rgb(255 210 31 / 0%);
+    box-shadow: 0 0 0 9px rgb(255 223 0 / 0%);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(255 210 31 / 0%);
+    box-shadow: 0 0 0 0 rgb(255 223 0 / 0%);
   }
 }
 
@@ -246,7 +252,8 @@
       actual gold control.
     */
     background:
-      radial-gradient(60rem 32rem at 50% -14%, rgb(255 210 31 / 6%), transparent 62%),
+      radial-gradient(52rem 30rem at 78% -12%, rgb(0 156 59 / 7%), transparent 60%),
+      radial-gradient(58rem 32rem at 22% -14%, rgb(255 223 0 / 6%), transparent 62%),
       var(--color-canvas);
     background-attachment: fixed;
     color: var(--color-fg);
@@ -297,9 +304,8 @@
 
   /* Featured card · subtle gold border for success states. */
   .card-featured {
-    background:
-      linear-gradient(180deg, rgb(255 210 31 / 5%), transparent 40%), var(--color-surface);
-    border: 1px solid rgb(255 210 31 / 28%);
+    background: linear-gradient(180deg, rgb(255 223 0 / 5%), transparent 40%), var(--color-surface);
+    border: 1px solid rgb(255 223 0 / 28%);
     border-radius: var(--radius-xl);
   }
 
@@ -311,7 +317,7 @@
   }
 
   .card-hover:hover {
-    border-color: rgb(255 210 31 / 35%);
+    border-color: rgb(255 223 0 / 35%);
     transform: translateY(-2px);
     box-shadow: 0 12px 32px -16px rgb(0 0 0 / 80%);
   }
@@ -352,12 +358,12 @@
   .btn-primary {
     background: var(--color-gold);
     color: var(--color-gold-ink);
-    box-shadow: 0 6px 20px -8px rgb(255 210 31 / 55%);
+    box-shadow: 0 6px 20px -8px rgb(255 223 0 / 55%);
   }
 
   .btn-primary:not(:disabled):hover {
-    background: #ffdc4a;
-    box-shadow: 0 8px 26px -8px rgb(255 210 31 / 70%);
+    background: #ffe84d;
+    box-shadow: 0 8px 26px -8px rgb(255 223 0 / 70%);
   }
 
   .btn-secondary {
@@ -366,7 +372,7 @@
   }
 
   .btn-secondary:not(:disabled):hover {
-    background: #26334f;
+    background: #1e3372;
   }
 
   .btn-outline {
@@ -438,7 +444,7 @@
 
   .field:focus {
     border-color: var(--color-gold);
-    box-shadow: 0 0 0 3px rgb(255 210 31 / 16%);
+    box-shadow: 0 0 0 3px rgb(255 223 0 / 16%);
     outline: none;
   }
 
@@ -457,9 +463,9 @@
   }
 
   .chip-success {
-    border-color: rgb(60 180 110 / 40%);
-    background: rgb(60 180 110 / 12%);
-    color: #7fd6a4;
+    border-color: rgb(0 156 59 / 40%);
+    background: rgb(0 156 59 / 12%);
+    color: #58cd88;
   }
 
   .chip-danger {
@@ -469,8 +475,8 @@
   }
 
   .chip-gold {
-    border-color: rgb(255 210 31 / 45%);
-    background: rgb(255 210 31 / 12%);
+    border-color: rgb(255 223 0 / 45%);
+    background: rgb(255 223 0 / 12%);
     color: var(--color-gold);
   }
 

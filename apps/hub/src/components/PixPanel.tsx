@@ -38,7 +38,7 @@ export function PixPanel({
     QRCode.toDataURL(instructions.code, {
       width: 220,
       margin: 1,
-      color: { dark: '#0b1220', light: '#ffffff' },
+      color: { dark: '#05070e', light: '#ffffff' },
     })
       .then((url) => {
         if (!cancelled) setGenerated(url);
