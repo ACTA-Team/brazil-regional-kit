@@ -25,7 +25,7 @@ function bumpAmount(current: string): string {
 
 export function OnRampPage() {
   const { t, tag } = useI18n();
-  const { address, status: walletStatus, refreshBalances } = useWallet();
+  const { address, status: walletStatus, refreshBalances, hasTrustline } = useWallet();
   const [amount, setAmount] = useState('500');
 
   /**
@@ -164,10 +164,21 @@ export function OnRampPage() {
       {stage === 'quoted' && quote ? (
         <>
           <TrustlineGate asset={TESOURO} />
+          {/*
+            No trustline, no order.
+
+            A Stellar account cannot hold an asset it has not trusted, so an
+            anchor asked to deliver into one has nowhere to put the money. It
+            does not fail loudly either: the order reaches `funded` — the anchor
+            considers itself paid — and then stops there forever. Warning about
+            the trustline while leaving the button live is how someone strands
+            an order they can never finish.
+          */}
           <QuoteCard
             quote={quote}
             confirmLabel={t('onramp.createOrder')}
             confirming={busy === 'ordering'}
+            disabled={!hasTrustline(TESOURO)}
             onConfirm={() => void flow.confirm(address)}
             onRequote={flow.reset}
           />

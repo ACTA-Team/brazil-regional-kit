@@ -16,6 +16,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   configureWalletKit,
   connectWallet,
@@ -132,6 +133,27 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, [loadBalances, readNetwork]);
+
+  /*
+   * Re-read balances on every screen change.
+   *
+   * Balances were loaded once, at connect. Anything that changed them
+   * afterwards — an on-ramp settling, a swap filling, a payment sent from
+   * another tab — left the next screen deciding against a stale number. The
+   * corridor would say "not enough TESOURO" while the wallet plainly held some,
+   * which reads as the app being broken rather than out of date.
+   *
+   * One Horizon call per navigation is cheap, and it makes every screen answer
+   * for what is true now instead of what was true when the wallet connected.
+   */
+  const pathname = usePathname();
+  useEffect(() => {
+    if (status !== 'connected' || !address) return;
+    // Deferred a tick so the fetch's setState never lands synchronously inside
+    // the effect body.
+    const id = setTimeout(() => void loadBalances(address), 0);
+    return () => clearTimeout(id);
+  }, [pathname, status, address, loadBalances]);
 
   // Account, network or wallet switches in the extension must reach the UI, or
   // the demo keeps showing a wallet the user has already moved away from.
