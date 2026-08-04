@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { PAYMENT_HEADER, buildPaymentTx, explorerTxUrl } from '@brk/stablecoin-kit';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
+import { PageShell } from '@/components/layout/PageShell';
 import { Check, ICON_WEIGHT } from '@/components/icons';
 import { NetworkBanner } from '@/components/wallet/WalletButton';
 import { submitSignedTx } from '@/client/api';
@@ -58,7 +60,9 @@ export function X402Page() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [resource, setResource] = useState<Resource | null>(null);
   const [busy, setBusy] = useState<null | 'requesting' | 'paying' | 'retrying'>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
   const [lastStatus, setLastStatus] = useState<number | null>(null);
 
   const connected = status === 'connected' && Boolean(address);
@@ -74,7 +78,7 @@ export function X402Page() {
       setLastStatus(res.status);
       setChallenge((await res.json()) as Challenge);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -97,7 +101,7 @@ export function X402Page() {
       setTxHash(result.hash);
       await refreshBalances();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -118,19 +122,28 @@ export function X402Page() {
         setError(payload.error);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-7">
-      <PageIntro step={5} title={t('x402.title')} subtitle={t('x402.subtitle')} />
-
+    <PageShell
+      width="default"
+      className="max-w-3xl space-y-7"
+      intro={
+        <PageIntro
+          step={5}
+          title={t('x402.title')}
+          subtitle={t('x402.subtitle')}
+          plate="cristo-square"
+        />
+      }
+    >
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <ErrorAlert error={error} /> : null}
 
       <ol className="space-y-4">
         {/* ── 1 ─────────────────────────────────────────────────────────── */}
@@ -164,9 +177,7 @@ export function X402Page() {
               <Field label="Network" value={requirement.network} mono />
               <Field label={t('x402.window')} value={`${requirement.maxTimeoutSeconds}s`} mono />
               <div className="col-span-2 sm:col-span-4">
-                <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                  {t('x402.payTo')}
-                </span>
+                <span className="label">{t('x402.payTo')}</span>
                 <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
                   {requirement.payTo}
                 </p>
@@ -222,10 +233,10 @@ export function X402Page() {
 
           {resource ? (
             <div className="mt-4 space-y-3">
-              <div className="overflow-x-auto rounded-lg bg-inset">
+              <div className="overflow-x-auto rounded-xl border border-line bg-black/40">
                 <table className="w-full min-w-[24rem] text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-fg-subtle">
+                    <tr className="label text-left">
                       <th className="px-3 py-2 font-medium">Pair</th>
                       <th className="px-3 py-2 text-right font-medium">Rate</th>
                       <th className="px-3 py-2 font-medium">{t('common.anchor')}</th>
@@ -251,14 +262,14 @@ export function X402Page() {
                 <button
                   type="button"
                   onClick={() => void retryWithProof()}
-                  className="btn btn-ghost text-xs"
+                  className="btn btn-ghost btn-sm"
                 >
                   {t('common.retry')}
                 </button>
                 <button
                   type="button"
                   onClick={() => void requestUnpaid()}
-                  className="btn btn-ghost text-xs"
+                  className="btn btn-ghost btn-sm"
                 >
                   {t('x402.reset')}
                 </button>
@@ -268,10 +279,10 @@ export function X402Page() {
         </Step>
       </ol>
 
-      <section className="card p-5">
-        <h2 className="text-sm font-semibold">{t('x402.whyTitle')}</h2>
+      <section className="card p-6">
+        <h2 className="section-title">{t('x402.whyTitle')}</h2>
         <p className="mt-1.5 text-sm text-fg-muted">{t('x402.why')}</p>
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-inset p-3 font-mono text-[11px] leading-relaxed text-fg-muted">
+        <pre className="well mt-3 overflow-x-auto p-4 text-[11px] leading-relaxed text-fg-muted">
           {`import { createX402Guard } from '@brk/stablecoin-kit/x402';
 
 const guard = createX402Guard({
@@ -281,7 +292,7 @@ const guard = createX402Guard({
 });`}
         </pre>
       </section>
-    </div>
+    </PageShell>
   );
 }
 
@@ -301,18 +312,16 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <li className="card p-5">
-      <div className="flex gap-3">
+    <li className="card card-glow p-6">
+      <div className="relative flex gap-3.5">
         <span
           aria-hidden="true"
-          className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold ${
-            done ? 'border-success bg-success text-white' : 'border-line text-fg-subtle'
-          }`}
+          className={`index-chip ${done ? '' : 'border-line bg-transparent text-fg-subtle'}`}
         >
           {done ? <Check size={12} weight={ICON_WEIGHT} aria-hidden="true" /> : index}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-medium">{title}</p>
+          <p className="section-title">{title}</p>
           <p className="mt-0.5 text-xs text-fg-subtle">{hint}</p>
           <div className="mt-3">{children}</div>
         </div>
@@ -324,11 +333,7 @@ function Step({
 function StatusPill({ status }: { status: number }) {
   const ok = status >= 200 && status < 300;
   return (
-    <span
-      className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${
-        ok ? 'bg-success/15 text-success' : 'bg-gold/12 text-gold'
-      }`}
-    >
+    <span className={`chip ${ok ? 'chip-success' : 'chip-gold'}`}>
       {status} {ok ? 'OK' : 'Payment Required'}
     </span>
   );
@@ -347,7 +352,7 @@ function Field({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-fg-subtle">{label}</dt>
+      <dt className="label">{label}</dt>
       <dd
         className={`mt-0.5 ${mono ? 'font-mono text-xs' : 'font-semibold'} tabular-nums ${
           accent ? 'text-gold' : ''

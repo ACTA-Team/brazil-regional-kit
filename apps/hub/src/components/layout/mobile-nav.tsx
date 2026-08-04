@@ -54,15 +54,16 @@ export function MobileNav() {
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-3 text-base transition-colors',
-                      active ? 'bg-gold/10 text-gold' : 'text-muted-foreground hover:bg-white/5',
+                      'flex items-center gap-3 rounded-xl border px-3.5 py-3 text-base transition-colors',
+                      active
+                        ? 'border-gold/40 bg-gold/8 text-fg'
+                        : 'border-transparent text-fg-muted hover:bg-white/5 hover:text-fg',
                     )}
                   >
+                    {/* Verde digits, same as the desktop nav: the number is an
+                        index into the demo, not part of the label. */}
                     <span
-                      className={cn(
-                        'w-4 font-mono text-xs',
-                        active ? 'text-gold/70' : 'text-fg-subtle',
-                      )}
+                      className={cn('w-4 font-mono text-xs', active ? 'text-gold' : 'text-verde')}
                     >
                       {link.step ?? ''}
                     </span>

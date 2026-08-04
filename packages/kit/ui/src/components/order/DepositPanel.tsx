@@ -32,37 +32,33 @@ export function DepositPanel({
   }
 
   return (
-    <div className="card p-5">
+    <div className="card p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-semibold">{t('onramp.depositTitle')}</h3>
+        <h3 className="section-title">{t('onramp.depositTitle')}</h3>
         <ExpiryPill />
       </div>
       <p className="mt-1 text-sm text-fg-muted">{t('onramp.depositHint')}</p>
 
       <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('common.amount')}</dt>
-          <dd className="mt-1 text-2xl font-semibold tabular-nums">
+          <dt className="label">{t('common.amount')}</dt>
+          <dd className="figure mt-1.5 text-2xl">
             {formatMoney(instructions.amount, instructions.currency, locale)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('onramp.rail')}</dt>
+          <dt className="label">{t('onramp.rail')}</dt>
           <dd className="mt-1 font-semibold">{instructions.rail}</dd>
         </div>
         {instructions.accountLabel ? (
           <div>
-            <dt className="text-xs uppercase tracking-wide text-fg-subtle">
-              {t('onramp.beneficiary')}
-            </dt>
+            <dt className="label">{t('onramp.beneficiary')}</dt>
             <dd className="mt-1 font-semibold">{instructions.accountLabel}</dd>
           </div>
         ) : null}
         {instructions.reference ? (
           <div className="col-span-2 sm:col-span-3">
-            <dt className="text-xs uppercase tracking-wide text-fg-subtle">
-              {t('onramp.reference')}
-            </dt>
+            <dt className="label">{t('onramp.reference')}</dt>
             <dd className="mt-1 break-all font-mono text-sm">{instructions.reference}</dd>
           </div>
         ) : null}
@@ -74,9 +70,7 @@ export function DepositPanel({
         empty field and letting them wonder what they missed.
       */}
       {!instructions.reference ? (
-        <p className="mt-3 rounded-lg bg-inset p-3 text-xs text-fg-muted">
-          {t('onramp.sandboxNoReference')}
-        </p>
+        <p className="well mt-3 p-3 text-xs text-fg-muted">{t('onramp.sandboxNoReference')}</p>
       ) : null}
 
       {onSimulate ? (
@@ -85,7 +79,7 @@ export function DepositPanel({
             type="button"
             onClick={onSimulate}
             disabled={simulating}
-            className="btn btn-primary text-xs"
+            className="btn btn-primary btn-sm"
           >
             {simulating ? t('common.loading') : t('onramp.simulatePayment')}
           </button>

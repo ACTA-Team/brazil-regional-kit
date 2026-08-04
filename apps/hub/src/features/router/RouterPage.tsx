@@ -1,10 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AmountField } from '@brk/ramp-ui';
-import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ramp-core';
+import { AmountField } from '@brk/ramp-ui';
+import {
+  BRL,
+  MXN,
+  TESOURO,
+  USDC,
+  type AssetId,
+  type CountryCode,
+  type RampErrorCode,
+} from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
+import { PageShell } from '@/components/layout/PageShell';
 import {
   ArrowUUpLeft,
   CaretRight,
@@ -14,6 +24,7 @@ import {
   Wallet,
   type Icon,
 } from '@/components/icons';
+import { ApiError } from '@/client/api';
 import { QuoteTable, type PublicRankedQuote } from '@/features/router/QuoteTable';
 import { SepAuthPanel } from '@/features/sep/SepAuthPanel';
 import { useI18n } from '@/client/i18n';
@@ -88,6 +99,14 @@ const SCENARIOS: Scenario[] = [
 
 const REFRESH_MS = 15_000;
 
+/** The error envelope every API route in this app returns. */
+interface ApiErrorBody {
+  code: RampErrorCode;
+  message: string;
+  anchorId?: string;
+  retryable?: boolean;
+}
+
 interface RouteResponse {
   quotes: PublicRankedQuote[];
   anchors: AnchorResult[];
@@ -103,7 +122,9 @@ export function RouterPage() {
   const [result, setResult] = useState<RouteResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
 
   const query = useMemo(() => {
     const params = new URLSearchParams({ sell: scenario.sellAsset, amount });
@@ -117,11 +138,13 @@ export function RouterPage() {
     setError(null);
     try {
       const response = await fetch(`/api/quotes?${q}`);
-      const payload = (await response.json()) as RouteResponse | { error: { message: string } };
-      if ('error' in payload) throw new Error(payload.error.message);
+      const payload = (await response.json()) as RouteResponse | { error: ApiErrorBody };
+      // Rebuild the error so its code survives the HTTP hop — a bare
+      // `new Error(message)` would strip exactly what the mapper reads.
+      if ('error' in payload) throw new ApiError(payload.error);
       setResult(payload);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setLoading(false);
     }
@@ -158,9 +181,17 @@ export function RouterPage() {
   }, [autoRefresh, result, run, query]);
 
   return (
-    <div className="space-y-6">
-      <PageIntro step={2} title={t('router.title')} subtitle={t('router.subtitle')} />
-
+    <PageShell
+      className="space-y-6"
+      intro={
+        <PageIntro
+          step={2}
+          title={t('router.title')}
+          subtitle={t('router.subtitle')}
+          plate="cristo-dense"
+        />
+      }
+    >
       {/* ── Step 1: which situation are you in? ─────────────────────────── */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {SCENARIOS.map((s) => {
@@ -171,27 +202,27 @@ export function RouterPage() {
               type="button"
               onClick={() => pick(s)}
               aria-pressed={active}
-              className={`card flex flex-col gap-1.5 p-4 text-left transition-colors ${
-                active ? 'border-gold/50 bg-gold/8' : 'hover:border-gold/30'
+              className={`card card-glow card-hover flex flex-col gap-2 p-6 text-left ${
+                active ? 'border-gold/50' : ''
               }`}
             >
-              <span className="flex items-center gap-2 font-semibold">
+              <span className="relative flex items-center gap-2.5 font-semibold">
                 <s.Glyph
                   size={17}
                   weight={ICON_WEIGHT}
                   aria-hidden="true"
-                  className={active ? 'text-gold' : 'text-fg-subtle'}
+                  className={active ? 'text-gold' : 'text-verde'}
                 />
                 {t(s.titleKey)}
               </span>
-              <span className="text-xs leading-relaxed text-fg-muted">{t(s.hintKey)}</span>
+              <span className="relative text-xs leading-relaxed text-fg-muted">{t(s.hintKey)}</span>
             </button>
           );
         })}
       </div>
 
       {/* ── Step 2: how much? ───────────────────────────────────────────── */}
-      <div className="card flex flex-wrap items-end gap-4 p-5">
+      <div className="card flex flex-wrap items-end gap-4 p-6">
         <div className="min-w-56 flex-1">
           <AmountField
             label={t('router.amountFor', { asset: scenario.sellAsset.split(':')[1] ?? '' })}
@@ -219,7 +250,20 @@ export function RouterPage() {
         </label>
       </div>
 
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? (
+        <ErrorAlert
+          error={error}
+          action={
+            <button
+              type="button"
+              onClick={() => void run(query)}
+              className="btn btn-outline btn-sm"
+            >
+              {t('error.retry')}
+            </button>
+          }
+        />
+      ) : null}
 
       {result ? (
         <>
@@ -239,7 +283,7 @@ export function RouterPage() {
             the request that backs it is one click away, decoded, for anyone who
             wants to check.
           */}
-          <div className="card p-5">
+          <div className="card p-6">
             <p className="text-sm leading-relaxed">
               {t('router.oneCall', { count: result.anchors.length })}
             </p>
@@ -263,6 +307,6 @@ export function RouterPage() {
       ) : null}
 
       <SepAuthPanel />
-    </div>
+    </PageShell>
   );
 }

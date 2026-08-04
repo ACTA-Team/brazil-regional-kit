@@ -59,9 +59,9 @@ export function PixPanel({
   };
 
   return (
-    <div className="card p-5">
+    <div className="card p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-semibold">{t('onramp.pixTitle')}</h3>
+        <h3 className="section-title">{t('onramp.pixTitle')}</h3>
         <ExpiryPill expiresAt={instructions.expiresAt} />
       </div>
       <p className="mt-1 text-sm text-fg-muted">{t('onramp.pixHint')}</p>
@@ -79,23 +79,21 @@ export function PixPanel({
 
         <div className="min-w-0 flex-1 space-y-3">
           <div>
-            <span className="text-xs uppercase tracking-wide text-fg-subtle">
-              {t('common.amount')}
-            </span>
+            <span className="label">{t('common.amount')}</span>
             <p className="text-2xl font-semibold tabular-nums">
               {formatMoney(instructions.amount, instructions.currency, locale)}
             </p>
           </div>
 
           <div>
-            <span className="text-xs uppercase tracking-wide text-fg-subtle">PIX copia e cola</span>
-            <p className="mt-1 max-h-24 overflow-y-auto break-all rounded-lg bg-inset p-2.5 font-mono text-[11px] leading-relaxed text-fg-muted">
+            <span className="label">PIX copia e cola</span>
+            <p className="well mt-1.5 max-h-24 overflow-y-auto p-2.5 text-[11px] leading-relaxed break-all text-fg-muted">
               {instructions.code}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => void copy()} className="btn btn-ghost text-xs">
+            <button type="button" onClick={() => void copy()} className="btn btn-ghost btn-sm">
               {copied ? t('common.copied') : t('common.copy')}
             </button>
 
@@ -105,7 +103,7 @@ export function PixPanel({
                 onClick={onSimulate}
                 disabled={simulating}
                 title={t('onramp.simulateHint')}
-                className="btn btn-primary text-xs"
+                className="btn btn-primary btn-sm"
               >
                 {simulating ? t('common.loading') : t('onramp.simulatePayment')}
               </button>

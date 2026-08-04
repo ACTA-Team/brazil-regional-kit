@@ -40,16 +40,13 @@ export function AmountField({
 
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block text-xs font-semibold uppercase tracking-wider text-fg-subtle"
-      >
+      <label htmlFor={id} className="label block">
         {label}
       </label>
 
       <div className="relative mt-2.5">
         {suffix ? (
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl font-semibold text-fg-subtle">
+          <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-xl font-medium text-fg-subtle">
             {suffix}
           </span>
         ) : null}
@@ -60,7 +57,7 @@ export function AmountField({
           autoComplete="off"
           value={value}
           onChange={(e) => handle(e.target.value)}
-          className="field py-4 text-3xl font-bold tabular-nums tracking-tight"
+          className="field figure py-4 text-3xl"
           style={suffix ? { paddingLeft: '3rem' } : undefined}
         />
       </div>
@@ -73,10 +70,11 @@ export function AmountField({
               type="button"
               onClick={() => onChange(p)}
               aria-pressed={value === p}
-              className={`rounded-lg border px-3 py-1.5 text-sm font-medium tabular-nums transition-colors ${
-                value === p
-                  ? 'border-gold/50 bg-gold/12 text-gold'
-                  : 'border-line-strong text-fg-muted hover:border-white/25 hover:text-fg'
+              // Presets are the same pill the rest of the app uses for a short
+              // machine-readable value, so they read as chips, not as buttons
+              // competing with the form's one gold action.
+              className={`chip tabular-nums transition-colors ${
+                value === p ? 'chip-gold' : 'chip-neutral hover:border-white/24 hover:text-fg'
               }`}
             >
               {p}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { assetCode, compare } from '@brk/ramp-core';
 import { explorerTxUrl, resolveReturnTransaction } from '@brk/stablecoin-kit';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import type { PublicOrder } from '@/client/api';
 import { submitSignedTx } from '@/client/api';
 import { useI18n } from '@/client/i18n';
@@ -29,7 +30,9 @@ export function ReturnTxPanel({
   const { t } = useI18n();
   const { address, sign, balanceOf, refreshBalances, onTestnet } = useWallet();
   const [phase, setPhase] = useState<'idle' | 'building' | 'signing' | 'submitting'>('idle');
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole: a wallet rejection here is the single most common
+  // failure on this screen, and the mapper recognises it by its text.
+  const [error, setError] = useState<unknown>(null);
   const [hash, setHash] = useState<string | null>(null);
 
   const held = balanceOf(order.sellAsset);
@@ -52,7 +55,7 @@ export function ReturnTxPanel({
       await refreshBalances();
       await onSigned(result.hash);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setPhase('idle');
     }
@@ -67,7 +70,7 @@ export function ReturnTxPanel({
             href={explorerTxUrl(hash)}
             target="_blank"
             rel="noreferrer"
-            className="btn btn-ghost text-xs"
+            className="btn btn-ghost btn-sm"
           >
             {t('common.viewOnExplorer')}
           </a>
@@ -86,23 +89,21 @@ export function ReturnTxPanel({
         : t('common.loading');
 
   return (
-    <div className="card space-y-4 p-5">
+    <div className="card space-y-4 p-6">
       <div>
-        <h3 className="font-semibold">{t('offramp.signBurn')}</h3>
+        <h3 className="section-title">{t('offramp.signBurn')}</h3>
         <p className="mt-1 text-sm text-fg-muted">{t('offramp.signHint', { code })}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
-            {t('offramp.returning')}
-          </dt>
+          <dt className="label">{t('offramp.returning')}</dt>
           <dd className="mt-1 font-semibold tabular-nums">
             {order.sellAmount} {code}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('offramp.youHold')}</dt>
+          <dt className="label">{t('offramp.youHold')}</dt>
           <dd className={`mt-1 font-semibold tabular-nums ${short ? 'text-gold' : 'text-fg'}`}>
             {held} {code}
           </dd>
@@ -110,7 +111,7 @@ export function ReturnTxPanel({
       </dl>
 
       {short ? <Alert tone="warning">{t('offramp.insufficient', { code })}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <ErrorAlert error={error} /> : null}
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -121,7 +122,7 @@ export function ReturnTxPanel({
         >
           {phase === 'idle' ? t('offramp.signBurn') : busyLabel}
         </button>
-        <button type="button" onClick={() => void onRegenerate()} className="btn btn-ghost text-xs">
+        <button type="button" onClick={() => void onRegenerate()} className="btn btn-ghost btn-sm">
           {t('offramp.regenerate')}
         </button>
       </div>

@@ -13,7 +13,8 @@ import { useI18n } from '@/client/i18n';
 /**
  * The nav is the demo's running order. Numbering it turns a menu into a route:
  * someone who has never seen the app knows where to start and what comes next
- * without being told.
+ * without being told. The digits are verde and monospaced so they read as
+ * indices rather than as part of the label.
  */
 export const navLinks = [
   { key: 'nav.home', href: '/', step: null },
@@ -36,25 +37,20 @@ export function Header() {
   return (
     <header
       className={cn(
-        // `sticky` already establishes the positioning context the flag rule
-        // below anchors to, so no `relative` is needed (and it would conflict).
-        'sticky top-0 z-50 w-full border-b border-transparent transition-colors',
-        {
-          // Border and blur appear only once content is passing underneath, so
-          // the header is a plain part of the page until it has a job to do.
-          'border-border bg-background/85 backdrop-blur-xl': scrolled,
-        },
+        // The blur is permanent — the header sits over drifting blooms, and a
+        // sharp-edged one would cut a hard line through them. Only the tint
+        // waits for content to actually be passing underneath.
+        'sticky top-0 z-40 w-full border-b border-line backdrop-blur-lg transition-colors',
+        scrolled ? 'bg-black/70' : 'bg-transparent',
       )}
     >
-      <span aria-hidden="true" className="flag-rule absolute inset-x-0 top-0 h-[3px]" />
-
-      <nav className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex w-full max-w-[1560px] flex-wrap items-center gap-x-8 gap-y-3.5 px-6 py-5 sm:px-10 lg:px-14">
         <Link href="/" className="shrink-0 rounded-lg" aria-label="Brazil Regional Kit">
           <Logo className="hidden sm:flex" />
           <Logo className="sm:hidden" showWordmark={false} />
         </Link>
 
-        <div className="ml-auto hidden items-center gap-0.5 md:flex">
+        <div className="hidden min-w-0 flex-wrap items-center gap-x-6 gap-y-3 text-sm md:flex">
           {navLinks.map((link) => {
             const active = isActivePath(pathname, link.href);
             return (
@@ -63,34 +59,24 @@ export function Header() {
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'relative flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm transition-colors',
-                  active ? 'text-gold' : 'text-muted-foreground hover:text-foreground',
+                  'flex items-baseline gap-1.5 whitespace-nowrap transition-colors',
+                  active
+                    ? // Active is a hairline under the label, not a pill: the
+                      // header must never look like it holds a button.
+                      'border-b border-gold pb-1 text-fg'
+                    : 'text-fg-muted hover:text-fg',
                 )}
               >
                 {link.step ? (
-                  <span
-                    className={cn(
-                      'font-mono text-[10px] transition-colors',
-                      active ? 'text-gold/70' : 'text-fg-subtle',
-                    )}
-                  >
-                    {link.step}
-                  </span>
+                  <span className="font-mono text-[11px] text-verde">{link.step}</span>
                 ) : null}
                 {t(link.key)}
-                {/* Active state is gold, per the manual: a bar, not a fill. */}
-                {active ? (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-2.5 -bottom-[9px] h-0.5 rounded-full bg-gold"
-                  />
-                ) : null}
               </Link>
             );
           })}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-4">
+        <div className="ml-auto flex flex-wrap items-center gap-x-3.5 gap-y-2.5">
           <LocaleSwitcher />
           <WalletButton />
           <MobileNav />
