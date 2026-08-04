@@ -18,6 +18,8 @@
  * Only SEP-38 `/quote` produces a firm one.
  */
 
+import { stripTrailingSlashes } from '@brk/ramp-core';
+
 /** One asset as an anchor's `/info` describes it. */
 export interface FeeScheduleEntry {
   code: string;
@@ -70,15 +72,21 @@ function parseSide(raw: Record<string, RawEntry> | undefined): FeeScheduleEntry[
  *
  * Returns null rather than throwing: an anchor that does not answer is one the
  * router should report as unreachable, not one that should fail the request.
+ *
+ * `fetchImpl` is injected for the same reason every other client in this kit
+ * takes one — without it this call escapes to a real anchor, which makes the
+ * adapter above impossible to test hermetically and puts a third party in the
+ * path of the suite.
  */
 export async function fetchFeeSchedule(
   transferServer: string,
   timeoutMs = 8000,
+  fetchImpl: typeof fetch = globalThis.fetch,
 ): Promise<FeeSchedule | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${transferServer.replace(/\/+$/, '')}/info`, {
+    const response = await fetchImpl(`${stripTrailingSlashes(transferServer)}/info`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
     });

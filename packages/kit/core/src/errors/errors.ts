@@ -102,7 +102,28 @@ export function isRampError(e: unknown): e is RampError {
 
 /** Wrap an unknown thrown value so callers always get a RampError. */
 export function toRampError(e: unknown, anchorId?: string): RampError {
-  if (isRampError(e)) return e;
+  if (isRampError(e)) {
+    /*
+     * A protocol client speaks a standard, not for one company — `Sep38Client`
+     * has no idea which anchor it was pointed at, so it throws untagged. The
+     * adapter calling this is the one that knows, and returning the error
+     * untouched threw that away: every SEP anchor failure reached the browser
+     * with `anchorId: undefined`, so the UI could not say which anchor broke.
+     *
+     * Only fill a gap. An error that already names its anchor is passed through
+     * as the same instance, which callers rely on.
+     */
+    if (!anchorId || e.anchorId) return e;
+    return new RampError({
+      code: e.code,
+      message: e.message,
+      anchorId,
+      retryable: e.retryable,
+      status: e.status,
+      raw: e.raw,
+      cause: e.cause,
+    });
+  }
   const message = e instanceof Error ? e.message : String(e);
   const isAbort = e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError');
   return new RampError({

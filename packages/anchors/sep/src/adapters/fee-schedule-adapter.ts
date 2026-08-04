@@ -133,7 +133,11 @@ export class SepFeeAnchorAdapter implements RampAdapter {
       });
     }
 
-    const schedule = await fetchFeeSchedule(transferServer, this.config.timeoutMs);
+    const schedule = await fetchFeeSchedule(
+      transferServer,
+      this.config.timeoutMs,
+      this.config.fetchImpl,
+    );
     if (!schedule) {
       throw new RampError({
         code: 'ANCHOR_UNAVAILABLE',

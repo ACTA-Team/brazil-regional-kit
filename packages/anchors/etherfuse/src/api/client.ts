@@ -15,7 +15,7 @@
  * rather than taken from documentation, because several of them differ.
  */
 
-import { RampError } from '@brk/ramp-core';
+import { RampError, stripTrailingSlashes } from '@brk/ramp-core';
 import type {
   EtherfuseApi,
   EtherfuseAsset,
@@ -89,7 +89,7 @@ export class EtherfuseHttpClient implements EtherfuseApi {
       });
     }
     this.apiKey = opts.apiKey;
-    this.baseUrl = (opts.baseUrl ?? ETHERFUSE_SANDBOX_URL).replace(/\/+$/, '');
+    this.baseUrl = stripTrailingSlashes(opts.baseUrl ?? ETHERFUSE_SANDBOX_URL);
     this.timeoutMs = opts.timeoutMs ?? 15_000;
     this.fetchImpl = opts.fetchImpl ?? globalThis.fetch;
   }

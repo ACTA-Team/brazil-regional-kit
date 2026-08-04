@@ -1,0 +1,49 @@
+# Secret scanning, taught the difference between a Stellar public key and a
+# Stellar secret.
+#
+# The default rules flag `SIGNING_KEY = "GCHLHDBOK..."` as a generic API key,
+# because a base32 Stellar address has the entropy of one. It is not a secret:
+# `G...` is an Ed25519 PUBLIC key, and an anchor publishes its SIGNING_KEY in
+# `stellar.toml` precisely so that clients can verify SEP-10 challenges against
+# it. This repo has several in test fixtures copied from real anchors.
+#
+# Silencing that noise is only safe if the genuinely dangerous thing is still
+# caught, so the rule below adds it: `S...` is the SECRET seed, and one of those
+# in a commit means a compromised account.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "stellar-secret-seed"
+description = "Stellar secret seed (S...) — a compromised account if committed"
+# 56 chars, base32, starting with S. Anchored on word boundaries so it does not
+# fire on prose that happens to contain a long capitalised run.
+regex = '''\bS[A-Z2-7]{55}\b'''
+keywords = ["S"]
+[rules.allowlist]
+# The scripts explain how to supply a seed; the placeholder is not one.
+regexes = ['''SXXXX+''', '''S\.\.\.''']
+
+[allowlist]
+description = "Public-by-construction values and vendored third-party templates"
+
+paths = [
+  # Vendored agent-skill templates: documentation for a tool, not code this
+  # repo ships. ESLint and Prettier ignore them for the same reason.
+  '''^\.claude/''',
+  '''^\.agents/''',
+  # Generated, and reviewed as a lockfile rather than as source.
+  '''^pnpm-lock\.yaml$''',
+]
+
+regexes = [
+  # Stellar PUBLIC keys. Published in stellar.toml, printed in explorers, and
+  # safe in a commit by definition. The secret counterpart starts with S and is
+  # caught by the rules above.
+  '''\bG[A-Z2-7]{55}\b''',
+  # Contract addresses (Soroban). Also public identifiers.
+  '''\bC[A-Z2-7]{55}\b''',
+  # Transaction and ledger hashes are public record.
+  '''\b[a-f0-9]{64}\b''',
+]

@@ -13,7 +13,7 @@
  */
 
 import { Networks, Transaction, WebAuth } from '@stellar/stellar-sdk';
-import { RampError } from '@brk/ramp-core';
+import { RampError, stripTrailingSlashes, toHomeDomain } from '@brk/ramp-core';
 
 export interface Sep10Options {
   /** From the TOML's `WEB_AUTH_ENDPOINT`. */
@@ -43,9 +43,9 @@ export class Sep10Client {
 
   constructor(options: Sep10Options) {
     this.opts = {
-      webAuthEndpoint: options.webAuthEndpoint.replace(/\/+$/, ''),
+      webAuthEndpoint: stripTrailingSlashes(options.webAuthEndpoint),
       serverSigningKey: options.serverSigningKey,
-      homeDomain: options.homeDomain.replace(/^https?:\/\//, '').replace(/\/+$/, ''),
+      homeDomain: toHomeDomain(options.homeDomain),
       networkPassphrase: options.networkPassphrase ?? Networks.TESTNET,
       timeoutMs: options.timeoutMs ?? 10_000,
       fetchImpl: options.fetchImpl ?? globalThis.fetch,

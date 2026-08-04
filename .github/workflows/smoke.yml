@@ -41,11 +41,14 @@ jobs:
             [ "$code" = "200" ] || exit 1
           done
 
-      - name: All four anchors are registered
+      # The simulated Manteca and Koywe adapters were replaced by `anclap`, which
+      # quotes from a real published fee schedule. Keep this list in step with
+      # `apps/hub/src/server/anchors.ts` — it is the claim the README makes.
+      - name: Every anchor is registered
         run: |
           body=$(curl -sf http://localhost:3000/api/anchors)
           echo "$body"
-          for anchor in etherfuse testanchor manteca koywe; do
+          for anchor in etherfuse testanchor anclap; do
             echo "$body" | grep -q "\"$anchor\"" || { echo "missing $anchor"; exit 1; }
           done
 

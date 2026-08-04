@@ -1,0 +1,64 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": [
+    "Mutation testing, scoped deliberately.",
+    "",
+    "Line coverage says a line ran. It does not say an assertion would have noticed",
+    "if that line were wrong — and in a kit that computes what a person receives for",
+    "their money, that gap is the one that matters. Stryker rewrites the code in small",
+    "ways (a > becomes a >=, a + becomes a -) and reports which changes the suite fails",
+    "to catch.",
+    "",
+    "The scope below is the arithmetic and the rules built on it: decimal money helpers,",
+    "the 28-byte memo guard, asset parsing, error classification and the router's",
+    "ranking. These are pure functions with no I/O, which is exactly where mutation",
+    "testing is cheap to run and most informative.",
+    "",
+    "Not wired into pull-request CI on purpose: it re-runs the suite once per mutant and",
+    "takes minutes rather than seconds. Run it manually before a release, or on the",
+    "weekly schedule in .github/workflows/mutation.yml."
+  ],
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "_comment_plugins": [
+    "Named explicitly because pnpm's symlinked node_modules does not expose the",
+    "plugin to Stryker's sandbox by glob alone."
+  ],
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "_comment_ignore": [
+    "Stryker copies the project into a sandbox. The vendored agent-skill",
+    "directories are symlinks, which the copy cannot follow on Windows, and none",
+    "of these paths affect a mutation run anyway."
+  ],
+  "ignorePatterns": [
+    ".claude",
+    ".agents",
+    ".next",
+    "dist",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
+    ".git"
+  ],
+  "reporters": ["html", "clear-text", "progress"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "packages/kit/core/src/assets/money.ts",
+    "packages/kit/core/src/assets/assets.ts",
+    "packages/kit/core/src/memo/memo.ts",
+    "packages/kit/core/src/errors/errors.ts",
+    "packages/kit/router/src/router.ts",
+    "packages/anchors/sep/src/fees/schedule.ts"
+  ],
+  "thresholds": {
+    "high": 90,
+    "low": 75,
+    "break": 70
+  },
+  "timeoutMS": 20000,
+  "concurrency": 4,
+  "tempDirName": ".stryker-tmp"
+}

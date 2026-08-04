@@ -1,0 +1,192 @@
+{
+  "$comment": "Advisories reviewed and accepted for now. Anything not listed here fails `pnpm audit:check`. Each entry needs a reason; regenerate with `pnpm audit:baseline` and then write real reasons before committing.",
+  "reviewed": "2026-08-04",
+  "acknowledged": {
+    "GHSA-2pr8-phx7-x9h3": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobuf.js: Denial of service from crafted field names in generated code",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-42h9-826w-cgv3": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Excessive recursion in formDataToJSON can cause denial of service",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-66ff-xgx4-vchm": {
+      "package": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Code injection through bytes field defaults in generated toObject code",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-685m-2w69-288q": {
+      "package": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Denial of service through unbounded protobuf recursion",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-6g55-p6wh-862q": {
+      "package": "postcss",
+      "severity": "high",
+      "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+      "reason": "Build-time only, via Next and Tailwind. It processes this repo's own stylesheets during `next build`; no attacker-controlled CSS reaches it at runtime. Expected to clear on a Next patch release — Dependabot watches the next group weekly."
+    },
+    "GHSA-75px-5xx7-5xc7": {
+      "package": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Code generation gadget after prototype pollution",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-7q8q-rj6j-mhjq": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Nested axios option objects can consume polluted prototype values",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-848j-6mx2-7j84": {
+      "package": "elliptic",
+      "severity": "low",
+      "title": "Elliptic Uses a Cryptographic Primitive with a Risky Implementation",
+      "reason": "Same unreachable Trezor path as protobufjs: crypto-browserify inside @trezor/blockchain-link. No hardware-wallet module is registered, so it is never loaded."
+    },
+    "GHSA-f38q-mgvj-vph7": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs : Schema-derived names can shadow runtime-significant properties",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-f4gw-2p7v-4548": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: NO_PROXY bypass for 0.0.0.0 local addresses in axios",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-f88m-g3jw-g9cj": {
+      "package": "sharp",
+      "severity": "high",
+      "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+      "reason": "Next's image optimizer. It only processes images committed to this repo — the app has no upload path. Expected to clear on a Next patch release."
+    },
+    "GHSA-fx83-v9x8-x52w": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobuf.js: Prototype injection in generated message constructors",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-fxqj-rqcc-2cmp": {
+      "package": "postcss",
+      "severity": "moderate",
+      "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+      "reason": "Build-time only, via Next and Tailwind. It processes this repo's own stylesheets during `next build`; no attacker-controlled CSS reaches it at runtime. Expected to clear on a Next patch release — Dependabot watches the next group weekly."
+    },
+    "GHSA-g7r4-m6w7-qqqr": {
+      "package": "esbuild",
+      "severity": "low",
+      "title": "esbuild allows arbitrary file read when running the development server on Windows",
+      "reason": "Dev-only, via tsup. The advisory concerns esbuild's development server, which this project never starts; tsup uses esbuild as a library to build the packages."
+    },
+    "GHSA-gcfj-64vw-6mp9": {
+      "package": "axios",
+      "severity": "high",
+      "title": "Axios Node HTTP adapter can use an inherited proxy after interceptor config cloning",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-hcpx-6fm6-wx23": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios form serializer maxDepth bypass via {} metatoken",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-j3f2-48v5-ccww": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs: Denial of Service via infinite loop in .proto option parsing",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-jggg-4jg4-v7c6": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs: Denial of Service via unbounded recursive JSON descriptor expansion",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-jqh4-m9w3-8hp9": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Fetch adapter `ReadableStream` uploads bypass `maxBodyLength`",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-jvwf-75h9-cwgg": {
+      "package": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Process-wide denial of service through unsafe option paths",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-mmx7-hfxf-jppx": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Prototype pollution gadgets can alter axios request construction",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-mwf2-3pr3-8698": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: HTTP/2 streamed uploads bypass `maxBodyLength`",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-pmv8-rq9r-6j72": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Deep formToJSON Key Recursion Can Cause Denial of Service",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-q6x5-8v7m-xcrf": {
+      "package": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs has overlong UTF-8 decoding",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-q8mj-m7cp-5q26": {
+      "package": "qs",
+      "severity": "moderate",
+      "title": "qs has a remotely triggerable DoS: qs.stringify crashes with RangeError",
+      "reason": "Dev-only, via typed-rest-client inside @stryker-mutator/core. Stryker is a mutation-testing tool that runs locally and on a weekly schedule; it never ships, never serves a request, and never parses an attacker-supplied query string. Introduced when mutation testing was added — see QUALITY.md."
+    },
+    "GHSA-qx2v-qp2m-jg93": {
+      "package": "postcss",
+      "severity": "moderate",
+      "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+      "reason": "Build-time only, via Next and Tailwind. It processes this repo's own stylesheets during `next build`; no attacker-controlled CSS reaches it at runtime. Expected to clear on a Next patch release — Dependabot watches the next group weekly."
+    },
+    "GHSA-r28c-9q8g-f849": {
+      "package": "postcss",
+      "severity": "high",
+      "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+      "reason": "Build-time only, via Next and Tailwind. It processes this repo's own stylesheets during `next build`; no attacker-controlled CSS reaches it at runtime. Expected to clear on a Next patch release — Dependabot watches the next group weekly."
+    },
+    "GHSA-w5hq-g745-h8pq": {
+      "package": "uuid",
+      "severity": "moderate",
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "reason": "Arrives via @solana/web3.js inside @hot-wallet/sdk, which Stellar Wallets Kit bundles. That module is never registered by this kit. The advisory also requires a caller-supplied buffer to uuid v3/v5/v6, which nothing in this repo does."
+    },
+    "GHSA-wcpc-wj8m-hjx6": {
+      "package": "protobufjs",
+      "severity": "high",
+      "title": "protobufjs: Denial of service through unbounded Any expansion during JSON conversion",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    },
+    "GHSA-xj6q-8x83-jv6g": {
+      "package": "axios",
+      "severity": "moderate",
+      "title": "Axios: Prototype pollution auth subfields can inject Basic auth",
+      "reason": "Transitive through @reown/appkit — the WalletConnect support Stellar Wallets Kit bundles. This project registers no WalletConnect module and denies @reown/appkit builds in pnpm-workspace.yaml, so the code never runs. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit."
+    },
+    "GHSA-xq3m-2v4x-88gg": {
+      "package": "protobufjs",
+      "severity": "critical",
+      "title": "Arbitrary code execution in protobufjs",
+      "reason": "Transitive, and unreachable. It arrives through @trezor/connect, which Stellar Wallets Kit pulls in for hardware-wallet support. packages/stablecoin-kit/src/wallet.ts registers only browser-extension modules (Freighter, xBull, Albedo, Rabet, Lobstr, Hana), so no Trezor code path is ever imported or executed, and its postinstall build is denied in pnpm-workspace.yaml. Fixing it needs a major upgrade of @creit.tech/stellar-wallets-kit — a deliberate migration, not a bot bump."
+    }
+  }
+}

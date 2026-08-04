@@ -41,9 +41,14 @@ endpoints are unauthenticated by design. Everything on-chain is real testnet.
 ```bash
 pnpm sample       # the second app, in your terminal
 pnpm test         # unit tests
-pnpm lint         # eslint + prettier
+pnpm lint         # eslint
+pnpm format       # prettier
 pnpm build        # build every package and the hub
+pnpm verify       # format, lint, types, tests + coverage, build, audit
 ```
+
+Every quality control, and what to do when one fails, is in
+[QUALITY.md](./QUALITY.md).
 
 ### Walking the full demo without an Etherfuse key
 
@@ -210,6 +215,8 @@ environment variables to set.
 | [docs/gotchas.md](./docs/gotchas.md) | The traps, and where each is handled |
 | [docs/deployment.md](./docs/deployment.md) | Deploying the hub |
 | [docs/contributing.md](./docs/contributing.md) | Local setup, tests, commit style |
+| [QUALITY.md](./QUALITY.md) | Every quality control, how to run it, how to read its failures |
+| [AGENTS.md](./AGENTS.md) | Rules for anyone — human or AI — changing this code |
 
 Also: [CONTRIBUTING](./.github/CONTRIBUTING.md) · [Code of conduct](./.github/CODE_OF_CONDUCT.md) ·
 [Security](./.github/SECURITY.md) · [Privacy](./.github/PRIVACY.md)
