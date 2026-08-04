@@ -25,10 +25,10 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
 
-      - name: Unit tests
-        run: pnpm test
-
-      - name: Coverage
+      # One run, not two. `test:coverage` runs the same suite and additionally
+      # enforces the thresholds in vitest.config.ts, so it fails both on a
+      # broken test and on coverage sliding backwards.
+      - name: Tests and coverage thresholds
         run: pnpm test:coverage
 
       - uses: actions/upload-artifact@v4

@@ -11,6 +11,10 @@ export default tseslint.config(
       '**/.next/**',
       '**/coverage/**',
       '**/*.d.ts',
+      // Stryker copies the whole project into here to mutate it. Linting a
+      // sandbox means linting a second, deliberately broken copy of the source.
+      '.stryker-tmp/**',
+      'reports/**',
       // Vendored agent-skill templates. They are documentation for a tool, not
       // code this repo ships, and linting someone else's template teaches us
       // nothing about our own.

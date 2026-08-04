@@ -9,9 +9,32 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
+      /*
+       * The packages are the reusable surface — the part other people import,
+       * and the part that moves money. `apps/hub` is deliberately not measured
+       * here: it is a Next app whose every page and API route is exercised over
+       * real HTTP by the `smoke` workflow, which catches more than a mounted
+       * component test would. See QUALITY.md for the plan to add component
+       * coverage on top of that.
+       */
       include: ['packages/*/src/**/*.ts'],
+      // `index.ts` files are re-export barrels with no logic of their own.
       exclude: ['**/*.test.ts', '**/index.ts'],
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'json-summary'],
+      /*
+       * A floor, not a target. Measured at 87.5% statements / 79.8% branches /
+       * 86.4% functions / 88.3% lines, so there is real headroom above every
+       * number below — these exist to stop a regression, not to be scraped past.
+       *
+       * Raise them when the headroom grows; never lower one to make a build go
+       * green.
+       */
+      thresholds: {
+        statements: 80,
+        functions: 80,
+        lines: 80,
+        branches: 75,
+      },
     },
   },
 });

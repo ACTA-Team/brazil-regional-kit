@@ -63,4 +63,43 @@ describe('toRampError', () => {
     const abort = Object.assign(new Error('aborted'), { name: 'AbortError' });
     expect(toRampError(abort).code).toBe('ANCHOR_UNAVAILABLE');
   });
+
+  /**
+   * Regression: a protocol client such as `Sep38Client` serves whichever anchor
+   * it was pointed at, so it throws untagged. The adapter wrapping it supplies
+   * the id — and dropping it left every SEP anchor failure anonymous in the UI.
+   */
+  it('tags an untagged RampError with the anchor the caller named', () => {
+    const untagged = new RampError({ code: 'UNSUPPORTED_PAIR', message: 'no such pair' });
+    const tagged = toRampError(untagged, 'testanchor');
+
+    expect(tagged.anchorId).toBe('testanchor');
+    expect(tagged.code).toBe('UNSUPPORTED_PAIR');
+    expect(tagged.message).toBe('no such pair');
+  });
+
+  it('preserves the diagnostic payload while tagging', () => {
+    const untagged = new RampError({
+      code: 'INVALID_REQUEST',
+      message: 'bad amount',
+      status: 400,
+      raw: { error: 'bad amount' },
+      retryable: true,
+    });
+    const tagged = toRampError(untagged, 'testanchor');
+
+    expect(tagged).toMatchObject({ status: 400, retryable: true });
+    expect(tagged.raw).toEqual({ error: 'bad amount' });
+  });
+
+  it('never overwrites an anchor id the error already carries', () => {
+    const original = new RampError({
+      code: 'AUTH_FAILED',
+      message: 'nope',
+      anchorId: 'etherfuse',
+    });
+
+    expect(toRampError(original, 'testanchor')).toBe(original);
+    expect(original.anchorId).toBe('etherfuse');
+  });
 });

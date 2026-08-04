@@ -1,0 +1,42 @@
+name: Mutation
+
+# Deliberately NOT on pull requests.
+#
+# Stryker re-runs the suite once per mutant. Scoped to the pure arithmetic and
+# the router it takes a couple of minutes, which is too slow to sit in front of
+# every push and too valuable to drop — so it runs weekly and on demand, and its
+# result is read as a report rather than a merge gate.
+on:
+  schedule:
+    # Monday morning, before the Dependabot PRs land.
+    - cron: '43 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutate:
+    name: Stryker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      # Fails below the `break` threshold in stryker.config.json. Line coverage
+      # says a line ran; this says an assertion would have noticed it was wrong.
+      - name: Mutation testing
+        run: pnpm test:mutation
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 30

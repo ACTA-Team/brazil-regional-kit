@@ -108,3 +108,131 @@ describe('quoting', () => {
     ).rejects.toMatchObject({ code: 'UNSUPPORTED_PAIR' });
   });
 });
+
+/**
+ * The order store is keyed on `globalThis`, so every test below uses its own
+ * order id. Sharing one would make these pass or fail by execution order.
+ */
+describe('order lifecycle', () => {
+  let seq = 0;
+  const freshId = () => `test-order-${Date.now()}-${++seq}`;
+
+  const newOrder = async (orderId: string, settlementMs = 0) => {
+    const adapter = createMantecaAdapter({ instant: true, settlementMs });
+    const order = await adapter.createOrder({
+      orderId,
+      quoteId: 'manteca-1700000000000-500',
+      account: 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4',
+    });
+    return { adapter, order };
+  };
+
+  it('creates an order waiting on the user’s payment', async () => {
+    const { order } = await newOrder(freshId());
+
+    expect(order.status).toBe('awaiting_payment');
+    expect(order.mode).toBe('mock');
+    expect(order.direction).toBe('onramp');
+    expect(order.history).toEqual([{ status: 'created', at: expect.any(String) }]);
+  });
+
+  /** Quote ids encode the amount, so an order needs no server-side state. */
+  it('recovers the amount from the quote id', async () => {
+    const { order } = await newOrder(freshId());
+
+    expect(order.sellAmount).toBe('500');
+    expect(Number(order.buyAmount)).toBeGreaterThan(0);
+  });
+
+  it('honours the caller’s order id, and invents one otherwise', async () => {
+    const id = freshId();
+    expect((await newOrder(id)).order.id).toBe(id);
+
+    const generated = await createMantecaAdapter(instant).createOrder({
+      quoteId: 'manteca-1700000000000-500',
+      account: 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4',
+    });
+    expect(generated.id).toMatch(/^manteca-order-\d+$/);
+  });
+
+  it('reads back an order it created', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id);
+
+    expect((await adapter.getOrder(id)).id).toBe(id);
+  });
+
+  it('reports an unknown order rather than inventing one', async () => {
+    await expect(createMantecaAdapter(instant).getOrder('no-such-order')).rejects.toMatchObject({
+      code: 'INVALID_REQUEST',
+      anchorId: 'manteca',
+    });
+  });
+
+  it('moves to processing once the fiat leg is simulated', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id, 60_000);
+
+    const settled = await adapter.simulateFiatReceived(id);
+    expect(settled.status).toBe('processing');
+    expect(settled.history.map((h) => h.status)).toEqual(['created', 'processing']);
+  });
+
+  it('completes once the settlement window has passed', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id, 0);
+
+    await adapter.simulateFiatReceived(id);
+    const done = await adapter.getOrder(id);
+
+    expect(done.status).toBe('completed');
+    expect(done.history.map((h) => h.status)).toEqual(['created', 'processing', 'completed']);
+  });
+
+  /** Polling is how the UI drives this, so repeated reads must not pile up history. */
+  it('does not append a duplicate event when polled repeatedly', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id, 0);
+
+    await adapter.simulateFiatReceived(id);
+    await adapter.getOrder(id);
+    await adapter.getOrder(id);
+    const final = await adapter.getOrder(id);
+
+    expect(final.history.filter((h) => h.status === 'completed')).toHaveLength(1);
+  });
+
+  it('stays in processing until the window elapses', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id, 60_000);
+
+    await adapter.simulateFiatReceived(id);
+    expect((await adapter.getOrder(id)).status).toBe('processing');
+  });
+
+  it('leaves an unsettled order alone', async () => {
+    const id = freshId();
+    const { adapter } = await newOrder(id);
+
+    expect((await adapter.getOrder(id)).status).toBe('awaiting_payment');
+  });
+
+  it('settles the crypto leg the same way, for the off-ramp direction', async () => {
+    const id = freshId();
+    const adapter = createKoyweAdapter({ instant: true, settlementMs: 0 });
+    await adapter.createOrder({
+      orderId: id,
+      quoteId: 'koywe-1700000000000-100',
+      account: 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4',
+    });
+
+    expect((await adapter.simulateCryptoReceived(id)).status).toBe('processing');
+    expect((await adapter.getOrder(id)).status).toBe('completed');
+  });
+
+  it('refuses to settle an order it never created', async () => {
+    await expect(
+      createMantecaAdapter(instant).simulateFiatReceived('no-such-order'),
+    ).rejects.toMatchObject({ code: 'INVALID_REQUEST' });
+  });
+});

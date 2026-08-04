@@ -6,6 +6,10 @@ out/
 build/
 coverage/
 
+# Mutation testing: sandbox and HTML report
+.stryker-tmp/
+reports/
+
 # Environment — never commit real keys
 .env
 .env.local

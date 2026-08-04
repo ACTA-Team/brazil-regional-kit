@@ -1,0 +1,96 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly. A dependency that was clean on merge day can be vulnerable by
+    # Friday, and nobody reopens a green PR to find out.
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+
+      # Fails on anything NOT already reviewed into security/audit-baseline.json.
+      # Every advisory in that file has a written reason and went through review;
+      # see the header comment in scripts/audit.ts for why a plain
+      # `pnpm audit --audit-level=high` would be red on day one and therefore
+      # ignored by everyone.
+      - name: Nothing new at high or above
+        run: pnpm audit:check
+
+      # Informational: the full list, including everything on the baseline, so a
+      # reviewer can see the whole picture without running anything locally.
+      - name: Full report
+        if: always()
+        run: pnpm audit || true
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Gitleaks scans history, not just the tip. A key that was committed
+          # and then "removed" in a later commit is still a leaked key.
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No GITLEAKS_LICENSE needed: that is only required for organisation
+          # accounts. This repo scans on the free path.
+
+  env-hygiene:
+    name: No real secrets committed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # .env.example is documentation and belongs in the repo. A real .env does
+      # not, and .gitignore only helps if nobody ever used `git add -f`.
+      - name: Only .env.example is tracked
+        run: |
+          tracked=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$' || true)
+          if [ -n "$tracked" ]; then
+            echo "These environment files are committed and should not be:"
+            echo "$tracked"
+            exit 1
+          fi
+          echo "Only .env.example is tracked."
+
+      # The API key must never reach the browser. Next inlines anything prefixed
+      # NEXT_PUBLIC_ into the client bundle, so that prefix on a secret is a leak
+      # by construction rather than by accident.
+      - name: No secret is exposed to the browser
+        run: |
+          leaked=$(grep -rIn --include='*.ts' --include='*.tsx' \
+            -E 'NEXT_PUBLIC_[A-Z_]*(KEY|SECRET|TOKEN|PASSWORD|PRIVATE)' \
+            apps packages scripts || true)
+          if [ -n "$leaked" ]; then
+            echo "A secret-looking value is prefixed NEXT_PUBLIC_, which ships it to the browser:"
+            echo "$leaked"
+            exit 1
+          fi
+          echo "No NEXT_PUBLIC_ secret found."
