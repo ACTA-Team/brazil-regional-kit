@@ -1,0 +1,23 @@
+# Line endings are LF everywhere, in the repository and in the working tree.
+#
+# Prettier is configured `endOfLine: "lf"`. Without this file, a Windows clone
+# with `core.autocrlf=true` checks every file out as CRLF, and `pnpm
+# format:check` then fails on hundreds of files whose content is byte-identical
+# apart from the line terminator — while the same check passes in CI on Linux.
+# That is a confusing failure to hand a new contributor, and it recurs on every
+# merge that touches a lot of files.
+* text=auto eol=lf
+
+# Binary files must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Generated. Collapsed in diffs and excluded from language statistics, but still
+# reviewable when you ask for it.
+pnpm-lock.yaml linguist-generated=true -diff

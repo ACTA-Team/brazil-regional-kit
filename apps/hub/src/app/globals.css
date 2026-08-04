@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* The ramp components live in a package now, and Tailwind does not look inside
+   node_modules on its own. Without this, every utility used only by them would
+   be dropped from the build. */
+@source '../../../../packages/kit/ui/src';
+
 /*
  * ACTA design system · v1.0
  *

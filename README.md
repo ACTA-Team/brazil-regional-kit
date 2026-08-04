@@ -218,8 +218,8 @@ environment variables to set.
 | [QUALITY.md](./QUALITY.md) | Every quality control, how to run it, how to read its failures |
 | [AGENTS.md](./AGENTS.md) | Rules for anyone — human or AI — changing this code |
 
-Also: [CONTRIBUTING](./CONTRIBUTING.md) · [Code of conduct](./CODE_OF_CONDUCT.md) ·
-[Security](./SECURITY.md) · [Privacy](./PRIVACY.md)
+Also: [CONTRIBUTING](./.github/CONTRIBUTING.md) · [Code of conduct](./.github/CODE_OF_CONDUCT.md) ·
+[Security](./.github/SECURITY.md) · [Privacy](./.github/PRIVACY.md)
 
 ## Licence
 

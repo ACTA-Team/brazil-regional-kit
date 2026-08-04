@@ -11,9 +11,8 @@
 
 Package-level docs live next to the code:
 
-- [`packages/ramp-core`](../packages/ramp-core/README.md) — the adapter contract
-- [`packages/ramp-router`](../packages/ramp-router/README.md) — one API, many anchors
-- [`packages/adapter-etherfuse`](../packages/adapter-etherfuse/README.md) — PIX
-- [`packages/adapter-sep`](../packages/adapter-sep/README.md) — any SEP anchor
-- [`packages/adapter-mocks`](../packages/adapter-mocks/README.md) — simulated anchors
-- [`packages/stablecoin-kit`](../packages/stablecoin-kit/README.md) — chain, swaps, x402
+- [`packages/kit/core`](../packages/kit/core/README.md) — the adapter contract
+- [`packages/kit/router`](../packages/kit/router/README.md) — one API, many anchors
+- [`packages/anchors/etherfuse`](../packages/anchors/etherfuse/README.md) — PIX
+- [`packages/anchors/sep`](../packages/anchors/sep/README.md) — any SEP anchor
+- [`packages/kit/stablecoin`](../packages/kit/stablecoin/README.md) — chain, swaps, x402

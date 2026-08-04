@@ -7,12 +7,8 @@ interface Props {
   // TODO: Define props
 }
 
-export function ComponentName({ }: Props) {
+export function ComponentName({}: Props) {
   // TODO: Add state and effects
 
-  return (
-    <div>
-      {/* TODO: Add component markup */}
-    </div>
-  );
+  return <div>{/* TODO: Add component markup */}</div>;
 }

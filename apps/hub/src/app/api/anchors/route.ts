@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readyAnchors } from '@/lib/anchors';
-import { errorResponse } from '@/lib/http';
+import { readyAnchors } from '@/server/anchors';
+import { errorResponse } from '@/server/http';
 
 export const dynamic = 'force-dynamic';
 

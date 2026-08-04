@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { errorResponse } from '@/lib/http';
-import { sep10 } from '@/lib/sep';
+import { errorResponse } from '@/server/http';
+import { sep10 } from '@/server/sep';
 
 export const dynamic = 'force-dynamic';
 

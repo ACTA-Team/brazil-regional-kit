@@ -26,14 +26,19 @@ jobs:
       - name: Build with tsup
         run: pnpm build:packages
 
+      # Paths are two levels deep — packages are grouped `kit/` and `anchors/`.
       - name: Every package emits ESM and types
         run: |
-          for pkg in ramp-core ramp-router adapter-etherfuse adapter-sep adapter-mocks stablecoin-kit; do
+          for pkg in kit/core kit/router kit/stablecoin kit/ui anchors/etherfuse anchors/sep; do
             test -f "packages/$pkg/dist/index.js"   || { echo "$pkg: missing dist/index.js"; exit 1; }
             test -f "packages/$pkg/dist/index.d.ts" || { echo "$pkg: missing dist/index.d.ts"; exit 1; }
             echo "$pkg ok"
           done
-          test -f packages/stablecoin-kit/dist/x402.js
+
+      # The UI package ships a stylesheet alongside its ESM, built by its own
+      # script. A missing one means every consumer renders unstyled.
+      - name: The UI package emits its stylesheet
+        run: test -f packages/kit/ui/dist/styles.css
 
   hub:
     name: Hub

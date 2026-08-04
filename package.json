@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "pnpm --filter @brk/hub dev",
     "build": "pnpm build:packages && pnpm --filter @brk/hub build",
-    "build:packages": "pnpm --filter \"./packages/*\" -r build",
+    "build:packages": "pnpm --filter \"./packages/**\" -r build",
     "start": "pnpm --filter @brk/hub start",
     "sample": "pnpm --filter @brk/sample-remit start",
     "test": "vitest run",
@@ -45,7 +45,6 @@
   },
   "devDependencies": {
     "@brk/adapter-etherfuse": "workspace:*",
-    "@brk/adapter-mocks": "workspace:*",
     "@brk/adapter-sep": "workspace:*",
     "@brk/ramp-core": "workspace:*",
     "@brk/ramp-router": "workspace:*",
@@ -67,5 +66,14 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "printWidth": 100,
+    "tabWidth": 2,
+    "arrowParens": "always",
+    "endOfLine": "lf"
   }
 }

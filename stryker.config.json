@@ -46,11 +46,12 @@
   },
   "coverageAnalysis": "perTest",
   "mutate": [
-    "packages/ramp-core/src/money.ts",
-    "packages/ramp-core/src/memo.ts",
-    "packages/ramp-core/src/assets.ts",
-    "packages/ramp-core/src/errors.ts",
-    "packages/ramp-router/src/router.ts"
+    "packages/kit/core/src/assets/money.ts",
+    "packages/kit/core/src/assets/assets.ts",
+    "packages/kit/core/src/memo/memo.ts",
+    "packages/kit/core/src/errors/errors.ts",
+    "packages/kit/router/src/router.ts",
+    "packages/anchors/sep/src/fees/schedule.ts"
   ],
   "thresholds": {
     "high": 90,

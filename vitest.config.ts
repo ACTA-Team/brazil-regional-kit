@@ -16,10 +16,17 @@ export default defineConfig({
        * real HTTP by the `smoke` workflow, which catches more than a mounted
        * component test would. See QUALITY.md for the plan to add component
        * coverage on top of that.
+       *
+       * Two path segments, because packages are grouped under `kit` and
+       * `anchors` — matching the workspace globs in pnpm-workspace.yaml.
        */
-      include: ['packages/*/src/**/*.ts'],
-      // `index.ts` files are re-export barrels with no logic of their own.
-      exclude: ['**/*.test.ts', '**/index.ts'],
+      include: ['packages/*/*/src/**/*.ts'],
+      /*
+       * `index.ts` files are re-export barrels with no logic of their own.
+       * `styles.css`-generating scripts and the generated string table in
+       * `ramp-ui` are build output, not behaviour.
+       */
+      exclude: ['**/*.test.ts', '**/index.ts', '**/*.generated.ts', '**/scripts/**'],
       reporter: ['text', 'lcov', 'json-summary'],
       /*
        * A floor, not a target. Measured at 87.5% statements / 79.8% branches /

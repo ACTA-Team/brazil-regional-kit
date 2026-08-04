@@ -20,6 +20,9 @@ export default tseslint.config(
       // nothing about our own.
       '.claude/**',
       '.agents/**',
+      // Node build scripts: they run under Node, not in the app's environment,
+      // and the shared config assumes the latter.
+      '**/scripts/build-css.mjs',
     ],
   },
 

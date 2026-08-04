@@ -1,5 +1,8 @@
 packages:
-  - 'packages/*'
+  # Two levels: packages are grouped by what they are, not listed flat.
+  #   kit/      the reusable toolkit a builder installs
+  #   anchors/  one integration per provider
+  - 'packages/*/*'
   - 'apps/*'
 
 # Build scripts are opt-in. Only the two the toolchain genuinely needs are
@@ -23,3 +26,4 @@ allowBuilds:
   tiny-secp256k1: false
   usb: false
   utf-8-validate: false
+  '@parcel/watcher': set this to true or false

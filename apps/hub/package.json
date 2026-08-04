@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@brk/adapter-etherfuse": "workspace:*",
-    "@brk/adapter-mocks": "workspace:*",
     "@brk/adapter-sep": "workspace:*",
     "@brk/ramp-core": "workspace:*",
     "@brk/ramp-router": "workspace:*",
+    "@brk/ramp-ui": "workspace:*",
     "@brk/stablecoin-kit": "workspace:*",
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@phosphor-icons/react": "^2.1.10",

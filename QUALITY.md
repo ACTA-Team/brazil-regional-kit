@@ -20,7 +20,7 @@ means a green pipeline.
 
 | Concern | Tool | Config |
 | --- | --- | --- |
-| Formatting | Prettier 3 | `.prettierrc.json`, `.prettierignore` |
+| Formatting | Prettier 3 | `prettier` key in `package.json`, `.prettierignore` |
 | Linting | ESLint 10 flat config + typescript-eslint | `eslint.config.mjs` |
 | Types | TypeScript 5.7, `strict` + `noUncheckedIndexedAccess` | `tsconfig.base.json` |
 | Unit tests | Vitest 4 | `vitest.config.ts` |
@@ -85,7 +85,7 @@ pnpm test:watch      # while working
 pnpm test:coverage   # once, with coverage and threshold enforcement
 ```
 
-**369 tests across 20 files.** The suite is hermetic: no network, no anchor, no
+**390 tests across 21 files.** The suite is hermetic: no network, no anchor, no
 Horizon, no credentials. It passes on a fresh clone with no `.env`. Anything that
 would reach the network takes an injected `fetch` or is stubbed at the module
 boundary, so a third party being down can never turn the build red.
@@ -100,17 +100,21 @@ Current, measured:
 
 | Metric | Threshold | Actual |
 | --- | --- | --- |
-| Statements | 80% | **87.53%** (913/1043) |
-| Branches | 75% | **79.92%** (613/767) |
-| Functions | 80% | **86.40%** (197/228) |
-| Lines | 80% | **88.27%** (821/930) |
+| Statements | 80% | **88.22%** (944/1070) |
+| Branches | 75% | **80.71%** (657/814) |
+| Functions | 80% | **87.12%** (203/233) |
+| Lines | 80% | **88.93%** (844/949) |
 
 The build fails below any threshold. The gap between threshold and actual is
 deliberate headroom — the numbers exist to stop a regression, not to be scraped
 past. Raise them as the headroom grows; never lower one to make a build green.
 
-Scope is `packages/*/src` — the reusable surface other people import. `index.ts`
-barrels are excluded because they are re-exports with no logic.
+This gate has already earned its keep: it caught the fee-schedule anchor landing
+at 0% coverage during a merge, which is exactly the regression it exists to stop.
+
+Scope is `packages/*/*/src` — two segments, because packages are grouped under
+`kit/` and `anchors/`. `index.ts` barrels are excluded because they are
+re-exports with no logic; so are generated string tables and build scripts.
 
 **`apps/hub` is not in the coverage number.** It is a Next app whose every page
 and API route is exercised over real HTTP by the `smoke` workflow, which catches
@@ -122,12 +126,16 @@ Per-file, the weakest points today:
 
 | File | Lines | Why |
 | --- | --- | --- |
-| `stablecoin-kit/wallet.ts` | 37% | Browser wallet extensions. The server-safety contract is tested; the in-browser paths need a real extension. |
-| `adapter-etherfuse/adapter.ts` | 72% | Order-polling branches against the live sandbox. |
-| `adapter-etherfuse/mock.ts` | 79% | Fixture replay edge cases. |
+| `kit/stablecoin/src/wallet/wallet.ts` | 37% | Browser wallet extensions. The server-safety contract is tested; the in-browser paths need a real extension. |
+| `anchors/etherfuse/src/adapter/etherfuse-adapter.ts` | 72% | Order-polling branches against the live sandbox. |
+| `anchors/etherfuse/src/api/mock.ts` | 79% | Fixture replay edge cases. |
+| `anchors/sep/src/sep1/toml.ts` | 95% | Two fetch-failure branches. |
+
+`packages/kit/ui` is a component library with no unit tests yet; it is rendered
+by the hub, which the `smoke` workflow exercises over real HTTP.
 
 Suggested ramp, in value order: hub API-route handlers (pure functions given a
-`Request`) → Etherfuse adapter order lifecycle → hub components under jsdom.
+`Request`) → Etherfuse adapter order lifecycle → `kit/ui` components under jsdom.
 Raise thresholds after each step rather than in advance.
 
 ### Integration and end-to-end
@@ -146,8 +154,8 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/premium-fx   
 ```
 
 `.github/workflows/smoke.yml` does this with **no environment block at all** —
-the exact state of a fresh clone. It asserts that every page returns 200, all
-four anchors register, the multi-anchor quote endpoint answers, a single-anchor
+the exact state of a fresh clone. It asserts that every page returns 200, every
+anchor registers, the multi-anchor quote endpoint answers, a single-anchor
 quote round-trips, and that x402 challenges an unpaid request and refuses a
 forged payment proof. If that workflow fails, the quickstart in the README is a
 lie.
@@ -168,11 +176,11 @@ money, that is the gap that matters. Stryker rewrites the code in small ways (`>
 becomes `>=`, `+` becomes `-`) and reports which changes the suite fails to catch.
 
 Scoped to the pure logic where it is cheap and most informative: `money.ts`,
-`memo.ts`, `assets.ts`, `errors.ts` and `router.ts`.
+`assets.ts`, `memo.ts`, `errors.ts`, `router.ts` and the fee-schedule arithmetic.
 
-Last run: **77.67%** mutation score (327 killed, 82 survived), ~47 seconds.
-Per file: `money.ts` 90.53%, `memo.ts` 86.67%, `errors.ts` 82.98%, `assets.ts`
-73.96%, `router.ts` 68.63%. Build threshold is 70%.
+Last run: **77.28%** mutation score (398 killed, 105 survived), ~44 seconds.
+Per file: `money.ts` 90.53%, `memo.ts` 86.67%, `errors.ts` 82.98%, `schedule.ts`
+75.53%, `assets.ts` 73.96%, `router.ts` 68.63%. Build threshold is 70%.
 
 **Not run on pull requests** — it re-runs the suite once per mutant, which is too
 slow to sit in front of every push. It runs weekly (`.github/workflows/
@@ -278,7 +286,7 @@ threshold and do not add an exclusion.
 
 **`error TS2353: Object literal may only specify known properties`**
 Usually a test built against a type it guessed at. Read the interface in
-`packages/ramp-core/src/types.ts` — `CreateOrderRequest` in particular is much
+`packages/kit/core/src/contract/types.ts` — `CreateOrderRequest` in particular is much
 smaller than it looks.
 
 **`@typescript-eslint/no-explicit-any`**
