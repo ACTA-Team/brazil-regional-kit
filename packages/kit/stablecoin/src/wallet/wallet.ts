@@ -28,7 +28,25 @@ export interface WalletKitOptions {
   networkPassphrase?: string;
   /** Restore a previously selected wallet without prompting. */
   selectedWalletId?: string;
+  /**
+   * Colours for the wallet picker and profile dialogs.
+   *
+   * The kit's dialogs are the one surface an app cannot style from its own
+   * stylesheet — they render inside a shadow root, so no selector reaches them.
+   * Left alone they arrive in the library's light theme, which on a dark app is
+   * a white rectangle in the middle of the screen.
+   *
+   * Deliberately not defaulted to this project's palette: the package is
+   * published for other people, and an anchor SDK that repaints your wallet
+   * dialog in someone else's brand colours is a bug, not a feature.
+   */
+  theme?: WalletKitTheme;
 }
+
+/** Mirrors the kit's own theme shape, so an app can hand one over verbatim. */
+export type WalletKitTheme = NonNullable<
+  Parameters<typeof import('@creit.tech/stellar-wallets-kit').StellarWalletsKit.init>[0]['theme']
+>;
 
 let initOptions: WalletKitOptions = {};
 
@@ -78,6 +96,7 @@ async function kit(): Promise<KitModule> {
       ],
       network: toKitNetwork(mod, initOptions.networkPassphrase),
       selectedWalletId: initOptions.selectedWalletId,
+      ...(initOptions.theme ? { theme: initOptions.theme } : {}),
       authModal: { showInstallLabel: true },
     });
 

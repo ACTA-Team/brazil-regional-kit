@@ -36,6 +36,39 @@ import {
 } from '@brk/stablecoin-kit';
 import { TESTNET_PASSPHRASE, type AssetId } from '@brk/ramp-core';
 
+/**
+ * The wallet dialogs, in this app's colours.
+ *
+ * Stellar Wallets Kit renders its picker and profile dialogs inside a shadow
+ * root, so nothing in `globals.css` can reach them — the only way in is this
+ * object. Without it they arrive in the library's light theme: a white card
+ * over a black page, which is what a broken integration looks like.
+ *
+ * Literal values rather than `var(--color-gold)`: custom properties resolve
+ * against the element they are used on, and inside the kit's shadow root this
+ * app's `:root` variables are not in scope. These are the same colours
+ * `globals.css` declares, written out.
+ */
+const WALLET_DIALOG_THEME = {
+  background: '#0a0d14',
+  'background-secondary': '#11151e',
+  'foreground-strong': '#ededed',
+  foreground: 'rgba(237, 237, 237, 0.78)',
+  'foreground-secondary': 'rgba(237, 237, 237, 0.55)',
+  primary: 'oklch(0.86 0.17 96)',
+  'primary-foreground': '#12100a',
+  transparent: 'transparent',
+  lighter: 'rgba(255, 255, 255, 0.06)',
+  light: 'rgba(255, 255, 255, 0.09)',
+  'light-gray': 'rgba(255, 255, 255, 0.14)',
+  gray: 'rgba(237, 237, 237, 0.38)',
+  danger: 'oklch(0.68 0.2 22)',
+  border: 'rgba(255, 255, 255, 0.12)',
+  shadow: 'rgba(0, 0, 0, 0.6)',
+  'border-radius': '12px',
+  'font-family': "var(--font-space-grotesk), 'Space Grotesk', Helvetica, sans-serif",
+} as const;
+
 export type WalletStatus = 'idle' | 'checking' | 'connecting' | 'connected' | 'unavailable';
 
 interface WalletValue {
@@ -101,6 +134,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       const rememberedWallet = window.localStorage.getItem(WALLET_ID_KEY);
       configureWalletKit({
         networkPassphrase: TESTNET_PASSPHRASE,
+        theme: WALLET_DIALOG_THEME,
         ...(rememberedWallet ? { selectedWalletId: rememberedWallet } : {}),
       });
 
