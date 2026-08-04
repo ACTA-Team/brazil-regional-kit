@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import { I18nProvider } from '@/lib/i18n';
 import { WalletProvider } from '@/lib/wallet';
-import { SiteHeader } from '@/components/SiteHeader';
+import { Header } from '@/components/header';
 import './globals.css';
 
 /*
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <WalletProvider>
             <div className="flex min-h-dvh flex-col">
-              <SiteHeader />
+              <Header />
               <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
                 {children}
               </main>
