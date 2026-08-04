@@ -8,7 +8,7 @@
  * options. Only `POST /quote` (a firm, reservable quote) requires a SEP-10 JWT.
  */
 
-import { RampError, type AssetId } from '@brk/ramp-core';
+import { RampError, stripTrailingSlashes, type AssetId } from '@brk/ramp-core';
 
 export interface Sep38DeliveryMethod {
   name: string;
@@ -76,7 +76,7 @@ export class Sep38Client {
   private readonly fetchImpl: typeof fetch;
 
   constructor(opts: Sep38ClientOptions) {
-    this.base = opts.quoteServer.replace(/\/+$/, '');
+    this.base = stripTrailingSlashes(opts.quoteServer);
     this.timeoutMs = opts.timeoutMs ?? 8_000;
     this.fetchImpl = opts.fetchImpl ?? globalThis.fetch;
   }

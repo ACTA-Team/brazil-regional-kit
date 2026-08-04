@@ -8,7 +8,7 @@
  * read fifteen keys would be the wrong trade.
  */
 
-import { RampError } from '@brk/ramp-core';
+import { RampError, toHomeDomain } from '@brk/ramp-core';
 
 export interface TomlCurrency {
   code?: string;
@@ -104,7 +104,7 @@ export async function fetchStellarToml(
   homeDomain: string,
   opts: { fetchImpl?: typeof fetch; timeoutMs?: number } = {},
 ): Promise<StellarToml> {
-  const domain = homeDomain.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  const domain = toHomeDomain(homeDomain);
   const cached = cache.get(domain);
   if (cached && Date.now() - cached.fetchedAt < TTL_MS) return cached.toml;
 

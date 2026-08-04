@@ -18,6 +18,8 @@
  * Only SEP-38 `/quote` produces a firm one.
  */
 
+import { stripTrailingSlashes } from '@brk/ramp-core';
+
 /** One asset as an anchor's `/info` describes it. */
 export interface FeeScheduleEntry {
   code: string;
@@ -84,7 +86,7 @@ export async function fetchFeeSchedule(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetchImpl(`${transferServer.replace(/\/+$/, '')}/info`, {
+    const response = await fetchImpl(`${stripTrailingSlashes(transferServer)}/info`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
     });

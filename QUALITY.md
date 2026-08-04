@@ -85,7 +85,7 @@ pnpm test:watch      # while working
 pnpm test:coverage   # once, with coverage and threshold enforcement
 ```
 
-**390 tests across 21 files.** The suite is hermetic: no network, no anchor, no
+**405 tests across 22 files.** The suite is hermetic: no network, no anchor, no
 Horizon, no credentials. It passes on a fresh clone with no `.env`. Anything that
 would reach the network takes an injected `fetch` or is stubbed at the module
 boundary, so a third party being down can never turn the build red.
@@ -100,10 +100,10 @@ Current, measured:
 
 | Metric | Threshold | Actual |
 | --- | --- | --- |
-| Statements | 80% | **88.22%** (944/1070) |
-| Branches | 75% | **80.71%** (657/814) |
-| Functions | 80% | **87.12%** (203/233) |
-| Lines | 80% | **88.93%** (844/949) |
+| Statements | 80% | **88.34%** (955/1081) |
+| Branches | 75% | **80.77%** (664/822) |
+| Functions | 80% | **87.23%** (205/235) |
+| Lines | 80% | **89.02%** (852/957) |
 
 The build fails below any threshold. The gap between threshold and actual is
 deliberate headroom — the numbers exist to stop a regression, not to be scraped
@@ -237,7 +237,13 @@ here: `S…`, the **secret** seed, whose appearance in a commit means a
 compromised account. Both directions are verified — the repo scans clean, and a
 freshly generated seed is still caught.
 
-CodeQL runs `security-extended` on every PR and weekly.
+CodeQL runs `security-extended` on every PR and weekly. It has already paid for
+itself: it caught a polynomial ReDoS in `\/+$`, the regex used to trim trailing
+slashes off anchor endpoints. Those endpoints come from a third party's
+`stellar.toml`, so a hostile anchor could publish a long run of slashes and stall
+the server's event loop — which in a Next app blocks every request, not just the
+one that fetched the TOML. Replaced by `stripTrailingSlashes` in
+`@brk/ramp-core`, a linear backwards scan, applied at all six call sites.
 
 ### Build
 
@@ -340,6 +346,13 @@ not an `S...` (secret seed) before touching the config. Never allowlist an `S...
 Something reintroduced `gitleaks/gitleaks-action@v2`. That wrapper needs a paid
 licence for organisation-owned repositories. Use the binary, as
 `.github/workflows/security.yml` does.
+
+**CodeQL reports "Polynomial regular expression used on uncontrolled data"**
+A regex with `+` or `*` next to an anchor is being run on a value the project
+does not control — typically a URL out of an anchor's `stellar.toml`. Do not
+silence it. Use `stripTrailingSlashes` / `toHomeDomain` from `@brk/ramp-core`, or
+write the scan by hand; `packages/kit/core/src/net/url.test.ts` shows how to pin
+the linear behaviour so the regex cannot creep back.
 
 **A test passes alone but fails in the suite**
 Shared state on `globalThis`: the x402 spent-hash ledger, the mock order store,
