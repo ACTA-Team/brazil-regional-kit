@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Logo } from '@/components/layout/logo';
+import { House, ICON_WEIGHT } from '@/components/icons';
 import { useScroll } from '@/client/use-scroll';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { LocaleSwitcher } from '@/components/layout/LocaleSwitcher';
@@ -45,9 +45,24 @@ export function Header() {
       )}
     >
       <nav className="mx-auto flex w-full max-w-[1560px] flex-wrap items-center gap-x-8 gap-y-3.5 px-6 py-5 sm:px-10 lg:px-14">
-        <Link href="/" className="shrink-0 rounded-lg" aria-label="Brazil Regional Kit">
-          <Logo className="hidden sm:flex" />
-          <Logo className="sm:hidden" showWordmark={false} />
+        {/*
+          A house instead of a wordmark.
+
+          The brand block was a monogram chip and the words "Brazil Regional
+          Kit" — thirty characters restating what the page title already says,
+          holding the most valuable position in the header. What that corner is
+          actually for is getting back to the start, so it does only that now.
+        */}
+        <Link
+          href="/"
+          aria-label={t('nav.home')}
+          aria-current={pathname === '/' ? 'page' : undefined}
+          // Deliberately not gold when you are already home: the nav's own
+          // "overview" link carries that state, and the header is allowed one
+          // accent mark, not two.
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line-strong text-fg-muted transition-colors hover:border-gold/30 hover:text-fg"
+        >
+          <House size={17} weight={ICON_WEIGHT} aria-hidden="true" />
         </Link>
 
         <div className="hidden min-w-0 flex-wrap items-center gap-x-6 gap-y-3 text-sm md:flex">
