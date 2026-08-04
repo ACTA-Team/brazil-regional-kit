@@ -122,6 +122,32 @@ export default function OffRampPage() {
             />
           ) : null}
 
+          {/*
+            The sandbox's terminal state for an off-ramp is "funded": the burn
+            is on-chain and reconciled, but no real reais exist to pay out, so
+            the order rests here forever. That makes this the DEMO's finish
+            line — offer the exit, or the pulsing step 3 reads as stuck.
+          */}
+          {order.status === 'processing' && order.mode === 'live' ? (
+            <Alert
+              tone="success"
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    void refreshBalances();
+                    flow.reset();
+                  }}
+                  className="btn btn-primary text-xs"
+                >
+                  {t('common.startOver')}
+                </button>
+              }
+            >
+              {t('offramp.sandboxFunded')}
+            </Alert>
+          ) : null}
+
           {settled ? (
             <Alert
               tone="success"

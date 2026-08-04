@@ -311,3 +311,49 @@ describe('acknowledge-only settlement hooks', () => {
     expect(settled.status).not.toBe('failed');
   });
 });
+
+describe('missing crypto_received route', () => {
+  /**
+   * The live sandbox 404s on POST /ramp/order/crypto_received for every order —
+   * the route does not exist, because the crypto leg of an off-ramp is a real
+   * on-chain payment even in sandbox and the anchor's watcher reconciles it by
+   * memo. A 404 from the hook is therefore "nothing to simulate", not a
+   * failure, and must resolve to the order's actual state.
+   */
+  it('falls back to the order when the hook 404s', async () => {
+    const backing = createEtherfuseAdapter({
+      mode: 'mock',
+      mockOptions: { latencyMs: [0, 0], settlementMs: 40 },
+    });
+    const quote = await backing.getQuote({
+      sellAsset: TESOURO,
+      buyAsset: BRL,
+      sellAmount: '100',
+      account: ACCOUNT,
+    });
+    const created = await backing.createOrder({ quoteId: quote.id, account: ACCOUNT });
+
+    const inner = (backing as unknown as { api: import('./api').EtherfuseApi }).api;
+    const routeless = createEtherfuseAdapter({
+      mode: 'mock',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        simulateCryptoReceived: async () => {
+          const { RampError } = await import('@brk/ramp-core');
+          throw new RampError({
+            code: 'INVALID_REQUEST',
+            anchorId: 'etherfuse',
+            message: 'Etherfuse POST /ramp/order/crypto_received returned 404',
+            status: 404,
+          });
+        },
+        getOrder: (id) => inner.getOrder(id),
+      },
+    });
+
+    const resolved = await routeless.simulateCryptoReceived(created.id);
+    expect(resolved.id).toBe(created.id);
+    expect(resolved.status).toBe('awaiting_signature');
+  });
+});

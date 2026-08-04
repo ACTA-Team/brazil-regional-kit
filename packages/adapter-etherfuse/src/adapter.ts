@@ -77,6 +77,8 @@ const STATUS_MAP: Record<string, OrderStatus> = {
   AWAITING_DEPOSIT: 'awaiting_signature',
   AWAITING_SIGNATURE: 'awaiting_signature',
   PAYMENT_RECEIVED: 'processing',
+  // Off-ramp: the anchor confirmed the on-chain leg and owes the fiat payout.
+  FUNDED: 'processing',
   CRYPTO_RECEIVED: 'processing',
   PROCESSING: 'processing',
   IN_PROGRESS: 'processing',
@@ -425,7 +427,27 @@ export class EtherfuseAdapter implements RampAdapter {
       const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
       return this.toOrder(resolved, ctx?.req, ctx?.direction);
     } catch (e) {
-      throw toRampError(e, ETHERFUSE_ID);
+      /*
+       * The live sandbox has no crypto_received route at all — the guide
+       * documents one, the API answers 404 for real and bogus ids alike. And it
+       * does not need one: the crypto leg of an off-ramp is a genuine on-chain
+       * payment even in sandbox, carrying the anchor's own reconciliation memo,
+       * so their watcher picks it up without being told. Only the FIAT leg
+       * needs a simulation hook, because no real money moves in sandbox.
+       *
+       * So a 404 here is not a failure — it means "nothing to simulate, the
+       * chain already said it". Fall through to the order's actual state.
+       */
+      const err = toRampError(e, ETHERFUSE_ID);
+      if (err.status === 404) {
+        try {
+          const resolved = await this.api.getOrder(orderId);
+          return this.toOrder(resolved, ctx?.req, ctx?.direction);
+        } catch {
+          /* fall through to the original error */
+        }
+      }
+      throw err;
     }
   }
 
