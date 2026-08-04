@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { FRIENDBOT } from '@brk/ramp-core';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { useI18n } from '@/client/i18n';
 import { useWallet } from '@/client/wallet';
 
@@ -11,7 +12,7 @@ export function FundGate() {
   const { t } = useI18n();
   const { address, unfunded, refreshBalances } = useWallet();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   if (!address || !unfunded) return null;
 
@@ -23,27 +24,36 @@ export function FundGate() {
       if (!res.ok && res.status !== 400) throw new Error(`Friendbot returned ${res.status}`);
       await refreshBalances();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Kept whole: friendbot being unreachable and friendbot refusing are
+      // different problems, and the mapper reads them apart.
+      setError(e);
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <Alert
-      tone="warning"
-      action={
-        <button
-          type="button"
-          onClick={() => void fund()}
-          disabled={busy}
-          className="btn btn-primary btn-sm"
-        >
-          {busy ? t('common.loading') : t('common.fund')}
-        </button>
-      }
-    >
-      {error ?? t('common.fundAccount')}
-    </Alert>
+    <div className="space-y-3">
+      <Alert
+        tone="warning"
+        title={t('common.fundAccount')}
+        action={
+          <button
+            type="button"
+            onClick={() => void fund()}
+            disabled={busy}
+            className="btn btn-primary btn-sm"
+          >
+            {busy ? t('common.loading') : t('common.fund')}
+          </button>
+        }
+      >
+        {t('common.fundWhy')}
+      </Alert>
+
+      {/* The prompt stays put when funding fails — the account is still
+          unfunded, so the call to action is still the next step. */}
+      {error ? <ErrorAlert error={error} /> : null}
+    </div>
   );
 }

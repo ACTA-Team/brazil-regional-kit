@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { assetCode, compare } from '@brk/ramp-core';
 import { explorerTxUrl, resolveReturnTransaction } from '@brk/stablecoin-kit';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import type { PublicOrder } from '@/client/api';
 import { submitSignedTx } from '@/client/api';
 import { useI18n } from '@/client/i18n';
@@ -29,7 +30,9 @@ export function ReturnTxPanel({
   const { t } = useI18n();
   const { address, sign, balanceOf, refreshBalances, onTestnet } = useWallet();
   const [phase, setPhase] = useState<'idle' | 'building' | 'signing' | 'submitting'>('idle');
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole: a wallet rejection here is the single most common
+  // failure on this screen, and the mapper recognises it by its text.
+  const [error, setError] = useState<unknown>(null);
   const [hash, setHash] = useState<string | null>(null);
 
   const held = balanceOf(order.sellAsset);
@@ -52,7 +55,7 @@ export function ReturnTxPanel({
       await refreshBalances();
       await onSigned(result.hash);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setPhase('idle');
     }
@@ -108,7 +111,7 @@ export function ReturnTxPanel({
       </dl>
 
       {short ? <Alert tone="warning">{t('offramp.insufficient', { code })}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <ErrorAlert error={error} /> : null}
 
       <div className="flex flex-wrap gap-2">
         <button

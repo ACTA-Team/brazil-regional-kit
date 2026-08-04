@@ -1,9 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AmountField } from '@brk/ramp-ui';
-import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ramp-core';
+import { AmountField } from '@brk/ramp-ui';
+import {
+  BRL,
+  MXN,
+  TESOURO,
+  USDC,
+  type AssetId,
+  type CountryCode,
+  type RampErrorCode,
+} from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import {
@@ -15,6 +24,7 @@ import {
   Wallet,
   type Icon,
 } from '@/components/icons';
+import { ApiError } from '@/client/api';
 import { QuoteTable, type PublicRankedQuote } from '@/features/router/QuoteTable';
 import { SepAuthPanel } from '@/features/sep/SepAuthPanel';
 import { useI18n } from '@/client/i18n';
@@ -89,6 +99,14 @@ const SCENARIOS: Scenario[] = [
 
 const REFRESH_MS = 15_000;
 
+/** The error envelope every API route in this app returns. */
+interface ApiErrorBody {
+  code: RampErrorCode;
+  message: string;
+  anchorId?: string;
+  retryable?: boolean;
+}
+
 interface RouteResponse {
   quotes: PublicRankedQuote[];
   anchors: AnchorResult[];
@@ -104,7 +122,9 @@ export function RouterPage() {
   const [result, setResult] = useState<RouteResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
 
   const query = useMemo(() => {
     const params = new URLSearchParams({ sell: scenario.sellAsset, amount });
@@ -118,11 +138,13 @@ export function RouterPage() {
     setError(null);
     try {
       const response = await fetch(`/api/quotes?${q}`);
-      const payload = (await response.json()) as RouteResponse | { error: { message: string } };
-      if ('error' in payload) throw new Error(payload.error.message);
+      const payload = (await response.json()) as RouteResponse | { error: ApiErrorBody };
+      // Rebuild the error so its code survives the HTTP hop — a bare
+      // `new Error(message)` would strip exactly what the mapper reads.
+      if ('error' in payload) throw new ApiError(payload.error);
       setResult(payload);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setLoading(false);
     }
@@ -166,7 +188,7 @@ export function RouterPage() {
           step={2}
           title={t('router.title')}
           subtitle={t('router.subtitle')}
-          plate="pao-a"
+          plate="cristo-dense"
         />
       }
     >
@@ -228,7 +250,20 @@ export function RouterPage() {
         </label>
       </div>
 
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? (
+        <ErrorAlert
+          error={error}
+          action={
+            <button
+              type="button"
+              onClick={() => void run(query)}
+              className="btn btn-outline btn-sm"
+            >
+              {t('error.retry')}
+            </button>
+          }
+        />
+      ) : null}
 
       {result ? (
         <>

@@ -5,6 +5,7 @@ import { Alert, AmountField, MemoField, ModeBadge } from '@brk/ramp-ui';
 import { MXN, TESOURO, USDC, assetCode, checkMemo, compare } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
 import { buildPaymentTx, buildSwapTx, explorerTxUrl, type SwapQuote } from '@brk/stablecoin-kit';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import {
@@ -62,7 +63,9 @@ export function CorridorPage() {
   const [paidOut, setPaidOut] = useState(false);
 
   const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
 
   const connected = status === 'connected' && Boolean(address);
   const tesouroHeld = balanceOf(TESOURO);
@@ -74,7 +77,7 @@ export function CorridorPage() {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -168,13 +171,13 @@ export function CorridorPage() {
           step={3}
           title={t('corridor.title')}
           subtitle={t('corridor.subtitle')}
-          plate="pao-b"
+          plate="pao-light"
         />
       }
     >
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <ErrorAlert error={error} /> : null}
 
       <CorridorSteps step={step} />
 

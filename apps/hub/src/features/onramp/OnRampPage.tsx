@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AmountField, DepositPanel, QuoteCard, displayAmount } from '@brk/ramp-ui';
 import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
+import { ErrorAlert, isDuplicateOrder } from '@/components/feedback/ErrorAlert';
 import { FundGate } from '@/components/wallet/FundGate';
 import { OrderCard } from '@/features/ramp/OrderCard';
 import { PageIntro } from '@/components/layout/PageIntro';
@@ -15,16 +16,6 @@ import { useRampFlow } from '@/client/useRampFlow';
 import { useWallet } from '@/client/wallet';
 
 const ANCHOR_ID = 'etherfuse';
-
-/**
- * Etherfuse refuses a second pending order for the same bank account and
- * amount, and offers no way to cancel the first. The only escape is a different
- * amount, so this is worth detecting specifically rather than showing the raw
- * anchor message and leaving the user stuck on a dead end.
- */
-function isDuplicateOrder(error: { code?: string; message?: string }): boolean {
-  return error.code === 'INVALID_ORDER_STATE' && /already exists/i.test(error.message ?? '');
-}
 
 /** Nudge by a non-round amount so the retry cannot collide again. */
 function bumpAmount(current: string): string {
@@ -82,7 +73,7 @@ export function OnRampPage() {
           step={1}
           title={t('onramp.title')}
           subtitle={t('onramp.subtitle')}
-          plate="cristo-a"
+          plate="pao-dense"
           route={{
             from: assetCode(BRL),
             to: assetCode(TESOURO),
@@ -98,17 +89,14 @@ export function OnRampPage() {
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
 
       {error ? (
-        <Alert
-          tone="error"
+        <ErrorAlert
+          error={error}
           action={
             <button
               type="button"
               onClick={() => {
                 flow.clearError();
-                // A duplicate-order rejection is keyed on the amount, and the
-                // anchor has no cancel endpoint — so nudging the amount is the
-                // only thing that actually clears it. Do it for the user rather
-                // than leaving them to guess.
+                // Nudge the amount for them rather than leaving them to guess.
                 if (isDuplicateOrder(error)) {
                   setAmount((current) => bumpAmount(current));
                   flow.reset();
@@ -120,11 +108,11 @@ export function OnRampPage() {
             </button>
           }
         >
-          {error.message}
-          {isDuplicateOrder(error) ? (
-            <span className="mt-1 block text-xs opacity-80">{t('onramp.duplicateHint')}</span>
-          ) : null}
-        </Alert>
+          {/* The anchor keys a duplicate rejection on the amount and offers no
+              cancel endpoint, so the mapper's generic "start a new one" is
+              wrong here — only a different amount clears it. */}
+          {isDuplicateOrder(error) ? t('onramp.duplicateHint') : undefined}
+        </ErrorAlert>
       ) : null}
 
       {stage === 'input' ? (

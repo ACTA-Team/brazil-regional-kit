@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { PAYMENT_HEADER, buildPaymentTx, explorerTxUrl } from '@brk/stablecoin-kit';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import { Check, ICON_WEIGHT } from '@/components/icons';
@@ -59,7 +60,9 @@ export function X402Page() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [resource, setResource] = useState<Resource | null>(null);
   const [busy, setBusy] = useState<null | 'requesting' | 'paying' | 'retrying'>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
   const [lastStatus, setLastStatus] = useState<number | null>(null);
 
   const connected = status === 'connected' && Boolean(address);
@@ -75,7 +78,7 @@ export function X402Page() {
       setLastStatus(res.status);
       setChallenge((await res.json()) as Challenge);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -98,7 +101,7 @@ export function X402Page() {
       setTxHash(result.hash);
       await refreshBalances();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -119,7 +122,7 @@ export function X402Page() {
         setError(payload.error);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -134,13 +137,13 @@ export function X402Page() {
           step={5}
           title={t('x402.title')}
           subtitle={t('x402.subtitle')}
-          plate="cristo-c"
+          plate="cristo-square"
         />
       }
     >
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <ErrorAlert error={error} /> : null}
 
       <ol className="space-y-4">
         {/* ── 1 ─────────────────────────────────────────────────────────── */}

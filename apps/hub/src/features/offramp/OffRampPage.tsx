@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Alert, AmountField, QuoteCard, displayAmount } from '@brk/ramp-ui';
 import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { FundGate } from '@/components/wallet/FundGate';
 import { OrderCard } from '@/features/ramp/OrderCard';
 import { PageIntro } from '@/components/layout/PageIntro';
@@ -47,7 +48,7 @@ export function OffRampPage() {
           step={4}
           title={t('offramp.title')}
           subtitle={t('offramp.subtitle')}
-          plate="cristo-b"
+          plate="cristo-light"
           route={{
             from: assetCode(TESOURO),
             to: assetCode(BRL),
@@ -63,16 +64,14 @@ export function OffRampPage() {
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
 
       {error ? (
-        <Alert
-          tone="error"
+        <ErrorAlert
+          error={error}
           action={
             <button type="button" onClick={flow.clearError} className="btn btn-outline btn-sm">
               {t('common.cancel')}
             </button>
           }
-        >
-          {error.message}
-        </Alert>
+        />
       ) : null}
 
       {stage === 'input' ? (

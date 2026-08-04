@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { USD, USDC } from '@brk/ramp-core';
+import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { useI18n } from '@/client/i18n';
 import { CaretRight, Check, ICON_WEIGHT, Lock } from '@/components/icons';
 import { useWallet } from '@/client/wallet';
@@ -81,7 +82,9 @@ export function SepAuthPanel() {
   const [quote, setQuote] = useState<FirmQuote | null>(null);
   const [busy, setBusy] = useState<null | 'auth' | 'quote' | 'interactive'>(null);
   const [session, setSession] = useState<Sep24Session | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Kept whole, not flattened to a message: the friendly-error mapper
+  // sorts on the `code` that `e.message` would discard.
+  const [error, setError] = useState<unknown>(null);
 
   const connected = status === 'connected' && Boolean(address);
 
@@ -158,7 +161,7 @@ export function SepAuthPanel() {
       setToken(payload.token);
       setClaims(payload.claims ?? null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -183,7 +186,7 @@ export function SepAuthPanel() {
       if (!payload.quote) throw new Error(payload.error?.message ?? 'No firm quote returned.');
       setQuote(payload.quote);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -213,7 +216,7 @@ export function SepAuthPanel() {
 
       if (payload.id) setSession({ id: payload.id, url: payload.url });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -249,7 +252,7 @@ export function SepAuthPanel() {
           <p className="max-w-2xl text-sm leading-relaxed text-fg-muted">{t('sep.subtitle')}</p>
 
           {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
-          {error ? <Alert tone="error">{error}</Alert> : null}
+          {error ? <ErrorAlert error={error} /> : null}
 
           <ol className="space-y-3">
             <SepStep
