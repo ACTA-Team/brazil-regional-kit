@@ -37,22 +37,22 @@ export function DepositPanel({
         <h3 className="font-semibold">{t('onramp.depositTitle')}</h3>
         <ExpiryPill />
       </div>
-      <p className="mt-1 text-sm text-ink-400">{t('onramp.depositHint')}</p>
+      <p className="mt-1 text-sm text-fg-muted">{t('onramp.depositHint')}</p>
 
       <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.amount')}</dt>
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('common.amount')}</dt>
           <dd className="mt-1 text-2xl font-semibold tabular-nums">
             {formatMoney(instructions.amount, instructions.currency, tag)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('onramp.rail')}</dt>
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('onramp.rail')}</dt>
           <dd className="mt-1 font-semibold">{instructions.rail}</dd>
         </div>
         {instructions.accountLabel ? (
           <div>
-            <dt className="text-xs uppercase tracking-wide text-ink-500">
+            <dt className="text-xs uppercase tracking-wide text-fg-subtle">
               {t('onramp.beneficiary')}
             </dt>
             <dd className="mt-1 font-semibold">{instructions.accountLabel}</dd>
@@ -60,7 +60,7 @@ export function DepositPanel({
         ) : null}
         {instructions.reference ? (
           <div className="col-span-2 sm:col-span-3">
-            <dt className="text-xs uppercase tracking-wide text-ink-500">
+            <dt className="text-xs uppercase tracking-wide text-fg-subtle">
               {t('onramp.reference')}
             </dt>
             <dd className="mt-1 break-all font-mono text-sm">{instructions.reference}</dd>
@@ -74,7 +74,7 @@ export function DepositPanel({
         empty field and letting them wonder what they missed.
       */}
       {!instructions.reference ? (
-        <p className="mt-3 rounded-lg bg-surface-inset p-3 text-xs text-ink-400">
+        <p className="mt-3 rounded-lg bg-inset p-3 text-xs text-fg-muted">
           {t('onramp.sandboxNoReference')}
         </p>
       ) : null}
@@ -89,7 +89,7 @@ export function DepositPanel({
           >
             {simulating ? t('common.loading') : t('onramp.simulatePayment')}
           </button>
-          <span className="text-xs text-ink-500">{t('onramp.simulateHint')}</span>
+          <span className="text-xs text-fg-subtle">{t('onramp.simulateHint')}</span>
         </div>
       ) : null}
     </div>

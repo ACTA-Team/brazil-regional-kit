@@ -29,12 +29,6 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   en: 'English',
 };
 
-export const LOCALE_FLAGS: Record<Locale, string> = {
-  pt: '🇧🇷',
-  es: '🇲🇽',
-  en: '🇺🇸',
-};
-
 /** Intl tags, for number and date formatting. */
 const INTL_TAG: Record<Locale, string> = {
   pt: 'pt-BR',

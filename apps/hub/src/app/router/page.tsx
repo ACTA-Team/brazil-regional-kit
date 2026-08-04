@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
 import { Alert } from '@/components/Alert';
+import { PageIntro } from '@/components/PageIntro';
+import { ArrowUUpLeft, Coins, ICON_WEIGHT, Money, Wallet, type Icon } from '@/components/icons';
 import { AmountField } from '@/components/AmountField';
 import { QuoteTable, type PublicRankedQuote } from '@/components/QuoteTable';
 import { SepAuthPanel } from '@/components/SepAuthPanel';
@@ -23,7 +25,7 @@ import { useI18n } from '@/lib/i18n';
  */
 interface Scenario {
   id: string;
-  flag: string;
+  Glyph: Icon;
   titleKey: string;
   hintKey: string;
   sellAsset: AssetId;
@@ -36,7 +38,7 @@ interface Scenario {
 const SCENARIOS: Scenario[] = [
   {
     id: 'brl',
-    flag: '🇧🇷',
+    Glyph: Money,
     titleKey: 'router.scenario.brl',
     hintKey: 'router.scenario.brlHint',
     sellAsset: BRL,
@@ -46,7 +48,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'mxn',
-    flag: '🇲🇽',
+    Glyph: Coins,
     titleKey: 'router.scenario.mxn',
     hintKey: 'router.scenario.mxnHint',
     sellAsset: MXN,
@@ -57,7 +59,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'usdc',
-    flag: '💵',
+    Glyph: Wallet,
     titleKey: 'router.scenario.usdc',
     hintKey: 'router.scenario.usdcHint',
     sellAsset: USDC,
@@ -66,7 +68,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'tesouro',
-    flag: '🏦',
+    Glyph: ArrowUUpLeft,
     titleKey: 'router.scenario.tesouro',
     hintKey: 'router.scenario.tesouroHint',
     sellAsset: TESOURO,
@@ -150,10 +152,7 @@ export default function RouterPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{t('router.title')}</h1>
-        <p className="mt-2 max-w-2xl text-ink-400">{t('router.subtitle')}</p>
-      </header>
+      <PageIntro step={2} title={t('router.title')} subtitle={t('router.subtitle')} />
 
       {/* ── Step 1: which situation are you in? ─────────────────────────── */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -166,14 +165,19 @@ export default function RouterPage() {
               onClick={() => pick(s)}
               aria-pressed={active}
               className={`card flex flex-col gap-1.5 p-4 text-left transition-colors ${
-                active ? 'border-brand-500 bg-brand-700/15' : 'hover:border-brand-600'
+                active ? 'border-gold/50 bg-gold/8' : 'hover:border-gold/30'
               }`}
             >
               <span className="flex items-center gap-2 font-semibold">
-                <span aria-hidden="true">{s.flag}</span>
+                <s.Glyph
+                  size={17}
+                  weight={ICON_WEIGHT}
+                  aria-hidden="true"
+                  className={active ? 'text-gold' : 'text-fg-subtle'}
+                />
                 {t(s.titleKey)}
               </span>
-              <span className="text-xs leading-relaxed text-ink-400">{t(s.hintKey)}</span>
+              <span className="text-xs leading-relaxed text-fg-muted">{t(s.hintKey)}</span>
             </button>
           );
         })}
@@ -197,12 +201,12 @@ export default function RouterPage() {
         >
           {loading ? t('common.loading') : t('router.compare')}
         </button>
-        <label className="flex items-center gap-2 pb-2.5 text-sm text-ink-400">
+        <label className="flex items-center gap-2 pb-2.5 text-sm text-fg-muted">
           <input
             type="checkbox"
             checked={autoRefresh}
             onChange={(e) => setAutoRefresh(e.target.checked)}
-            className="accent-brand-500"
+            className="accent-gold"
           />
           {t('router.autoRefresh')}
         </label>
@@ -220,8 +224,8 @@ export default function RouterPage() {
 
           {/* The point of the page, stated plainly: it is one call. */}
           <div className="card p-4">
-            <p className="text-xs text-ink-500">{t('router.apiHint')}</p>
-            <code className="mt-1.5 block overflow-x-auto whitespace-nowrap font-mono text-xs text-brand-300">
+            <p className="text-xs text-fg-subtle">{t('router.apiHint')}</p>
+            <code className="mt-1.5 block overflow-x-auto whitespace-nowrap font-mono text-xs text-gold">
               GET /api/quotes?{query}
             </code>
           </div>

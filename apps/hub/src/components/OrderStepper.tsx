@@ -2,6 +2,7 @@
 
 import type { OrderStatus, RampDirection } from '@brk/ramp-core';
 import { useI18n } from '@/lib/i18n';
+import { Check, ICON_WEIGHT } from './icons';
 
 /**
  * Order progress.
@@ -9,6 +10,15 @@ import { useI18n } from '@/lib/i18n';
  * The step list differs by direction — an on-ramp waits on a PIX payment, an
  * off-ramp waits on a signature — so the stepper is driven by both `direction`
  * and `status` rather than by status alone.
+ *
+ * Three states, three visual languages, no ambiguity:
+ *   done     green disc + tick        the past
+ *   current  gold ring + breathing halo, connector sweeping   the present
+ *   pending  hollow outline           the future
+ *
+ * The sweeping connector matters more than it looks. Settlement takes ~25s
+ * anchor-side, and a stepper that merely sits there during those seconds is
+ * the single most common reason a demo gets read as "stuck".
  */
 
 type StepKey = 'created' | 'action' | 'processing' | 'completed';
@@ -58,52 +68,51 @@ export function OrderStepper({
   const currentIndex = ORDER.indexOf(activeStep(status));
 
   return (
-    <ol className="flex flex-col gap-0 sm:flex-row sm:items-start sm:gap-0">
+    <ol className="flex items-start gap-1">
       {ORDER.map((step, i) => {
         const done = i < currentIndex || status === 'completed';
         const current = i === currentIndex && status !== 'completed';
         const isLast = i === ORDER.length - 1;
 
         return (
-          <li key={step} className="flex flex-1 gap-3 sm:flex-col sm:gap-2">
-            <div className="flex flex-col items-center sm:w-full sm:flex-row">
+          <li key={step} className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <div className="flex w-full items-center">
               <span
                 aria-hidden="true"
-                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold transition-colors ${
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[11px] font-bold transition-all duration-300 ${
                   failed && current
-                    ? 'border-red-500 bg-red-500/20 text-red-300'
+                    ? 'border-danger bg-danger/20 text-danger'
                     : done
-                      ? 'border-brand-500 bg-brand-600 text-white'
+                      ? 'border-success bg-success text-canvas'
                       : current
-                        ? 'border-brand-500 text-brand-300'
-                        : 'border-border-subtle text-ink-500'
+                        ? 'animate-halo border-gold bg-gold/12 text-gold'
+                        : 'border-line-strong text-fg-subtle'
                 }`}
               >
-                {done ? '✓' : i + 1}
+                {done ? <Check size={13} weight={ICON_WEIGHT} className="animate-tick" /> : i + 1}
               </span>
 
               {!isLast ? (
                 <span
                   aria-hidden="true"
-                  className={`my-1 w-px flex-1 sm:my-0 sm:mx-2 sm:h-px sm:w-auto sm:flex-1 ${
-                    done ? 'bg-brand-600' : 'bg-border-subtle'
+                  className={`relative mx-2 h-0.5 flex-1 overflow-hidden rounded-full ${
+                    done ? 'bg-success' : 'bg-line-strong'
                   }`}
-                  style={{ minHeight: '1.25rem' }}
-                />
+                >
+                  {/* Work in progress, without inventing a percentage. */}
+                  {current && !failed ? (
+                    <span className="animate-sweep absolute inset-y-0 w-1/3 rounded-full bg-gold" />
+                  ) : null}
+                </span>
               ) : null}
             </div>
 
             <span
-              className={`pb-4 text-xs sm:pb-0 ${
-                current || done ? 'text-ink-200' : 'text-ink-500'
+              className={`text-xs leading-snug transition-colors ${
+                current ? 'font-semibold text-fg' : done ? 'text-fg-muted' : 'text-fg-subtle'
               }`}
             >
               {t(LABELS[direction][step])}
-              {current && !failed ? (
-                <span className="ml-1 inline-block animate-pulse" aria-hidden="true">
-                  …
-                </span>
-              ) : null}
             </span>
           </li>
         );

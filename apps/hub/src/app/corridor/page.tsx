@@ -5,6 +5,15 @@ import { MXN, TESOURO, USDC, assetCode, checkMemo, compare } from '@brk/ramp-cor
 import type { AnchorResult } from '@brk/ramp-router';
 import { buildPaymentTx, buildSwapTx, explorerTxUrl, type SwapQuote } from '@brk/stablecoin-kit';
 import { Alert } from '@/components/Alert';
+import { PageIntro } from '@/components/PageIntro';
+import {
+  ArrowRight,
+  ArrowsLeftRight,
+  Bank,
+  ICON_WEIGHT,
+  PaperPlaneTilt,
+  type Icon,
+} from '@/components/icons';
 import { AmountField } from '@/components/AmountField';
 import { MemoField } from '@/components/MemoField';
 import { ModeBadge } from '@/components/ModeBadge';
@@ -154,11 +163,8 @@ export default function CorridorPage() {
   const enoughTesouro = compare(tesouroHeld, amount) >= 0;
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{t('corridor.title')}</h1>
-        <p className="mt-2 max-w-2xl text-ink-400">{t('corridor.subtitle')}</p>
-      </header>
+    <div className="space-y-7">
+      <PageIntro step={3} title={t('corridor.title')} subtitle={t('corridor.subtitle')} />
 
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
@@ -170,7 +176,7 @@ export default function CorridorPage() {
       <section className="card space-y-4 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">
-            1 · {t('corridor.step.swap')} — {assetCode(TESOURO)} → {assetCode(USDC)}
+            1 · {t('corridor.step.swap')}: {assetCode(TESOURO)} to {assetCode(USDC)}
           </h2>
           {swap ? <ModeBadge mode={swap.mode === 'dex' ? 'live' : 'mock'} /> : null}
         </div>
@@ -186,7 +192,7 @@ export default function CorridorPage() {
               }}
               presets={['10', '25', '50', '100']}
             />
-            <p className="text-xs text-ink-500">
+            <p className="text-xs text-fg-subtle">
               {t('offramp.youHold')}:{' '}
               <span className="font-mono">{formatToken(tesouroHeld, 'TESOURO', tag)}</span>
             </p>
@@ -200,7 +206,7 @@ export default function CorridorPage() {
                 type="button"
                 onClick={() => void quoteTheSwap()}
                 disabled={!connected || busy !== null || !amount}
-                className="btn btn-ghost"
+                className={`btn ${swap ? 'btn-outline' : 'btn-primary'}`}
               >
                 {busy === 'quoting' ? t('common.loading') : t('router.compare')}
               </button>
@@ -210,7 +216,7 @@ export default function CorridorPage() {
                 disabled={
                   !swap || busy !== null || !onTestnet || (swap.mode === 'dex' && !enoughTesouro)
                 }
-                className="btn btn-primary"
+                className={`btn ${swap ? 'btn-primary' : 'btn-outline'}`}
               >
                 {busy === 'swapping' ? t('common.signing') : t('corridor.executeSwap')}
               </button>
@@ -236,7 +242,7 @@ export default function CorridorPage() {
               ) : undefined
             }
           >
-            {t('corridor.swapDone')} —{' '}
+            {t('corridor.swapDone')}.{' '}
             <strong>{formatToken(swap?.buyAmount ?? '0', 'USDC', tag)}</strong>
           </Alert>
         )}
@@ -246,19 +252,19 @@ export default function CorridorPage() {
       {step !== 'swap' ? (
         <section className="card space-y-4 p-5">
           <h2 className="font-semibold">2 · {t('corridor.sendTitle')}</h2>
-          <p className="text-sm text-ink-400">{t('corridor.sendHint')}</p>
+          <p className="text-sm text-fg-muted">{t('corridor.sendHint')}</p>
 
           {step === 'send' ? (
             <>
               <div>
                 <div className="flex items-baseline justify-between gap-2">
-                  <label htmlFor="recipient" className="text-sm text-ink-300">
+                  <label htmlFor="recipient" className="text-sm text-fg-muted">
                     {t('corridor.recipientLabel')}
                   </label>
                   <button
                     type="button"
                     onClick={() => setRecipient(address)}
-                    className="text-xs text-brand-300 underline-offset-2 hover:underline"
+                    className="text-xs text-gold underline-offset-2 hover:underline"
                   >
                     {t('corridor.useMyAddress')}
                   </button>
@@ -283,7 +289,7 @@ export default function CorridorPage() {
                 >
                   {busy === 'sending' ? t('common.signing') : t('corridor.send')}
                 </button>
-                <span className="font-mono text-xs text-ink-500">
+                <span className="font-mono text-xs text-fg-subtle">
                   {formatToken(swap?.buyAmount ?? '0', 'USDC', tag)}
                 </span>
               </div>
@@ -304,7 +310,7 @@ export default function CorridorPage() {
                 ) : undefined
               }
             >
-              {t('corridor.sent')} — <strong>{formatToken(sentAmount ?? '0', 'USDC', tag)}</strong>{' '}
+              {t('corridor.sent')}. <strong>{formatToken(sentAmount ?? '0', 'USDC', tag)}</strong>{' '}
               <span className="font-mono text-xs">“{memo}”</span>
             </Alert>
           )}
@@ -317,12 +323,13 @@ export default function CorridorPage() {
           <div className="card space-y-2 p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-semibold">3 · {t('corridor.recipientTitle')}</h2>
-              <span className="rounded-full bg-surface-inset px-2 py-0.5 text-xs text-ink-400">
-                🇲🇽 {t('corridor.recipientView')}
+              <span className="rounded-full bg-inset px-2 py-0.5 text-xs text-fg-muted">
+                <Bank size={16} weight={ICON_WEIGHT} aria-hidden="true" />
+                {t('corridor.recipientView')}
               </span>
             </div>
-            <p className="text-sm text-ink-400">{t('corridor.recipientHint')}</p>
-            <p className="font-mono text-xs text-ink-500">
+            <p className="text-sm text-fg-muted">{t('corridor.recipientHint')}</p>
+            <p className="font-mono text-xs text-fg-subtle">
               {formatToken(usdcHeld, 'USDC', tag)} · {recipient.slice(0, 8)}…
             </p>
           </div>
@@ -334,7 +341,7 @@ export default function CorridorPage() {
               elapsedMs={payout.elapsedMs}
             />
           ) : (
-            <div className="card p-6 text-center text-sm text-ink-400">{t('common.loading')}</div>
+            <div className="card p-6 text-center text-sm text-fg-muted">{t('common.loading')}</div>
           )}
 
           {paidOut ? (
@@ -347,7 +354,7 @@ export default function CorridorPage() {
                   type="button"
                   onClick={() => setPaidOut(true)}
                   disabled={!payout?.quotes.length}
-                  className="btn btn-primary text-xs"
+                  className="btn btn-primary"
                 >
                   {t('corridor.payout')}
                 </button>
@@ -366,10 +373,10 @@ export default function CorridorPage() {
 
 function CorridorSteps({ step }: { step: Step }) {
   const { t } = useI18n();
-  const steps: Array<{ key: Step; label: string; flag: string }> = [
-    { key: 'swap', label: t('corridor.step.swap'), flag: '🇧🇷' },
-    { key: 'send', label: t('corridor.step.send'), flag: '✈️' },
-    { key: 'payout', label: t('corridor.step.payout'), flag: '🇲🇽' },
+  const steps: Array<{ key: Step; label: string; Glyph: Icon }> = [
+    { key: 'swap', label: t('corridor.step.swap'), Glyph: ArrowsLeftRight },
+    { key: 'send', label: t('corridor.step.send'), Glyph: PaperPlaneTilt },
+    { key: 'payout', label: t('corridor.step.payout'), Glyph: Bank },
   ];
   const currentIndex = steps.findIndex((s) => s.key === step);
 
@@ -379,16 +386,19 @@ function CorridorSteps({ step }: { step: Step }) {
         <li key={s.key} className="flex items-center gap-2">
           <span
             className={`flex items-center gap-1.5 rounded-full px-3 py-1 ${
-              i <= currentIndex ? 'bg-brand-700/30 text-brand-200' : 'bg-surface-inset text-ink-500'
+              i <= currentIndex ? 'bg-success/15 text-success' : 'bg-inset text-fg-subtle'
             }`}
           >
-            <span aria-hidden="true">{s.flag}</span>
+            <s.Glyph size={14} weight={ICON_WEIGHT} aria-hidden="true" />
             {s.label}
           </span>
           {i < steps.length - 1 ? (
-            <span aria-hidden="true" className="text-ink-500">
-              →
-            </span>
+            <ArrowRight
+              size={12}
+              weight={ICON_WEIGHT}
+              aria-hidden="true"
+              className="text-fg-subtle"
+            />
           ) : null}
         </li>
       ))}
@@ -401,32 +411,36 @@ function SwapSummary({ quote }: { quote: SwapQuote }) {
   const dex = quote.mode === 'dex';
 
   return (
-    <div className="rounded-lg bg-surface-inset p-4">
-      <p className={`text-sm ${dex ? 'text-brand-200' : 'text-accent-300'}`}>
+    <div className="rounded-lg bg-inset p-4">
+      <p className={`text-sm ${dex ? 'text-success' : 'text-gold'}`}>
         {dex ? t('corridor.swapDex') : t('corridor.swapSimulated')}
       </p>
-      {quote.reason ? <p className="mt-1 text-xs text-ink-500">{quote.reason}</p> : null}
+      {quote.reason ? <p className="mt-1 text-xs text-fg-subtle">{quote.reason}</p> : null}
 
       <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.youReceive')}</dt>
-          <dd className="mt-0.5 font-semibold tabular-nums text-brand-300">
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
+            {t('common.youReceive')}
+          </dt>
+          <dd className="mt-0.5 font-semibold tabular-nums text-gold">
             {formatToken(quote.buyAmount, 'USDC', tag)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.rate')}</dt>
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('common.rate')}</dt>
           <dd className="mt-0.5 font-mono text-sm tabular-nums">
             {Number(quote.price).toFixed(6)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('corridor.slippage')}</dt>
-          <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-400">{quote.destMin}</dd>
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
+            {t('corridor.slippage')}
+          </dt>
+          <dd className="mt-0.5 font-mono text-sm tabular-nums text-fg-muted">{quote.destMin}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">Path</dt>
-          <dd className="mt-0.5 text-sm text-ink-400">
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">Path</dt>
+          <dd className="mt-0.5 text-sm text-fg-muted">
             {quote.path.length === 0
               ? t('corridor.swapDirect')
               : t('corridor.swapHops', { count: quote.path.length })}

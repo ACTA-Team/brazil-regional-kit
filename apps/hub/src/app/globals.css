@@ -1,38 +1,154 @@
 @import 'tailwindcss';
 
 /*
- * Palette: Brazilian flag greens/yellows pulled toward a darker fintech surface
- * so the two ramp directions read differently at a glance — green for money
- * coming on-chain, amber for anything simulated.
+ * ACTA design system · v1.0
+ *
+ * Every value below is transcribed from the brand manual, not invented here.
+ * The manual's four rules drive the whole sheet:
+ *
+ *   1. Objective trust        — sober surfaces, no hype, verification visible
+ *   2. Dark by default        — content floats over a cosmic canvas
+ *   3. A single accent        — gold #ffd21f marks THE action, once per screen
+ *   4. Clarity over decoration — space, type and contrast before ornament
+ *
+ * Rule 3 shapes the code most: gold is a scarce resource. It marks the primary
+ * action, focus and active state — nothing else. Success is green, danger is
+ * red, and "live" is green because it is a status, not an action. Where this
+ * app used to paint whole surfaces in colour, it now paints a one-pixel border
+ * and lets the canvas do the work.
  */
+
 @theme {
-  --color-surface: #0b1220;
-  --color-surface-raised: #131c2e;
-  --color-surface-inset: #0e1626;
-  --color-border-subtle: #1f2b40;
+  /* ── Canvas & surfaces ────────────────────────────────────────────────── */
+  --color-canvas: #06070b;
+  /* --card: cards float just above the canvas. */
+  --color-surface: oklch(0.18 0.005 260);
+  /* --secondary: chips and secondary surfaces. */
+  --color-surface-2: oklch(0.22 0.006 260);
+  /* Wells: inputs and code blocks sit BELOW the card, not above it. */
+  --color-inset: oklch(0.14 0.004 260);
+  /* The manual's navy, reserved for the secondary button. */
+  --color-navy: #1f2a44;
 
-  --color-brand-50: #ecfdf3;
-  --color-brand-200: #a7f3c8;
-  --color-brand-300: #6ee7b7;
-  --color-brand-400: #34d399;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
+  /* ── Lines ────────────────────────────────────────────────────────────── */
+  --color-line: oklch(1 0 0 / 8%);
+  --color-line-strong: oklch(1 0 0 / 12%);
 
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
+  /* ── The single accent ────────────────────────────────────────────────── */
+  --color-gold: #ffd21f;
+  --color-gold-ink: #1a1400; /* text ON gold — near-black, never white */
 
-  --color-ink-100: #f1f5f9;
-  --color-ink-200: #e2e8f0;
-  --color-ink-300: #cbd5e1;
-  --color-ink-400: #94a3b8;
-  --color-ink-500: #64748b;
+  /* ── Text ─────────────────────────────────────────────────────────────── */
+  --color-fg: #f3f5f9;
+  --color-fg-muted: oklch(0.65 0 0);
+  --color-fg-subtle: oklch(0.5 0 0);
 
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  /* ── Status ───────────────────────────────────────────────────────────── */
+  --color-success: #3cb46e;
+  --color-danger: #ff4d4f;
+  --color-warning: #ffd21f;
+  --color-info: #7fb0ff;
+
+  /* ── Type ─────────────────────────────────────────────────────────────── */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'Cascadia Code', monospace;
+
+  /* ── Shape · base radius 10px ─────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-cutout: 28px;
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+  --ease-out-soft: cubic-bezier(0.22, 0.68, 0.28, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+
+  --animate-rise: rise 460ms var(--ease-out-soft) both;
+  --animate-fade: fade 320ms ease both;
+  --animate-pop: pop 380ms var(--ease-spring) both;
+  --animate-shimmer: shimmer 1.5s linear infinite;
+  --animate-halo: halo 2.4s ease-out infinite;
+  --animate-sweep: sweep 1.4s var(--ease-out-soft) infinite;
+  --animate-tick: tick 420ms var(--ease-spring) both;
 }
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+/* A ring breathing outward from the active step: "this is where you are".
+   Gold, matching the manual's active-state rule. */
+@keyframes halo {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 210 31 / 35%);
+  }
+  70% {
+    box-shadow: 0 0 0 9px rgb(255 210 31 / 0%);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 210 31 / 0%);
+  }
+}
+
+/* Indeterminate progress: a band travelling along the connector between two
+   steps. Honest about "working" without inventing a percentage. */
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes tick {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
 
 @layer base {
   html {
@@ -40,85 +156,269 @@
   }
 
   body {
+    /*
+      "A deep cosmic canvas." One very soft gold bloom high on the page — enough
+      that flat black does not feel dead, far too faint to compete with an
+      actual gold control.
+    */
     background:
-      radial-gradient(80rem 40rem at 15% -10%, rgba(16, 185, 129, 0.09), transparent 60%),
-      radial-gradient(60rem 35rem at 95% 0%, rgba(245, 158, 11, 0.07), transparent 55%),
-      var(--color-surface);
-    color: var(--color-ink-100);
+      radial-gradient(60rem 32rem at 50% -14%, rgb(255 210 31 / 6%), transparent 62%),
+      var(--color-canvas);
+    background-attachment: fixed;
+    color: var(--color-fg);
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background: var(--color-brand-500);
-    color: #06251a;
+    background: var(--color-gold);
+    color: var(--color-gold-ink);
+  }
+
+  /* One focus treatment everywhere: the gold ring from the manual. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
   }
 }
 
+/* ── Components ─────────────────────────────────────────────────────────── */
+
 @layer components {
+  /* Standard card · header + content + footer */
   .card {
-    background: var(--color-surface-raised);
-    border: 1px solid var(--color-border-subtle);
-    border-radius: 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xl);
   }
 
-  .field {
-    background: var(--color-surface-inset);
-    border: 1px solid var(--color-border-subtle);
-    border-radius: 0.625rem;
-    color: var(--color-ink-100);
-    padding: 0.625rem 0.875rem;
-    width: 100%;
-    outline: none;
+  /* Cutout card · 28px radius, strong elevation. For the one thing on screen
+     that matters most — a hero, a result, a receipt. */
+  .card-cutout {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-cutout);
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 4%) inset,
+      0 24px 60px -20px rgb(0 0 0 / 70%);
   }
 
-  .field:focus {
-    border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  /* Featured card · subtle gold border for success states. */
+  .card-featured {
+    background:
+      linear-gradient(180deg, rgb(255 210 31 / 5%), transparent 40%), var(--color-surface);
+    border: 1px solid rgb(255 210 31 / 28%);
+    border-radius: var(--radius-xl);
   }
 
+  .card-hover {
+    transition:
+      border-color 180ms var(--ease-out-soft),
+      transform 180ms var(--ease-out-soft),
+      box-shadow 180ms var(--ease-out-soft);
+  }
+
+  .card-hover:hover {
+    border-color: rgb(255 210 31 / 35%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px -16px rgb(0 0 0 / 80%);
+  }
+
+  /* ── Buttons · six canonical variants ───────────────────────────────────
+     The manual is explicit: only ONE primary (gold) action per screen. Every
+     other control on that screen takes secondary, outline or ghost. */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.625rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
     font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
     padding: 0.625rem 1rem;
-    transition:
-      background-color 120ms ease,
-      opacity 120ms ease,
-      border-color 120ms ease;
     cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color 160ms var(--ease-out-soft),
+      border-color 160ms var(--ease-out-soft),
+      color 160ms var(--ease-out-soft),
+      transform 120ms var(--ease-out-soft),
+      box-shadow 160ms var(--ease-out-soft);
+  }
+
+  .btn:not(:disabled):active {
+    transform: translateY(1px);
   }
 
   .btn:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 
   .btn-primary {
-    background: var(--color-brand-600);
-    color: #ffffff;
+    background: var(--color-gold);
+    color: var(--color-gold-ink);
+    box-shadow: 0 6px 20px -8px rgb(255 210 31 / 55%);
   }
 
   .btn-primary:not(:disabled):hover {
-    background: var(--color-brand-500);
+    background: #ffdc4a;
+    box-shadow: 0 8px 26px -8px rgb(255 210 31 / 70%);
+  }
+
+  .btn-secondary {
+    background: var(--color-navy);
+    color: var(--color-fg);
+  }
+
+  .btn-secondary:not(:disabled):hover {
+    background: #26334f;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border-color: var(--color-line-strong);
+    color: var(--color-fg);
+  }
+
+  .btn-outline:not(:disabled):hover {
+    border-color: rgb(255 255 255 / 26%);
+    background: rgb(255 255 255 / 3%);
   }
 
   .btn-ghost {
     background: transparent;
-    border: 1px solid var(--color-border-subtle);
-    color: var(--color-ink-300);
+    color: var(--color-fg-muted);
   }
 
   .btn-ghost:not(:disabled):hover {
-    border-color: var(--color-brand-600);
-    color: var(--color-ink-100);
+    background: rgb(255 255 255 / 5%);
+    color: var(--color-fg);
+  }
+
+  .btn-destructive {
+    background: var(--color-danger);
+    color: #240607;
+  }
+
+  .btn-destructive:not(:disabled):hover {
+    background: #ff6467;
+  }
+
+  .btn-link {
+    background: transparent;
+    color: var(--color-gold);
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-lg {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    border-radius: var(--radius-xl);
+  }
+
+  /* ── Fields ──────────────────────────────────────────────────────────── */
+  .field {
+    background: var(--color-inset);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-lg);
+    color: var(--color-fg);
+    padding: 0.75rem 0.875rem;
+    width: 100%;
+    outline: none;
+    transition:
+      border-color 160ms var(--ease-out-soft),
+      box-shadow 160ms var(--ease-out-soft);
+  }
+
+  .field::placeholder {
+    color: var(--color-fg-subtle);
+  }
+
+  .field:focus {
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px rgb(255 210 31 / 16%);
+    outline: none;
+  }
+
+  /* ── Chips · the manual's badge row ──────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    letter-spacing: 0.02em;
+  }
+
+  .chip-success {
+    border-color: rgb(60 180 110 / 40%);
+    background: rgb(60 180 110 / 12%);
+    color: #7fd6a4;
+  }
+
+  .chip-danger {
+    border-color: rgb(255 77 79 / 40%);
+    background: rgb(255 77 79 / 12%);
+    color: #ff9a9b;
+  }
+
+  .chip-gold {
+    border-color: rgb(255 210 31 / 45%);
+    background: rgb(255 210 31 / 12%);
+    color: var(--color-gold);
+  }
+
+  .chip-neutral {
+    border-color: var(--color-line-strong);
+    background: rgb(255 255 255 / 4%);
+    color: var(--color-fg-muted);
+  }
+
+  /* A value well — DIDs, hashes, PIX strings, request lines. */
+  .well {
+    background: var(--color-inset);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+  }
+
+  /* Skeleton shimmer for anything still loading. */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgb(255 255 255 / 4%) 25%,
+      rgb(255 255 255 / 9%) 37%,
+      rgb(255 255 255 / 4%) 63%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+    border-radius: var(--radius-md);
   }
 }
 
-/* Respect users who ask for less motion — the stepper and spinners animate. */
+/* Respect users who ask for less motion — everything here animates. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -126,5 +426,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

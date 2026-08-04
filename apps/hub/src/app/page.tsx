@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { PAYMENT_RAIL, assetCode, BRL, MXN, TESOURO, USDC } from '@brk/ramp-core';
+import { ArrowRight, ICON_WEIGHT } from '@/components/icons';
 import { useI18n } from '@/lib/i18n';
 
-/** The demo's spine, in the order a judge should click through it. */
+/** The demo's spine, in the order it should be clicked through. */
 const STEPS = [
   {
     href: '/onramp',
@@ -44,48 +45,89 @@ export default function HomePage() {
   const { t } = useI18n();
 
   return (
-    <div className="space-y-10">
-      <section className="pt-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-400">
+    <div className="space-y-14">
+      {/* ── Hero ──────────────────────────────────────────────────────────
+          One small label, one headline, one subtitle, one primary action.
+          Nothing else competes for the first screen. */}
+      <section className="animate-rise pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
           Stellar · Brazil &amp; LATAM
         </p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+        <h1 className="mt-4 max-w-3xl text-4xl font-extrabold leading-[1.1] sm:text-5xl">
           {t('home.title')}
         </h1>
-        <p className="mt-4 max-w-2xl text-ink-300">{t('home.subtitle')}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/onramp" className="btn btn-primary">
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-fg-muted">{t('home.subtitle')}</p>
+
+        {/* Exactly one gold action on this screen, per the manual. */}
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/onramp" className="btn btn-primary btn-lg">
             {t('home.cta.start')}
+            <ArrowRight size={16} weight={ICON_WEIGHT} aria-hidden="true" />
           </Link>
-          <a href="https://github.com" className="btn btn-ghost" target="_blank" rel="noreferrer">
+          <a
+            href="https://github.com/ACTA-Team/brazil-regional-kit"
+            className="btn btn-outline btn-lg"
+            target="_blank"
+            rel="noreferrer"
+          >
             {t('home.cta.docs')}
           </a>
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        {STEPS.map((step, i) => (
-          <Link
-            key={step.href}
-            href={step.href}
-            className="card group flex flex-col gap-3 p-5 transition-colors hover:border-brand-600"
-          >
-            <div className="flex items-center gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface-inset text-xs font-semibold text-ink-400">
-                {i + 1}
-              </span>
-              <h2 className="font-semibold">{t(step.titleKey)}</h2>
-            </div>
-            <p className="text-sm leading-relaxed text-ink-400">{t(step.bodyKey)}</p>
-            <div className="mt-auto flex items-center gap-2 pt-2 font-mono text-xs text-ink-500">
-              <span className="rounded bg-surface-inset px-1.5 py-0.5">{step.from}</span>
-              <span aria-hidden="true" className="text-brand-400">
-                →
-              </span>
-              <span className="rounded bg-surface-inset px-1.5 py-0.5">{step.to}</span>
-              <span className="ml-auto">{step.rail}</span>
-            </div>
-          </Link>
+      {/* ── The journey ──────────────────────────────────────────────────── */}
+      <section>
+        <h2 className="text-lg font-bold">{t('home.journey')}</h2>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {STEPS.map((step, i) => (
+            <Link
+              key={step.href}
+              href={step.href}
+              className="card card-hover animate-rise group flex flex-col gap-3 p-5"
+              // Tailwind cannot see a class built from a template literal, so the
+              // entrance stagger is an inline delay rather than a utility.
+              style={{ animationDelay: `${(i + 1) * 70}ms` }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line-strong font-mono text-xs text-fg-muted transition-colors group-hover:border-gold/50 group-hover:text-gold">
+                  {i + 1}
+                </span>
+                <h3 className="font-bold">{t(step.titleKey)}</h3>
+              </div>
+
+              <p className="text-sm leading-relaxed text-fg-muted">{t(step.bodyKey)}</p>
+
+              <div className="mt-auto flex items-center gap-2 pt-2 font-mono text-xs">
+                <span className="well px-1.5 py-0.5 text-fg-muted">{step.from}</span>
+                <ArrowRight
+                  size={12}
+                  weight={ICON_WEIGHT}
+                  aria-hidden="true"
+                  className="text-fg-subtle transition-colors group-hover:text-gold"
+                />
+                <span className="well px-1.5 py-0.5 text-fg-muted">{step.to}</span>
+                <span className="ml-auto text-fg-subtle">{step.rail}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Trust strip ──────────────────────────────────────────────────────
+          "Verification is public and on-chain." These are claims a visitor can
+          check for themselves, so they belong on the landing page rather than
+          buried in a README. Hairlines separate them; no cards needed. */}
+      <section className="card animate-rise grid gap-px overflow-hidden bg-line sm:grid-cols-3">
+        {[
+          { value: '2', labelKey: 'home.trust.anchors' },
+          { value: 'testnet', labelKey: 'home.trust.network' },
+          { value: 'MIT', labelKey: 'home.trust.license' },
+        ].map((item) => (
+          <div key={item.labelKey} className="bg-surface px-5 py-4">
+            <p className="font-mono text-xl font-medium text-gold">{item.value}</p>
+            <p className="mt-1 text-xs text-fg-muted">{t(item.labelKey)}</p>
+          </div>
         ))}
       </section>
     </div>

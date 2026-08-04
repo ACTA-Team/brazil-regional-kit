@@ -5,10 +5,11 @@ import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { Alert } from '@/components/Alert';
 import { AmountField } from '@/components/AmountField';
 import { FundGate } from '@/components/FundGate';
-import { ModeBadge } from '@/components/ModeBadge';
-import { OrderStepper } from '@/components/OrderStepper';
+import { OrderCard } from '@/components/OrderCard';
+import { PageIntro } from '@/components/PageIntro';
 import { DepositPanel } from '@/components/DepositPanel';
 import { QuoteCard, displayAmount } from '@/components/QuoteCard';
+import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { TrustlineGate } from '@/components/TrustlineGate';
 import { NetworkBanner } from '@/components/WalletButton';
 import { useI18n } from '@/lib/i18n';
@@ -75,16 +76,18 @@ export default function OnRampPage() {
   const settled = order?.status === 'completed';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <header>
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight">{t('onramp.title')}</h1>
-        </div>
-        <p className="mt-2 text-ink-400">{t('onramp.subtitle')}</p>
-        <p className="mt-2 font-mono text-xs text-ink-500">
-          {assetCode(BRL)} → {assetCode(TESOURO)} · PIX · Etherfuse
-        </p>
-      </header>
+    <div className="mx-auto max-w-2xl space-y-7">
+      <PageIntro
+        step={1}
+        title={t('onramp.title')}
+        subtitle={t('onramp.subtitle')}
+        route={{
+          from: assetCode(BRL),
+          to: assetCode(TESOURO),
+          rail: 'PIX',
+          anchor: 'Etherfuse',
+        }}
+      />
 
       <NetworkBanner />
       <FundGate />
@@ -108,7 +111,7 @@ export default function OnRampPage() {
                   flow.reset();
                 }
               }}
-              className="btn btn-ghost text-xs"
+              className="btn btn-outline btn-sm"
             >
               {isDuplicateOrder(error) ? t('onramp.tryAnotherAmount') : t('common.cancel')}
             </button>
@@ -122,7 +125,7 @@ export default function OnRampPage() {
       ) : null}
 
       {stage === 'input' ? (
-        <div className="card space-y-4 p-5">
+        <div className="card animate-rise space-y-5 p-6">
           <AmountField
             label={t('onramp.amountLabel')}
             value={amount}
@@ -130,25 +133,38 @@ export default function OnRampPage() {
             currency="BRL"
             suffix="R$"
           />
+
           <button
             type="button"
-            className="btn btn-primary w-full"
+            className="btn btn-primary btn-lg w-full"
             disabled={!connected || busy === 'quoting' || !amount}
             onClick={() => void flow.getQuote(amount, address)}
           >
-            {busy === 'quoting' ? t('common.loading') : t('onramp.getQuote')}
+            {busy === 'quoting' ? (
+              <>
+                <Spinner />
+                {t('common.loading')}
+              </>
+            ) : (
+              <>
+                {t('onramp.getQuote')}
+                <ArrowRight size={16} weight={ICON_WEIGHT} aria-hidden="true" />
+              </>
+            )}
           </button>
 
-          <label className="flex items-start gap-2 text-sm text-ink-400">
+          <label className="flex cursor-pointer items-start gap-2.5 border-t border-line pt-4 text-sm text-fg-muted">
             <input
               type="checkbox"
               checked={autoSettle}
               onChange={(e) => setAutoSettle(e.target.checked)}
-              className="mt-0.5 accent-brand-500"
+              className="mt-0.5 accent-gold"
             />
             <span>
               {t('onramp.autoSettle')}
-              <span className="block text-xs text-ink-500">{t('onramp.autoSettleHint')}</span>
+              <span className="mt-0.5 block text-xs text-fg-subtle">
+                {t('onramp.autoSettleHint')}
+              </span>
             </span>
           </label>
         </div>
@@ -178,30 +194,7 @@ export default function OnRampPage() {
 
       {order ? (
         <div className="space-y-6">
-          <div className="card space-y-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{order.anchorName}</span>
-                <ModeBadge mode={order.mode} />
-              </div>
-              <div className="flex items-center gap-3">
-                {order.anchorPage ? (
-                  <a
-                    href={order.anchorPage}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-brand-300 underline-offset-2 hover:underline"
-                  >
-                    {t('onramp.viewOnAnchor')}
-                  </a>
-                ) : null}
-                <span className="font-mono text-xs text-ink-500">
-                  {order.id?.slice(0, 8) ?? '—'}
-                </span>
-              </div>
-            </div>
-            <OrderStepper direction={order.direction} status={order.status} />
-          </div>
+          <OrderCard order={order} />
 
           {order.paymentInstructions && order.status === 'awaiting_payment' ? (
             <DepositPanel
@@ -211,25 +204,30 @@ export default function OnRampPage() {
             />
           ) : null}
 
+          {/* The payoff, on the featured card the manual reserves for success. */}
           {settled ? (
-            <Alert
-              tone="success"
-              action={
-                <button
-                  type="button"
-                  onClick={() => {
-                    void refreshBalances();
-                    flow.reset();
-                  }}
-                  className="btn btn-ghost text-xs"
-                >
-                  {t('common.startOver')}
-                </button>
-              }
-            >
-              {t('onramp.done')} —{' '}
-              <strong>{displayAmount(order.buyAmount, order.buyAsset, tag)}</strong>
-            </Alert>
+            <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                  <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
+                  {t('onramp.done')}
+                </p>
+                <p className="mt-2 text-3xl font-extrabold tabular-nums">
+                  {displayAmount(order.buyAmount, order.buyAsset, tag)}
+                </p>
+                <p className="mt-1 text-sm text-fg-muted">{t('onramp.inYourWallet')}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void refreshBalances();
+                  flow.reset();
+                }}
+                className="btn btn-outline"
+              >
+                {t('common.startOver')}
+              </button>
+            </section>
           ) : null}
         </div>
       ) : null}

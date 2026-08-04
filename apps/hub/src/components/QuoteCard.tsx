@@ -4,6 +4,7 @@ import { assetCode, isFiat, parseAsset } from '@brk/ramp-core';
 import type { PublicQuote } from '@/lib/api';
 import { formatMoney, formatToken, useI18n } from '@/lib/i18n';
 import { ExpiryPill, useCountdown } from './Countdown';
+import { ArrowRight, ICON_WEIGHT, Spinner } from './icons';
 import { ModeBadge } from './ModeBadge';
 
 /** Fiat gets a currency symbol; tokens get a plain number and a ticker. */
@@ -12,6 +13,14 @@ export function displayAmount(amount: string, asset: string, tag: string): strin
   return isFiat(asset) ? formatMoney(amount, code, tag) : formatToken(amount, code, tag);
 }
 
+/**
+ * The decision moment, so it gets the cutout card and the whole width.
+ *
+ * Everything a person actually decides on — what leaves, what arrives — is set
+ * large and side by side. Rate and fee are true and present but demoted to
+ * fine print, because nobody accepts or rejects a quote on the sixth decimal
+ * of the rate; they accept it on the number that lands in their account.
+ */
 export function QuoteCard({
   quote,
   onConfirm,
@@ -32,43 +41,57 @@ export function QuoteCard({
   const expired = secondsLeft <= 0;
 
   return (
-    <div className="card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="card-cutout animate-pop overflow-hidden">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-3.5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold">{quote.anchorName}</span>
+          <span className="text-sm font-semibold">{quote.anchorName}</span>
           <ModeBadge mode={quote.mode} />
         </div>
         <ExpiryPill expiresAt={quote.expiresAt} />
+      </header>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-7 sm:gap-6">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">
+            {t('common.youSend')}
+          </p>
+          <p className="mt-1.5 truncate text-2xl font-bold tabular-nums">
+            {displayAmount(quote.sellAmount, quote.sellAsset, tag)}
+          </p>
+        </div>
+
+        <span
+          aria-hidden="true"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-inset text-fg-subtle"
+        >
+          <ArrowRight size={15} weight={ICON_WEIGHT} />
+        </span>
+
+        <div className="min-w-0 text-right">
+          <p className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">
+            {t('common.youReceive')}
+          </p>
+          {/* The one number the decision turns on. */}
+          <p className="mt-1.5 truncate text-2xl font-bold tabular-nums text-gold">
+            {displayAmount(quote.buyAmount, quote.buyAsset, tag)}
+          </p>
+        </div>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.youSend')}</dt>
-          <dd className="mt-1 font-semibold tabular-nums">
-            {displayAmount(quote.sellAmount, quote.sellAsset, tag)}
-          </dd>
+      <dl className="flex flex-wrap gap-x-6 gap-y-1 border-t border-line px-6 py-3 text-xs">
+        <div className="flex gap-1.5">
+          <dt className="text-fg-subtle">{t('common.rate')}</dt>
+          <dd className="font-mono tabular-nums text-fg-muted">{Number(quote.price).toFixed(6)}</dd>
         </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.youReceive')}</dt>
-          <dd className="mt-1 font-semibold tabular-nums text-brand-300">
-            {displayAmount(quote.buyAmount, quote.buyAsset, tag)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.rate')}</dt>
-          <dd className="mt-1 font-mono text-sm tabular-nums text-ink-300">
-            {Number(quote.price).toFixed(6)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('common.fee')}</dt>
-          <dd className="mt-1 font-mono text-sm tabular-nums text-ink-300">
+        <div className="flex gap-1.5">
+          <dt className="text-fg-subtle">{t('common.fee')}</dt>
+          <dd className="font-mono tabular-nums text-fg-muted">
             {quote.fee.amount} {assetCode(quote.fee.asset)}
           </dd>
         </div>
       </dl>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 border-t border-line px-6 py-4">
         {expired ? (
           <button type="button" onClick={onRequote} className="btn btn-primary">
             {t('common.retry')}
@@ -80,7 +103,14 @@ export function QuoteCard({
             disabled={confirming || disabled}
             className="btn btn-primary"
           >
-            {confirming ? t('common.loading') : confirmLabel}
+            {confirming ? (
+              <>
+                <Spinner />
+                {t('common.loading')}
+              </>
+            ) : (
+              confirmLabel
+            )}
           </button>
         )}
         <button type="button" onClick={onRequote} className="btn btn-ghost">
@@ -90,3 +120,5 @@ export function QuoteCard({
     </div>
   );
 }
+
+export { Spinner };

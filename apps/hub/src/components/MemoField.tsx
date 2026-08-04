@@ -29,16 +29,12 @@ export function MemoField({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm text-ink-300">
+        <label htmlFor={id} className="text-sm text-fg-muted">
           {label ?? t('corridor.memoLabel')}
         </label>
         <span
           className={`font-mono text-xs tabular-nums ${
-            !check.valid
-              ? 'text-red-300'
-              : check.remaining <= 6
-                ? 'text-accent-300'
-                : 'text-ink-500'
+            !check.valid ? 'text-danger' : check.remaining <= 6 ? 'text-gold' : 'text-fg-subtle'
           }`}
         >
           {t('corridor.memoCounter', { bytes: check.bytes, max: check.max })}
@@ -56,7 +52,7 @@ export function MemoField({
       />
 
       {!check.valid ? (
-        <p role="alert" className="mt-1.5 text-xs text-red-300">
+        <p role="alert" className="mt-1.5 text-xs text-danger">
           {t('corridor.memoTooLong')}
         </p>
       ) : null}

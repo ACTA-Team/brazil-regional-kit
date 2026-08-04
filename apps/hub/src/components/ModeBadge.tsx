@@ -9,7 +9,12 @@ import { useI18n } from '@/lib/i18n';
  * Every quote, order and swap in this app carries one. A demo that quietly
  * fakes an anchor is worth nothing; a demo that says exactly which parts are
  * live and which are replaying fixtures is worth a great deal — and it is the
- * only way a judge can trust the parts that ARE real.
+ * only way anyone can trust the parts that ARE real.
+ *
+ * Live is green and mock is neutral-dashed, not gold. The manual's badge row
+ * does allow a gold state, but a quote table can carry a dozen of these at
+ * once; painting them gold would flood the screen with the accent and leave
+ * the actual primary action with nothing to stand out against.
  */
 export function ModeBadge({
   mode,
@@ -26,16 +31,17 @@ export function ModeBadge({
   return (
     <span
       title={title ?? t(live ? 'mode.liveHint' : 'mode.mockHint')}
-      className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-        live
-          ? 'border-brand-600 bg-brand-700/25 text-brand-200'
-          : 'border-accent-500 bg-accent-500/15 text-accent-300'
-      } ${className}`}
+      className={`chip uppercase ${live ? 'chip-success' : 'chip-neutral border-dashed'} ${className}`}
     >
-      <span
-        aria-hidden="true"
-        className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-brand-400' : 'bg-accent-400'}`}
-      />
+      {live ? (
+        // A heartbeat, because "live" is a claim the UI should keep making.
+        <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+        </span>
+      ) : (
+        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-fg-subtle" />
+      )}
       {t(live ? 'mode.live' : 'mode.mock')}
     </span>
   );

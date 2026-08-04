@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { USD, USDC } from '@brk/ramp-core';
 import { useI18n } from '@/lib/i18n';
+import { Check, ICON_WEIGHT } from './icons';
 import { useWallet } from '@/lib/wallet';
 import { Alert } from './Alert';
 
@@ -128,7 +129,7 @@ export function SepAuthPanel() {
     <section className="card space-y-4 p-5">
       <div>
         <h2 className="font-semibold">{t('sep.title')}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-ink-400">{t('sep.subtitle')}</p>
+        <p className="mt-1 max-w-2xl text-sm text-fg-muted">{t('sep.subtitle')}</p>
       </div>
 
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
@@ -155,11 +156,11 @@ export function SepAuthPanel() {
           </button>
 
           {claims ? (
-            <dl className="mt-3 grid gap-1 font-mono text-[11px] text-ink-400">
+            <dl className="mt-3 grid gap-1 font-mono text-[11px] text-fg-muted">
               {(['sub', 'iss', 'exp'] as const).map((key) =>
                 claims[key] !== undefined ? (
                   <div key={key} className="flex gap-2">
-                    <dt className="text-ink-500">{key}</dt>
+                    <dt className="text-fg-subtle">{key}</dt>
                     <dd className="min-w-0 flex-1 truncate">
                       {key === 'exp'
                         ? new Date(Number(claims[key]) * 1000).toLocaleString()
@@ -197,10 +198,10 @@ export function SepAuthPanel() {
                 value={new Date(quote.expires_at).toLocaleTimeString()}
               />
               <div className="col-span-2 sm:col-span-4">
-                <span className="text-xs uppercase tracking-wide text-ink-500">
+                <span className="text-xs uppercase tracking-wide text-fg-subtle">
                   {t('sep.quoteId')}
                 </span>
-                <p className="mt-0.5 break-all font-mono text-[11px] text-ink-300">{quote.id}</p>
+                <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">{quote.id}</p>
               </div>
             </dl>
           ) : null}
@@ -235,18 +236,18 @@ function SepStep({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg bg-surface-inset p-4">
+    <li className="flex gap-3 rounded-lg bg-inset p-4">
       <span
         aria-hidden="true"
         className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold ${
-          done ? 'border-brand-500 bg-brand-600 text-white' : 'border-border-subtle text-ink-500'
+          done ? 'border-success bg-success text-white' : 'border-line text-fg-subtle'
         }`}
       >
-        {done ? '✓' : index}
+        {done ? <Check size={12} weight={ICON_WEIGHT} aria-hidden="true" /> : index}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{title}</p>
-        <p className="mt-0.5 text-xs text-ink-500">{description}</p>
+        <p className="mt-0.5 text-xs text-fg-subtle">{description}</p>
         <div className="mt-3">{children}</div>
       </div>
     </li>
@@ -256,10 +257,8 @@ function SepStep({
 function Field({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-ink-500">{label}</dt>
-      <dd className={`mt-0.5 font-semibold tabular-nums ${accent ? 'text-brand-300' : ''}`}>
-        {value}
-      </dd>
+      <dt className="text-xs uppercase tracking-wide text-fg-subtle">{label}</dt>
+      <dd className={`mt-0.5 font-semibold tabular-nums ${accent ? 'text-gold' : ''}`}>{value}</dd>
     </div>
   );
 }

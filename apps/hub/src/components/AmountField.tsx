@@ -10,6 +10,10 @@ const PRESETS = ['100', '250', '500', '1000'];
  * Accepts a comma as the decimal separator because that is what a Brazilian
  * keyboard produces, and normalizes it to a dot before the value ever reaches
  * an anchor — `"1,50"` silently parsed as `1` is a real way to lose money.
+ *
+ * The amount is the largest text on the screen. It is the one number the user
+ * is actually deciding about, and making them hunt for it in body copy is how
+ * a form starts to feel like paperwork.
  */
 export function AmountField({
   label,
@@ -36,13 +40,16 @@ export function AmountField({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm text-ink-300">
+      <label
+        htmlFor={id}
+        className="block text-xs font-semibold uppercase tracking-wider text-fg-subtle"
+      >
         {label}
       </label>
 
-      <div className="relative mt-2">
+      <div className="relative mt-2.5">
         {suffix ? (
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-500">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl font-semibold text-fg-subtle">
             {suffix}
           </span>
         ) : null}
@@ -53,22 +60,23 @@ export function AmountField({
           autoComplete="off"
           value={value}
           onChange={(e) => handle(e.target.value)}
-          className="field text-lg tabular-nums"
-          style={suffix ? { paddingLeft: '2.5rem' } : undefined}
+          className="field py-4 text-3xl font-bold tabular-nums tracking-tight"
+          style={suffix ? { paddingLeft: '3rem' } : undefined}
         />
       </div>
 
       {presets.length ? (
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {presets.map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => onChange(p)}
-              className={`rounded-md border px-2 py-1 text-xs transition-colors ${
+              aria-pressed={value === p}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium tabular-nums transition-colors ${
                 value === p
-                  ? 'border-brand-600 bg-brand-700/25 text-brand-200'
-                  : 'border-border-subtle text-ink-400 hover:text-ink-100'
+                  ? 'border-gold/50 bg-gold/12 text-gold'
+                  : 'border-line-strong text-fg-muted hover:border-white/25 hover:text-fg'
               }`}
             >
               {p}

@@ -64,7 +64,7 @@ export function PixPanel({
         <h3 className="font-semibold">{t('onramp.pixTitle')}</h3>
         <ExpiryPill expiresAt={instructions.expiresAt} />
       </div>
-      <p className="mt-1 text-sm text-ink-400">{t('onramp.pixHint')}</p>
+      <p className="mt-1 text-sm text-fg-muted">{t('onramp.pixHint')}</p>
 
       <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-start">
         {qr ? (
@@ -79,7 +79,7 @@ export function PixPanel({
 
         <div className="min-w-0 flex-1 space-y-3">
           <div>
-            <span className="text-xs uppercase tracking-wide text-ink-500">
+            <span className="text-xs uppercase tracking-wide text-fg-subtle">
               {t('common.amount')}
             </span>
             <p className="text-2xl font-semibold tabular-nums">
@@ -88,8 +88,8 @@ export function PixPanel({
           </div>
 
           <div>
-            <span className="text-xs uppercase tracking-wide text-ink-500">PIX copia e cola</span>
-            <p className="mt-1 max-h-24 overflow-y-auto break-all rounded-lg bg-surface-inset p-2.5 font-mono text-[11px] leading-relaxed text-ink-300">
+            <span className="text-xs uppercase tracking-wide text-fg-subtle">PIX copia e cola</span>
+            <p className="mt-1 max-h-24 overflow-y-auto break-all rounded-lg bg-inset p-2.5 font-mono text-[11px] leading-relaxed text-fg-muted">
               {instructions.code}
             </p>
           </div>
@@ -112,7 +112,7 @@ export function PixPanel({
             ) : null}
           </div>
 
-          {onSimulate ? <p className="text-xs text-ink-500">{t('onramp.simulateHint')}</p> : null}
+          {onSimulate ? <p className="text-xs text-fg-subtle">{t('onramp.simulateHint')}</p> : null}
         </div>
       </div>
     </div>

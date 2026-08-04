@@ -77,7 +77,7 @@ async function composeCrossRate(
       const price = multiply(first.price, second.price);
       return {
         price,
-        label: `via ${bridge.split(':')[1]} using ${first.anchorName} → ${second.anchorName}`,
+        label: `via ${bridge.split(':')[1]} using ${first.anchorName} then ${second.anchorName}`,
       };
     } catch {
       // This bridge does not work; try the next one.

@@ -38,6 +38,10 @@ function secondsUntil(iso?: string): number {
   return Number.isFinite(ms) ? Math.max(0, Math.ceil(ms / 1000)) : 0;
 }
 
+/** Assume a two-minute quote when the anchor gives no issue time — it only
+ *  drives the ring's sweep, never the expiry decision itself. */
+const ASSUMED_WINDOW_SECONDS = 120;
+
 export function ExpiryPill({ expiresAt }: { expiresAt?: string } = {}) {
   const { t } = useI18n();
   const seconds = useCountdown(expiresAt);
@@ -46,17 +50,43 @@ export function ExpiryPill({ expiresAt }: { expiresAt?: string } = {}) {
 
   const expired = seconds <= 0;
   const urgent = seconds > 0 && seconds <= 10;
+  const fraction = Math.min(1, Math.max(0, seconds / ASSUMED_WINDOW_SECONDS));
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[11px] tabular-nums ${
-        expired
-          ? 'bg-red-500/15 text-red-300'
-          : urgent
-            ? 'bg-accent-500/15 text-accent-300'
-            : 'bg-surface-inset text-ink-400'
+      className={`chip font-mono tabular-nums ${
+        expired ? 'chip-danger' : urgent ? 'chip-gold' : 'chip-neutral'
       }`}
     >
+      {/*
+        A draining ring rather than a bare number. Time pressure is easier to
+        feel than to read, and the demo's most common stumble is a quote that
+        quietly expired while someone was talking.
+      */}
+      {!expired ? (
+        <svg viewBox="0 0 20 20" className="h-3 w-3 -rotate-90" aria-hidden="true">
+          <circle
+            cx="10"
+            cy="10"
+            r="8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            opacity="0.2"
+          />
+          <circle
+            cx="10"
+            cy="10"
+            r="8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={`${fraction * 50.3} 50.3`}
+            style={{ transition: 'stroke-dasharray 900ms linear' }}
+          />
+        </svg>
+      ) : null}
       {expired ? t('common.expired') : t('common.expiresIn', { seconds })}
     </span>
   );

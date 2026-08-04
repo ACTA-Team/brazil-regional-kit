@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { PAYMENT_HEADER, buildPaymentTx, explorerTxUrl } from '@brk/stablecoin-kit';
 import { Alert } from '@/components/Alert';
+import { PageIntro } from '@/components/PageIntro';
+import { Check, ICON_WEIGHT } from '@/components/icons';
 import { NetworkBanner } from '@/components/WalletButton';
 import { submitSignedTx } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
@@ -123,11 +125,8 @@ export default function X402Page() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{t('x402.title')}</h1>
-        <p className="mt-2 text-ink-400">{t('x402.subtitle')}</p>
-      </header>
+    <div className="mx-auto max-w-3xl space-y-7">
+      <PageIntro step={5} title={t('x402.title')} subtitle={t('x402.subtitle')} />
 
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
@@ -146,11 +145,11 @@ export default function X402Page() {
               type="button"
               onClick={() => void requestUnpaid()}
               disabled={busy !== null}
-              className="btn btn-primary text-xs"
+              className={`btn btn-sm ${challenge ? 'btn-outline' : 'btn-primary'}`}
             >
               {busy === 'requesting' ? t('common.loading') : t('x402.request')}
             </button>
-            <code className="font-mono text-xs text-ink-500">GET {RESOURCE}</code>
+            <code className="font-mono text-xs text-fg-subtle">GET {RESOURCE}</code>
             {challenge && lastStatus ? <StatusPill status={lastStatus} /> : null}
           </div>
 
@@ -165,10 +164,10 @@ export default function X402Page() {
               <Field label="Network" value={requirement.network} mono />
               <Field label={t('x402.window')} value={`${requirement.maxTimeoutSeconds}s`} mono />
               <div className="col-span-2 sm:col-span-4">
-                <span className="text-xs uppercase tracking-wide text-ink-500">
+                <span className="text-xs uppercase tracking-wide text-fg-subtle">
                   {t('x402.payTo')}
                 </span>
-                <p className="mt-0.5 break-all font-mono text-[11px] text-ink-300">
+                <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
                   {requirement.payTo}
                 </p>
               </div>
@@ -183,7 +182,7 @@ export default function X402Page() {
               type="button"
               onClick={() => void pay()}
               disabled={!requirement || !connected || !onTestnet || busy !== null}
-              className="btn btn-primary text-xs"
+              className={`btn btn-sm ${requirement && !txHash ? 'btn-primary' : 'btn-outline'}`}
             >
               {busy === 'paying'
                 ? t('common.signing')
@@ -196,7 +195,7 @@ export default function X402Page() {
                 href={explorerTxUrl(txHash)}
                 target="_blank"
                 rel="noreferrer"
-                className="font-mono text-xs text-brand-300 underline-offset-2 hover:underline"
+                className="font-mono text-xs text-gold underline-offset-2 hover:underline"
               >
                 {txHash.slice(0, 16)}…
               </a>
@@ -211,11 +210,11 @@ export default function X402Page() {
               type="button"
               onClick={() => void retryWithProof()}
               disabled={!txHash || busy !== null}
-              className="btn btn-primary text-xs"
+              className={`btn btn-sm ${txHash && !resource ? 'btn-primary' : 'btn-outline'}`}
             >
               {busy === 'retrying' ? t('common.loading') : t('x402.request')}
             </button>
-            <code className="font-mono text-xs text-ink-500">
+            <code className="font-mono text-xs text-fg-subtle">
               GET {RESOURCE} · {PAYMENT_HEADER}: {txHash ? `${txHash.slice(0, 10)}…` : '…'}
             </code>
             {resource && lastStatus ? <StatusPill status={lastStatus} /> : null}
@@ -223,10 +222,10 @@ export default function X402Page() {
 
           {resource ? (
             <div className="mt-4 space-y-3">
-              <div className="overflow-x-auto rounded-lg bg-surface-inset">
+              <div className="overflow-x-auto rounded-lg bg-inset">
                 <table className="w-full min-w-[24rem] text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-ink-500">
+                    <tr className="text-left text-xs uppercase tracking-wide text-fg-subtle">
                       <th className="px-3 py-2 font-medium">Pair</th>
                       <th className="px-3 py-2 text-right font-medium">Rate</th>
                       <th className="px-3 py-2 font-medium">{t('common.anchor')}</th>
@@ -234,19 +233,19 @@ export default function X402Page() {
                   </thead>
                   <tbody>
                     {resource.rates.map((r) => (
-                      <tr key={r.pair} className="border-t border-border-subtle/60">
+                      <tr key={r.pair} className="border-t border-line/60">
                         <td className="px-3 py-2 font-mono text-xs">{r.pair}</td>
-                        <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-300">
+                        <td className="px-3 py-2 text-right font-semibold tabular-nums text-gold">
                           {Number(r.rate).toFixed(4)}
                         </td>
-                        <td className="px-3 py-2 text-xs text-ink-400">{r.anchor}</td>
+                        <td className="px-3 py-2 text-xs text-fg-muted">{r.anchor}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <p className="text-xs text-ink-500">{t('x402.replayNote')}</p>
+              <p className="text-xs text-fg-subtle">{t('x402.replayNote')}</p>
 
               <div className="flex flex-wrap gap-2">
                 <button
@@ -271,8 +270,8 @@ export default function X402Page() {
 
       <section className="card p-5">
         <h2 className="text-sm font-semibold">{t('x402.whyTitle')}</h2>
-        <p className="mt-1.5 text-sm text-ink-400">{t('x402.why')}</p>
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface-inset p-3 font-mono text-[11px] leading-relaxed text-ink-300">
+        <p className="mt-1.5 text-sm text-fg-muted">{t('x402.why')}</p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-inset p-3 font-mono text-[11px] leading-relaxed text-fg-muted">
           {`import { createX402Guard } from '@brk/stablecoin-kit/x402';
 
 const guard = createX402Guard({
@@ -307,14 +306,14 @@ function Step({
         <span
           aria-hidden="true"
           className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold ${
-            done ? 'border-brand-500 bg-brand-600 text-white' : 'border-border-subtle text-ink-500'
+            done ? 'border-success bg-success text-white' : 'border-line text-fg-subtle'
           }`}
         >
-          {done ? '✓' : index}
+          {done ? <Check size={12} weight={ICON_WEIGHT} aria-hidden="true" /> : index}
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-medium">{title}</p>
-          <p className="mt-0.5 text-xs text-ink-500">{hint}</p>
+          <p className="mt-0.5 text-xs text-fg-subtle">{hint}</p>
           <div className="mt-3">{children}</div>
         </div>
       </div>
@@ -327,7 +326,7 @@ function StatusPill({ status }: { status: number }) {
   return (
     <span
       className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${
-        ok ? 'bg-brand-700/30 text-brand-200' : 'bg-accent-500/15 text-accent-300'
+        ok ? 'bg-success/15 text-success' : 'bg-gold/12 text-gold'
       }`}
     >
       {status} {ok ? 'OK' : 'Payment Required'}
@@ -348,10 +347,10 @@ function Field({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-ink-500">{label}</dt>
+      <dt className="text-xs uppercase tracking-wide text-fg-subtle">{label}</dt>
       <dd
         className={`mt-0.5 ${mono ? 'font-mono text-xs' : 'font-semibold'} tabular-nums ${
-          accent ? 'text-brand-300' : ''
+          accent ? 'text-gold' : ''
         }`}
       >
         {value}

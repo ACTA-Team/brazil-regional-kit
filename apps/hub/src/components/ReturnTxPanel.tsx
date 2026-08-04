@@ -89,21 +89,21 @@ export function ReturnTxPanel({
     <div className="card space-y-4 p-5">
       <div>
         <h3 className="font-semibold">{t('offramp.signBurn')}</h3>
-        <p className="mt-1 text-sm text-ink-400">{t('offramp.signHint', { code })}</p>
+        <p className="mt-1 text-sm text-fg-muted">{t('offramp.signHint', { code })}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('offramp.returning')}</dt>
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
+            {t('offramp.returning')}
+          </dt>
           <dd className="mt-1 font-semibold tabular-nums">
             {order.sellAmount} {code}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-ink-500">{t('offramp.youHold')}</dt>
-          <dd
-            className={`mt-1 font-semibold tabular-nums ${short ? 'text-accent-300' : 'text-ink-200'}`}
-          >
+          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('offramp.youHold')}</dt>
+          <dd className={`mt-1 font-semibold tabular-nums ${short ? 'text-gold' : 'text-fg'}`}>
             {held} {code}
           </dd>
         </div>

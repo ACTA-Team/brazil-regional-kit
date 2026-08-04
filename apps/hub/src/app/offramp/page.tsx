@@ -5,9 +5,10 @@ import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { Alert } from '@/components/Alert';
 import { AmountField } from '@/components/AmountField';
 import { FundGate } from '@/components/FundGate';
-import { ModeBadge } from '@/components/ModeBadge';
-import { OrderStepper } from '@/components/OrderStepper';
+import { OrderCard } from '@/components/OrderCard';
+import { PageIntro } from '@/components/PageIntro';
 import { QuoteCard, displayAmount } from '@/components/QuoteCard';
+import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { ReturnTxPanel } from '@/components/ReturnTxPanel';
 import { NetworkBanner } from '@/components/WalletButton';
 import { useI18n } from '@/lib/i18n';
@@ -39,14 +40,18 @@ export default function OffRampPage() {
   const settled = order?.status === 'completed';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{t('offramp.title')}</h1>
-        <p className="mt-2 text-ink-400">{t('offramp.subtitle')}</p>
-        <p className="mt-2 font-mono text-xs text-ink-500">
-          {assetCode(TESOURO)} → {assetCode(BRL)} · PIX · Etherfuse
-        </p>
-      </header>
+    <div className="mx-auto max-w-2xl space-y-7">
+      <PageIntro
+        step={4}
+        title={t('offramp.title')}
+        subtitle={t('offramp.subtitle')}
+        route={{
+          from: assetCode(TESOURO),
+          to: assetCode(BRL),
+          rail: 'PIX',
+          anchor: 'Etherfuse',
+        }}
+      />
 
       <NetworkBanner />
       <FundGate />
@@ -57,7 +62,7 @@ export default function OffRampPage() {
         <Alert
           tone="error"
           action={
-            <button type="button" onClick={flow.clearError} className="btn btn-ghost text-xs">
+            <button type="button" onClick={flow.clearError} className="btn btn-outline btn-sm">
               {t('common.cancel')}
             </button>
           }
@@ -67,23 +72,38 @@ export default function OffRampPage() {
       ) : null}
 
       {stage === 'input' ? (
-        <div className="card space-y-4 p-5">
+        <div className="card animate-rise space-y-5 p-6">
           <AmountField
             label={t('offramp.amountLabel')}
             value={amount}
             onChange={setAmount}
             presets={['10', '50', '100', held !== '0' ? held : '250']}
           />
-          <p className="text-xs text-ink-500">
-            {t('offramp.youHold')}: <span className="font-mono">{held}</span> {assetCode(TESOURO)}
+
+          <p className="flex items-baseline justify-between gap-2 border-t border-line pt-4 text-xs text-fg-subtle">
+            <span>{t('offramp.youHold')}</span>
+            <span className="font-mono tabular-nums text-fg-muted">
+              {held} {assetCode(TESOURO)}
+            </span>
           </p>
+
           <button
             type="button"
-            className="btn btn-primary w-full"
+            className="btn btn-primary btn-lg w-full"
             disabled={!connected || busy === 'quoting' || !amount}
             onClick={() => void flow.getQuote(amount, address)}
           >
-            {busy === 'quoting' ? t('common.loading') : t('offramp.getQuote')}
+            {busy === 'quoting' ? (
+              <>
+                <Spinner />
+                {t('common.loading')}
+              </>
+            ) : (
+              <>
+                {t('offramp.getQuote')}
+                <ArrowRight size={16} weight={ICON_WEIGHT} aria-hidden="true" />
+              </>
+            )}
           </button>
         </div>
       ) : null}
@@ -100,16 +120,7 @@ export default function OffRampPage() {
 
       {order ? (
         <div className="space-y-6">
-          <div className="card space-y-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{order.anchorName}</span>
-                <ModeBadge mode={order.mode} />
-              </div>
-              <span className="font-mono text-xs text-ink-500">{order.id?.slice(0, 8) ?? '—'}</span>
-            </div>
-            <OrderStepper direction={order.direction} status={order.status} />
-          </div>
+          <OrderCard order={order} />
 
           {order.status === 'awaiting_signature' ? (
             <ReturnTxPanel
@@ -129,44 +140,51 @@ export default function OffRampPage() {
             line — offer the exit, or the pulsing step 3 reads as stuck.
           */}
           {order.status === 'processing' && order.mode === 'live' ? (
-            <Alert
-              tone="success"
-              action={
-                <button
-                  type="button"
-                  onClick={() => {
-                    void refreshBalances();
-                    flow.reset();
-                  }}
-                  className="btn btn-primary text-xs"
-                >
-                  {t('common.startOver')}
-                </button>
-              }
-            >
-              {t('offramp.sandboxFunded')}
-            </Alert>
+            <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                  <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
+                  {t('offramp.roundTripDone')}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+                  {t('offramp.sandboxFunded')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void refreshBalances();
+                  flow.reset();
+                }}
+                className="btn btn-outline"
+              >
+                {t('common.startOver')}
+              </button>
+            </section>
           ) : null}
 
           {settled ? (
-            <Alert
-              tone="success"
-              action={
-                <button
-                  type="button"
-                  onClick={() => {
-                    void refreshBalances();
-                    flow.reset();
-                  }}
-                  className="btn btn-ghost text-xs"
-                >
-                  {t('common.startOver')}
-                </button>
-              }
-            >
-              {t('offramp.done')} —{' '}
-              <strong>{displayAmount(order.buyAmount, order.buyAsset, tag)}</strong>
-            </Alert>
+            <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                  <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
+                  {t('offramp.done')}
+                </p>
+                <p className="mt-2 text-3xl font-extrabold tabular-nums">
+                  {displayAmount(order.buyAmount, order.buyAsset, tag)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void refreshBalances();
+                  flow.reset();
+                }}
+                className="btn btn-outline"
+              >
+                {t('common.startOver')}
+              </button>
+            </section>
           ) : null}
         </div>
       ) : null}
