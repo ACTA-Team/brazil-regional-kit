@@ -53,12 +53,31 @@ jobs:
           # and then "removed" in a later commit is still a leaked key.
           fetch-depth: 0
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+      # The gitleaks BINARY is MIT and free for anyone. It is the marketplace
+      # action wrapper (`gitleaks/gitleaks-action@v2`) that requires a paid
+      # licence once the repository belongs to an organisation — which this one
+      # does, so that action fails with "missing gitleaks license" and scans
+      # nothing. Running the binary directly is the same scanner, no licence,
+      # no secret to configure.
+      #
+      # Pinned rather than `latest` so a new release cannot change what CI
+      # enforces without a visible commit.
+      - name: Install gitleaks
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # No GITLEAKS_LICENSE needed: that is only required for organisation
-          # accounts. This repo scans on the free path.
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      # `git` scans history, not just the tip — a key committed and then
+      # "removed" in a later commit is still a leaked key. `--redact` keeps the
+      # secret itself out of the public build log; the file and commit are
+      # reported, which is what you need to act on it.
+      - name: Scan history for secrets
+        run: gitleaks git --redact --verbose --no-banner --config .gitleaks.toml .
 
   env-hygiene:
     name: No real secrets committed

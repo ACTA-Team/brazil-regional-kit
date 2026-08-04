@@ -221,6 +221,22 @@ later "removed" is still leaked), checks that no real `.env` file is tracked, an
 greps for secrets prefixed `NEXT_PUBLIC_`, which Next would inline into the
 browser bundle.
 
+**Gitleaks runs as the binary, not the marketplace action.** The binary is MIT
+and free; the `gitleaks/gitleaks-action@v2` wrapper requires a paid licence as
+soon as the repository belongs to an organisation, and fails with "missing
+gitleaks license" having scanned nothing. The workflow downloads a pinned
+release instead — same scanner, no licence, no secret to configure.
+
+`.gitleaks.toml` teaches it this project's domain. The default rules flag
+`SIGNING_KEY = "GCHLH…"` as a generic API key because a base32 Stellar address
+has the entropy of one, but `G…` is an Ed25519 **public** key that anchors
+publish in their `stellar.toml` precisely so clients can verify SEP-10
+challenges. Those are allowlisted, along with `C…` contract addresses and
+transaction hashes. In exchange the config adds the rule that actually matters
+here: `S…`, the **secret** seed, whose appearance in a commit means a
+compromised account. Both directions are verified — the repo scans clean, and a
+freshly generated seed is still caught.
+
 CodeQL runs `security-extended` on every PR and weekly.
 
 ### Build
@@ -273,10 +289,13 @@ For running the app against live anchors locally, copy `.env.example` to
 `.env.local` and fill it in. `pnpm diagnose` reports what is actually configured
 by calling the anchor rather than guessing from variable names.
 
-**Nothing needs to be added to GitHub Actions secrets.** No workflow reads one.
-`GITHUB_TOKEN` is provided automatically. Gitleaks needs a licence key only for
-organisation accounts — if this repo moves under an org and the scan starts
-failing on licensing, add `GITLEAKS_LICENSE` as a repository secret.
+**Nothing needs to be added to GitHub Actions secrets.** No workflow reads one,
+and `GITHUB_TOKEN` is provided automatically.
+
+That includes secret scanning: this repo lives under the `ACTA-Team`
+organisation, where `gitleaks/gitleaks-action@v2` would demand a paid
+`GITLEAKS_LICENSE`. The workflow runs the MIT-licensed binary directly instead,
+so no licence is needed and none should be bought for this.
 
 ## Reading the common failures
 
@@ -311,6 +330,16 @@ tools ignore that path now, so this should not recur.
 Something new landed. Fix it if a patch exists. If it genuinely cannot be fixed,
 add the GHSA id to `security/audit-baseline.json` with a real reason and get that
 reviewed — the reason is the point of the file.
+
+**Gitleaks flags a `G...` address as a generic API key**
+It is a Stellar public key, not a secret. `.gitleaks.toml` allowlists them; if a
+new one still trips a rule, check the finding is genuinely a `G...` (public) and
+not an `S...` (secret seed) before touching the config. Never allowlist an `S...`.
+
+**Secret scan fails with "missing gitleaks license"**
+Something reintroduced `gitleaks/gitleaks-action@v2`. That wrapper needs a paid
+licence for organisation-owned repositories. Use the binary, as
+`.github/workflows/security.yml` does.
 
 **A test passes alone but fails in the suite**
 Shared state on `globalThis`: the x402 spent-hash ledger, the mock order store,
