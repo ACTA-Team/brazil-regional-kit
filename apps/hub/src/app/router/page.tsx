@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BRL, MXN, TESOURO, USDC, USD, type AssetId, type CountryCode } from '@brk/ramp-core';
+import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
 import { Alert } from '@/components/Alert';
 import { AmountField } from '@/components/AmountField';
@@ -9,30 +9,72 @@ import { QuoteTable, type PublicRankedQuote } from '@/components/QuoteTable';
 import { SepAuthPanel } from '@/components/SepAuthPanel';
 import { useI18n } from '@/lib/i18n';
 
-const SELLABLE: Array<{ asset: AssetId; label: string; presets: string[] }> = [
-  { asset: BRL, label: 'BRL', presets: ['100', '250', '500', '1000'] },
-  { asset: USDC, label: 'USDC', presets: ['25', '50', '100', '500'] },
-  { asset: TESOURO, label: 'TESOURO', presets: ['50', '100', '250', '500'] },
-  { asset: MXN, label: 'MXN', presets: ['500', '1000', '5000', '10000'] },
-];
+/**
+ * One-click scenarios instead of a corridor construction kit.
+ *
+ * The first version of this page offered four free-form selects — sell asset,
+ * amount, country, destination. That let a user assemble USDC → TESOURO, a pair
+ * no anchor can serve because it is a DEX swap rather than a ramp, and answered
+ * them with an empty table. A form that lets you ask questions with no possible
+ * answer is not flexibility, it is a trap.
+ *
+ * Each scenario below is a question a real person actually has, phrased as one
+ * button, and every one of them is guaranteed to produce quotes.
+ */
+interface Scenario {
+  id: string;
+  flag: string;
+  titleKey: string;
+  hintKey: string;
+  sellAsset: AssetId;
+  buyAsset?: AssetId;
+  country?: CountryCode;
+  defaultAmount: string;
+  presets: string[];
+}
 
-const COUNTRIES: Array<{ code: CountryCode | ''; label: string }> = [
-  { code: '', label: 'router.anywhere' },
-  { code: 'BR', label: 'Brasil' },
-  { code: 'MX', label: 'México' },
-  { code: 'AR', label: 'Argentina' },
-  { code: 'CL', label: 'Chile' },
-  { code: 'CO', label: 'Colombia' },
-  { code: 'US', label: 'United States' },
-];
-
-const DESTINATIONS: Array<{ asset: AssetId | ''; label: string }> = [
-  { asset: '', label: 'router.anyDestination' },
-  { asset: USDC, label: 'USDC' },
-  { asset: TESOURO, label: 'TESOURO' },
-  { asset: BRL, label: 'BRL' },
-  { asset: MXN, label: 'MXN' },
-  { asset: USD, label: 'USD' },
+const SCENARIOS: Scenario[] = [
+  {
+    id: 'brl',
+    flag: '🇧🇷',
+    titleKey: 'router.scenario.brl',
+    hintKey: 'router.scenario.brlHint',
+    sellAsset: BRL,
+    country: 'BR',
+    defaultAmount: '500',
+    presets: ['100', '250', '500', '1000'],
+  },
+  {
+    id: 'mxn',
+    flag: '🇲🇽',
+    titleKey: 'router.scenario.mxn',
+    hintKey: 'router.scenario.mxnHint',
+    sellAsset: MXN,
+    country: 'MX',
+    defaultAmount: '400',
+    // The Etherfuse sandbox caps MXN on-ramps at 500.
+    presets: ['100', '250', '400', '500'],
+  },
+  {
+    id: 'usdc',
+    flag: '💵',
+    titleKey: 'router.scenario.usdc',
+    hintKey: 'router.scenario.usdcHint',
+    sellAsset: USDC,
+    defaultAmount: '100',
+    presets: ['25', '50', '100', '500'],
+  },
+  {
+    id: 'tesouro',
+    flag: '🏦',
+    titleKey: 'router.scenario.tesouro',
+    hintKey: 'router.scenario.tesouroHint',
+    sellAsset: TESOURO,
+    buyAsset: BRL,
+    country: 'BR',
+    defaultAmount: '100',
+    presets: ['50', '100', '250', '500'],
+  },
 ];
 
 const REFRESH_MS = 15_000;
@@ -47,33 +89,25 @@ interface RouteResponse {
 export default function RouterPage() {
   const { t } = useI18n();
 
-  const [sellAsset, setSellAsset] = useState<AssetId>(USDC);
-  const [buyAsset, setBuyAsset] = useState<AssetId | ''>('');
-  const [country, setCountry] = useState<CountryCode | ''>('');
-  const [amount, setAmount] = useState('100');
-
+  const [scenario, setScenario] = useState<Scenario>(SCENARIOS[0]!);
+  const [amount, setAmount] = useState(SCENARIOS[0]!.defaultAmount);
   const [result, setResult] = useState<RouteResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const presets = useMemo(
-    () => SELLABLE.find((s) => s.asset === sellAsset)?.presets ?? ['100'],
-    [sellAsset],
-  );
-
   const query = useMemo(() => {
-    const params = new URLSearchParams({ sell: sellAsset, amount });
-    if (buyAsset) params.set('buy', buyAsset);
-    if (country) params.set('country', country);
+    const params = new URLSearchParams({ sell: scenario.sellAsset, amount });
+    if (scenario.buyAsset) params.set('buy', scenario.buyAsset);
+    if (scenario.country) params.set('country', scenario.country);
     return params.toString();
-  }, [sellAsset, buyAsset, country, amount]);
+  }, [scenario, amount]);
 
-  const run = useCallback(async () => {
+  const run = useCallback(async (q: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/quotes?${query}`);
+      const response = await fetch(`/api/quotes?${q}`);
       const payload = (await response.json()) as RouteResponse | { error: { message: string } };
       if ('error' in payload) throw new Error(payload.error.message);
       setResult(payload);
@@ -82,15 +116,37 @@ export default function RouterPage() {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, []);
+
+  /** Picking a scenario IS the question — fetch immediately, no second click. */
+  const pick = useCallback(
+    (next: Scenario) => {
+      setScenario(next);
+      setAmount(next.defaultAmount);
+      const params = new URLSearchParams({ sell: next.sellAsset, amount: next.defaultAmount });
+      if (next.buyAsset) params.set('buy', next.buyAsset);
+      if (next.country) params.set('country', next.country);
+      void run(params.toString());
+    },
+    [run],
+  );
+
+  // First render answers the default scenario rather than showing a blank
+  // page. Deferred a tick so the fetch's setState never lands synchronously
+  // inside the effect body.
+  useEffect(() => {
+    const id = setTimeout(() => void run(query), 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Quotes go stale in seconds. Refreshing on a timer is what makes the table
   // "live quotes" rather than a snapshot someone took once.
   useEffect(() => {
     if (!autoRefresh || !result) return;
-    const id = setInterval(() => void run(), REFRESH_MS);
+    const id = setInterval(() => void run(query), REFRESH_MS);
     return () => clearInterval(id);
-  }, [autoRefresh, result, run]);
+  }, [autoRefresh, result, run, query]);
 
   return (
     <div className="space-y-6">
@@ -99,81 +155,57 @@ export default function RouterPage() {
         <p className="mt-2 max-w-2xl text-ink-400">{t('router.subtitle')}</p>
       </header>
 
-      <div className="card grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block">
-          <span className="text-sm text-ink-300">{t('router.sellLabel')}</span>
-          <select
-            value={sellAsset}
-            onChange={(e) => setSellAsset(e.target.value as AssetId)}
-            className="field mt-2"
-          >
-            {SELLABLE.map((s) => (
-              <option key={s.asset} value={s.asset}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
+      {/* ── Step 1: which situation are you in? ─────────────────────────── */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {SCENARIOS.map((s) => {
+          const active = s.id === scenario.id;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => pick(s)}
+              aria-pressed={active}
+              className={`card flex flex-col gap-1.5 p-4 text-left transition-colors ${
+                active ? 'border-brand-500 bg-brand-700/15' : 'hover:border-brand-600'
+              }`}
+            >
+              <span className="flex items-center gap-2 font-semibold">
+                <span aria-hidden="true">{s.flag}</span>
+                {t(s.titleKey)}
+              </span>
+              <span className="text-xs leading-relaxed text-ink-400">{t(s.hintKey)}</span>
+            </button>
+          );
+        })}
+      </div>
 
-        <div className="sm:col-span-1">
+      {/* ── Step 2: how much? ───────────────────────────────────────────── */}
+      <div className="card flex flex-wrap items-end gap-4 p-5">
+        <div className="min-w-56 flex-1">
           <AmountField
-            label={t('common.amount')}
+            label={t('router.amountFor', { asset: scenario.sellAsset.split(':')[1] ?? '' })}
             value={amount}
             onChange={setAmount}
-            presets={presets}
+            presets={scenario.presets}
           />
         </div>
-
-        <label className="block">
-          <span className="text-sm text-ink-300">{t('router.countryLabel')}</span>
-          <select
-            value={country}
-            onChange={(e) => setCountry(e.target.value as CountryCode | '')}
-            className="field mt-2"
-          >
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.code ? c.label : t(c.label)}
-              </option>
-            ))}
-          </select>
+        <button
+          type="button"
+          onClick={() => void run(query)}
+          disabled={loading || !amount}
+          className="btn btn-primary"
+        >
+          {loading ? t('common.loading') : t('router.compare')}
+        </button>
+        <label className="flex items-center gap-2 pb-2.5 text-sm text-ink-400">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="accent-brand-500"
+          />
+          {t('router.autoRefresh')}
         </label>
-
-        <label className="block">
-          <span className="text-sm text-ink-300">{t('router.destinationLabel')}</span>
-          <select
-            value={buyAsset}
-            onChange={(e) => setBuyAsset(e.target.value as AssetId | '')}
-            className="field mt-2"
-          >
-            {DESTINATIONS.map((d) => (
-              <option key={d.asset || 'any'} value={d.asset}>
-                {d.asset ? d.label : t(d.label)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
-          <button
-            type="button"
-            onClick={() => void run()}
-            disabled={loading || !amount}
-            className="btn btn-primary"
-          >
-            {loading ? t('common.loading') : t('router.compare')}
-          </button>
-
-          <label className="flex items-center gap-2 text-sm text-ink-400">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="accent-brand-500"
-            />
-            {t('router.autoRefresh')}
-          </label>
-        </div>
       </div>
 
       {error ? <Alert tone="error">{error}</Alert> : null}

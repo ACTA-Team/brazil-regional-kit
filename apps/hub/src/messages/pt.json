@@ -186,5 +186,14 @@
   "onramp.sandboxNoReference": "O sandbox informa o meio mas não emite uma referência pagável — não há para onde transferir de verdade. Use o botão abaixo para avisar a âncora que o pagamento chegou, que é exatamente para isso que serve o gancho de liquidação do sandbox.",
   "onramp.autoSettle": "Confirmar o pagamento automaticamente",
   "onramp.autoSettleHint": "O sandbox não movimenta reais de verdade — o próprio gancho de confirmação da Etherfuse faz as vezes do PIX. Cotação, ordem e liquidação on-chain são reais. Com uma chave de produção, um PIX real dispara isto.",
-  "onramp.viewOnAnchor": "Ver na Etherfuse"
+  "onramp.viewOnAnchor": "Ver na Etherfuse",
+  "router.scenario.brl": "Tenho reais no Brasil",
+  "router.scenario.brlHint": "O que R$ compra on-chain? Todas as âncoras que atendem o Brasil respondem de uma vez.",
+  "router.scenario.mxn": "Tenho pesos no México",
+  "router.scenario.mxnHint": "A mesma pergunta a partir do México — SPEI entra, ativos on-chain saem.",
+  "router.scenario.usdc": "Tenho USDC",
+  "router.scenario.usdcHint": "Onde dá para sacar? Toda moeda de saque, toda âncora, uma chamada.",
+  "router.scenario.tesouro": "TESOURO de volta a reais",
+  "router.scenario.tesouroHint": "O caminho de volta: quem paga BRL, e a que taxa?",
+  "router.amountFor": "Quanto de {asset}?"
 }

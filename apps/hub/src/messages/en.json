@@ -186,5 +186,14 @@
   "onramp.sandboxNoReference": "The sandbox names the rail but does not issue a payable reference — there is nothing real to transfer to. Use the button below to tell the anchor the payment arrived, which is exactly what its sandbox settlement hook is for.",
   "onramp.autoSettle": "Confirm the payment automatically",
   "onramp.autoSettleHint": "The sandbox moves no real reais — Etherfuse’s own payment-confirmation hook stands in for the PIX. Quote, order and on-chain settlement are real. With a production key, a real PIX payment triggers this instead.",
-  "onramp.viewOnAnchor": "View on Etherfuse"
+  "onramp.viewOnAnchor": "View on Etherfuse",
+  "router.scenario.brl": "I have reais in Brazil",
+  "router.scenario.brlHint": "What can R$ buy on-chain? Every anchor serving Brazil answers at once.",
+  "router.scenario.mxn": "I have pesos in Mexico",
+  "router.scenario.mxnHint": "Same question from Mexico — SPEI in, on-chain assets out.",
+  "router.scenario.usdc": "I hold USDC",
+  "router.scenario.usdcHint": "Where can it cash out? Every payout currency, every anchor, one call.",
+  "router.scenario.tesouro": "TESOURO back to reais",
+  "router.scenario.tesouroHint": "The return leg: who pays out BRL, and at what rate?",
+  "router.amountFor": "How much {asset}?"
 }
