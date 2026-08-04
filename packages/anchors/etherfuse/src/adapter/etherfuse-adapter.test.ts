@@ -512,3 +512,145 @@ describe('a wallet the anchor has never seen', () => {
     );
   });
 });
+
+describe('two visitors asking for the same round number', () => {
+  /**
+   * Etherfuse refuses a second pending order for the same (bank account,
+   * amount) pair, and every visitor shares the operator's bank account. So one
+   * abandoned order at `500` blocks `500` for everybody, permanently — and the
+   * amounts most likely to be abandoned are exactly the presets the UI offers.
+   *
+   * Confirmed live: `250` answered 409 while `250.13` and `250.29` both
+   * succeeded, and settling an order freed its amount again. Cents are a real
+   * lane per visitor, and the amount stays honest because the adjusted figure
+   * is what the order and the payment instructions both carry.
+   */
+  const A = 'GA5UUGFVQDOJLXZX4QH3MRX5I2M5M2CX4CUHV7XQXJX3A2EEFGSBMT3N';
+
+  /** A mock anchor that refuses a second pending order at the same amount. */
+  function busyAnchor(inner: import('../api/api').EtherfuseApi) {
+    const pending = new Set<string>();
+    const amountsTried: string[] = [];
+    const quoted = new Map<string, string>();
+
+    return {
+      amountsTried,
+      api: {
+        ...inner,
+        mode: inner.mode,
+        quote: async (req: import('../api/api').EtherfuseQuoteRequest) => {
+          const res = await inner.quote(req);
+          quoted.set(res.quoteId, req.sourceAmount);
+          return res;
+        },
+        createOrder: async (req: import('../api/api').EtherfuseOrderRequest) => {
+          const amount = quoted.get(req.quoteId) ?? '';
+          amountsTried.push(amount);
+          if (pending.has(amount)) {
+            const { RampError } = await import('@brk/ramp-core');
+            throw new RampError({
+              code: 'INVALID_ORDER_STATE',
+              anchorId: 'etherfuse',
+              message: 'A pending onramp order already exists for this bank account and amount',
+              status: 409,
+            });
+          }
+          pending.add(amount);
+          return inner.createOrder(req);
+        },
+      } as import('../api/api').EtherfuseApi,
+    };
+  }
+
+  it('re-prices onto a free amount instead of failing the second visitor', async () => {
+    const backing = adapter();
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+    const anchor = busyAnchor(inner);
+
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: anchor.api,
+    });
+
+    const ask = { sellAsset: BRL, buyAsset: TESOURO, sellAmount: '500', account: A } as const;
+
+    const first = await a.createOrder({ quoteId: (await a.getQuote(ask)).id, account: A });
+    expect(first.status).not.toBe('failed');
+
+    // Second visitor asks for the identical round number.
+    const second = await a.createOrder({ quoteId: (await a.getQuote(ask)).id, account: A });
+
+    expect(second.id).toBeTruthy();
+    expect(second.id).not.toBe(first.id);
+
+    // The first attempt used the round number; the retry moved off it.
+    expect(anchor.amountsTried[0]).toBe('500');
+    expect(anchor.amountsTried).toContain('500');
+    const settled = anchor.amountsTried[anchor.amountsTried.length - 1]!;
+    expect(settled).not.toBe('500');
+    expect(Number(settled)).toBeGreaterThan(500);
+    expect(Number(settled)).toBeLessThan(501);
+
+    // What the user is asked to pay must be the amount that was actually
+    // ordered — a panel showing 500 while the anchor waits for 500.37 is how
+    // someone pays the wrong number.
+    expect(second.sellAmount).toBe(settled);
+  });
+});
+
+describe('an order response with no amounts on it', () => {
+  /**
+   * A live BRL on-ramp answers `POST /ramp/order` with the deposit figure and
+   * nothing else — no `destinationAmount`, no `exchangeRate`:
+   *
+   *   {"orderId":"…","depositClabe":"","depositAmount":"391",
+   *    "depositBankName":"PIX","depositAccountHolder":"Etherfuse"}
+   *
+   * The amount the customer receives exists only in the quote that produced the
+   * order, so an adapter that forgets the quote reports `0` next to a real
+   * payment request. Confirmed against the sandbox.
+   */
+  it('falls back to the quoted amount rather than reporting zero', async () => {
+    const backing = adapter();
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        // Spreading a class instance leaves prototype methods behind, so the
+        // ones this test relies on are bound by hand.
+        quote: (req: import('../api/api').EtherfuseQuoteRequest) => inner.quote(req),
+        getOrder: (id: string) => inner.getOrder(id),
+        createOrder: async (req: import('../api/api').EtherfuseOrderRequest) => {
+          const full = await inner.createOrder(req);
+          // Exactly the live shape: the deposit, and no destination figure.
+          return {
+            orderId: full.orderId,
+            quoteId: req.quoteId,
+            depositAmount: '500',
+            depositBankName: 'PIX',
+            depositAccountHolder: 'Etherfuse',
+          } as import('../api/api').EtherfuseOrderResponse;
+        },
+      } as import('../api/api').EtherfuseApi,
+    });
+
+    const quote = await a.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: ACCOUNT,
+    });
+    expect(Number(quote.buyAmount)).toBeGreaterThan(0);
+
+    const order = await a.createOrder({ quoteId: quote.id, account: ACCOUNT });
+    expect(order.buyAmount).toBe(quote.buyAmount);
+    expect(order.buyAmount).not.toBe('0');
+  });
+});

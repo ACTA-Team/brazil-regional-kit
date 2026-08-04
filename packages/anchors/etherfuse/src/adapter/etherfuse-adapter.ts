@@ -16,12 +16,14 @@ import {
   MXN,
   USDC,
   stellarAsset,
+  add,
   applyBps,
   multiply,
   isFiat,
   isNative,
   parseAsset,
   divide,
+  round,
   toRampError,
   type AdapterCapabilities,
   type AdapterMode,
@@ -244,11 +246,27 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
 
 // ── Adapter ───────────────────────────────────────────────────────────────────
 
+/**
+ * What the adapter remembers about a quote once an order references it.
+ *
+ * `quoted` is the reason this is not just the request. A BRL order response
+ * carries neither `destinationAmount` nor `exchangeRate` — only the deposit
+ * figure — so the amount the customer is about to receive exists nowhere except
+ * in the quote that produced the order. Keeping it means the order can still
+ * answer "and how much TESOURO is that?" instead of saying zero.
+ */
+interface QuoteContext {
+  req: QuoteRequest;
+  direction: RampDirection;
+  /** The buy amount the anchor quoted, for orders whose response omits it. */
+  quoted?: string;
+}
+
 export class EtherfuseAdapter implements RampAdapter {
   private readonly api: EtherfuseApi;
   private readonly config: EtherfuseAdapterConfig;
   /** Remembers each order's corridor, so `getOrder` can rebuild a full Order. */
-  private readonly context = new Map<string, { req: QuoteRequest; direction: RampDirection }>();
+  private readonly context = new Map<string, QuoteContext>();
 
   constructor(config: EtherfuseAdapterConfig) {
     this.config = config;
@@ -331,10 +349,14 @@ export class EtherfuseAdapter implements RampAdapter {
      * the one that matters — and it is what we key the context off.
      */
     const resolvedId = raw.quoteId ?? quoteId;
-    this.context.set(resolvedId, { req, direction });
-
     const sellAmount = raw.sourceAmount ?? req.sellAmount;
     const buyAmount = raw.destinationAmount ?? '0';
+
+    this.context.set(resolvedId, {
+      req,
+      direction,
+      quoted: buyAmount === '0' ? undefined : buyAmount,
+    });
 
     return {
       id: resolvedId,
@@ -376,6 +398,7 @@ export class EtherfuseAdapter implements RampAdapter {
     try {
       raw = await this.api.createOrder(payload);
     } catch (e) {
+      if (isDuplicatePendingOrder(e)) return this.reprice(req, ctx, e);
       if (!isUnauthorizedWallet(e)) throw toRampError(e, ETHERFUSE_ID);
 
       /*
@@ -401,12 +424,49 @@ export class EtherfuseAdapter implements RampAdapter {
       try {
         raw = await this.api.createOrder(payload);
       } catch (retry) {
-        throw toRampError(retry, ETHERFUSE_ID);
+        if (!isDuplicatePendingOrder(retry)) throw toRampError(retry, ETHERFUSE_ID);
+        return this.reprice(req, ctx, retry);
       }
     }
 
     if (ctx) this.context.set(raw.orderId ?? orderId, ctx);
-    return this.toOrder(raw, ctx?.req, ctx?.direction);
+    return this.toOrder(raw, ctx);
+  }
+
+  /**
+   * Ask again for a few cents more, because the round number is taken.
+   *
+   * Etherfuse allows one pending order per (bank account, amount), and every
+   * visitor shares the operator's bank account. One person who opens a `500`
+   * order and walks away blocks `500` for everyone afterwards — and `500` is a
+   * preset button, so that is the likely case rather than the unlucky one.
+   *
+   * Cents give each attempt its own lane. Nothing is hidden by doing so: the
+   * new amount is what the order carries and what the payment instructions ask
+   * for, so the screen and the anchor agree. Re-quoting rather than editing the
+   * figure is what keeps that true — the price, the fee and the amount received
+   * are all the anchor's answer for the amount actually being paid.
+   */
+  private async reprice(
+    req: CreateOrderRequest,
+    ctx: { req: QuoteRequest; direction: RampDirection } | undefined,
+    original: unknown,
+  ): Promise<Order> {
+    // Without the original request there is nothing to re-quote from, and
+    // guessing the amount would be worse than reporting the refusal.
+    if (!ctx?.req.sellAmount) throw toRampError(original, ETHERFUSE_ID);
+
+    const nudged = nudgeAmount(ctx.req.sellAmount);
+    try {
+      const quote = await this.getQuote({ ...ctx.req, sellAmount: nudged });
+      return await this.createOrder({ ...req, quoteId: quote.id, orderId: crypto.randomUUID() });
+    } catch (e) {
+      // If the second amount is also refused, say so with the anchor's first
+      // and clearest complaint rather than a confusing one about a number the
+      // user never typed.
+      if (isDuplicatePendingOrder(e)) throw toRampError(original, ETHERFUSE_ID);
+      throw toRampError(e, ETHERFUSE_ID);
+    }
   }
 
   /**
@@ -438,7 +498,7 @@ export class EtherfuseAdapter implements RampAdapter {
     const ctx = this.context.get(orderId);
     try {
       const raw = await this.api.getOrder(orderId);
-      return this.toOrder(raw, ctx?.req, ctx?.direction);
+      return this.toOrder(raw, ctx);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
@@ -450,7 +510,7 @@ export class EtherfuseAdapter implements RampAdapter {
       const raw = await this.api.regenerateTx(orderId);
       // Same acknowledge-only behaviour as the settlement hooks.
       const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
-      return this.toOrder(resolved, ctx?.req, ctx?.direction);
+      return this.toOrder(resolved, ctx);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
@@ -467,7 +527,7 @@ export class EtherfuseAdapter implements RampAdapter {
     try {
       const raw = await this.api.simulateFiatReceived(orderId);
       const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
-      return this.toOrder(resolved, ctx?.req, ctx?.direction);
+      return this.toOrder(resolved, ctx);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
@@ -478,7 +538,7 @@ export class EtherfuseAdapter implements RampAdapter {
     try {
       const raw = await this.api.simulateCryptoReceived(orderId);
       const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
-      return this.toOrder(resolved, ctx?.req, ctx?.direction);
+      return this.toOrder(resolved, ctx);
     } catch (e) {
       /*
        * The live sandbox has no crypto_received route at all — the guide
@@ -495,7 +555,7 @@ export class EtherfuseAdapter implements RampAdapter {
       if (err.status === 404) {
         try {
           const resolved = await this.api.getOrder(orderId);
-          return this.toOrder(resolved, ctx?.req, ctx?.direction);
+          return this.toOrder(resolved, ctx);
         } catch {
           /* fall through to the original error */
         }
@@ -539,11 +599,9 @@ export class EtherfuseAdapter implements RampAdapter {
 
   // ── Mapping ─────────────────────────────────────────────────────────────────
 
-  private toOrder(
-    raw: EtherfuseOrderResponse,
-    req?: QuoteRequest,
-    direction?: RampDirection,
-  ): Order {
+  private toOrder(raw: EtherfuseOrderResponse, ctx?: QuoteContext): Order {
+    const req = ctx?.req;
+    const direction = ctx?.direction;
     /*
      * `orderType` is on the fetched order but not the create response, so fall
      * back to what we remembered from the quote, then to the shape of the
@@ -592,6 +650,12 @@ export class EtherfuseAdapter implements RampAdapter {
           resolvedDirection === 'onramp' ? fiatAmount : tokenAmount,
           raw.exchangeRate,
         ) ??
+        // A live BRL order comes back with the deposit figure and nothing else:
+        // no destination amount, no rate. The quote that produced this order is
+        // then the only record of what the customer receives, and showing a
+        // confident `0` next to a real PIX request is worse than showing
+        // nothing.
+        ctx?.quoted ??
         '0',
 
       paymentInstructions: pixCode
@@ -679,6 +743,27 @@ function feeFromBps(sellAmount: string, feeBps?: string): string | undefined {
 function isUnauthorizedWallet(error: unknown): boolean {
   const message = (error as { message?: string } | undefined)?.message ?? String(error ?? '');
   return /wallet not found or not authori[sz]ed/i.test(message);
+}
+
+/**
+ * The other refusal a retry can clear: the amount is taken, not the request.
+ */
+function isDuplicatePendingOrder(error: unknown): boolean {
+  const message = (error as { message?: string } | undefined)?.message ?? String(error ?? '');
+  return /pending (on|off)ramp order already exists/i.test(message);
+}
+
+/**
+ * Move an amount onto a free lane by adding one to ninety-nine centavos.
+ *
+ * Random rather than derived from the wallet: a person who abandons an order
+ * and tries the same button again would otherwise land on their own blocked
+ * amount every time. Decimal strings throughout — `add` is the money helper,
+ * because doing this in floating point is how a payment ends up a centavo off.
+ */
+function nudgeAmount(amount: string): string {
+  const centavos = 1 + Math.floor(Math.random() * 99);
+  return round(add(amount, divide(String(centavos), '100')), 2);
 }
 
 /**
