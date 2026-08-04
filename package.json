@@ -46,6 +46,7 @@
   "devDependencies": {
     "@brk/adapter-etherfuse": "workspace:*",
     "@brk/adapter-sep": "workspace:*",
+    "@brk/identity-kit": "workspace:*",
     "@brk/ramp-core": "workspace:*",
     "@brk/ramp-router": "workspace:*",
     "@brk/stablecoin-kit": "workspace:*",
