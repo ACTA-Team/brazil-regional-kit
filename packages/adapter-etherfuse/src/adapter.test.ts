@@ -231,3 +231,42 @@ describe('guard rails', () => {
     ).rejects.toMatchObject({ code: 'INVALID_REQUEST' });
   });
 });
+
+describe('created orders are actionable', () => {
+  /**
+   * Etherfuse leaves a live order in `created` until money moves. Reporting
+   * that verbatim left the UI on step one with nothing to click, which reads
+   * as a hung integration rather than "your turn".
+   */
+  it('reads a created on-ramp as awaiting payment', () => {
+    expect(mapStatus('CREATED', 'onramp')).toBe('awaiting_payment');
+  });
+
+  it('reads a created off-ramp as awaiting signature', () => {
+    expect(mapStatus('CREATED', 'offramp')).toBe('awaiting_signature');
+  });
+
+  it('leaves it as created when the direction is unknown', () => {
+    expect(mapStatus('CREATED')).toBe('created');
+  });
+
+  it('does not touch statuses that already say what is happening', () => {
+    expect(mapStatus('PROCESSING', 'onramp')).toBe('processing');
+    expect(mapStatus('COMPLETED', 'onramp')).toBe('completed');
+    expect(mapStatus('FAILED', 'offramp')).toBe('failed');
+  });
+
+  it('surfaces payment instructions on a freshly created order', async () => {
+    const a = adapter();
+    const quote = await a.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: ACCOUNT,
+    });
+    const order = await a.createOrder({ quoteId: quote.id, account: ACCOUNT });
+
+    expect(order.status).toBe('awaiting_payment');
+    expect(order.paymentInstructions).toBeDefined();
+  });
+});

@@ -177,5 +177,11 @@
   "anchors.koywe.note": "Simulado — Koywe todavía no opera en Brasil. El adaptador tiene forma de producción.",
   "onramp.tryAnotherAmount": "Probar otro monto",
   "onramp.duplicateHint": "El anchor ya tiene una orden pendiente para esta cuenta y este monto, y no ofrece forma de cancelarla. Con otro monto se destraba.",
-  "onramp.amountAdjusted": "El anchor ya tenía una orden pendiente por ese monto exacto, así que esta se creó por {amount}."
+  "onramp.amountAdjusted": "El anchor ya tenía una orden pendiente por ese monto exacto, así que esta se creó por {amount}.",
+  "onramp.depositTitle": "Envía el pago",
+  "onramp.depositHint": "Transferí este monto por el riel de abajo. El anchor libera el activo apenas llega.",
+  "onramp.rail": "Riel",
+  "onramp.beneficiary": "Beneficiario",
+  "onramp.reference": "Referencia",
+  "onramp.sandboxNoReference": "El sandbox nombra el riel pero no emite una referencia pagable — no hay a dónde transferir de verdad. Usá el botón de abajo para avisarle al anchor que el pago llegó, que es justo para lo que existe su gancho de liquidación."
 }

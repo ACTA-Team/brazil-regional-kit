@@ -7,7 +7,7 @@ import { AmountField } from '@/components/AmountField';
 import { FundGate } from '@/components/FundGate';
 import { ModeBadge } from '@/components/ModeBadge';
 import { OrderStepper } from '@/components/OrderStepper';
-import { PixPanel } from '@/components/PixPanel';
+import { DepositPanel } from '@/components/DepositPanel';
 import { QuoteCard, displayAmount } from '@/components/QuoteCard';
 import { TrustlineGate } from '@/components/TrustlineGate';
 import { NetworkBanner } from '@/components/WalletButton';
@@ -153,8 +153,8 @@ export default function OnRampPage() {
             <OrderStepper direction={order.direction} status={order.status} />
           </div>
 
-          {order.paymentInstructions?.type === 'pix' && order.status === 'awaiting_payment' ? (
-            <PixPanel
+          {order.paymentInstructions && order.status === 'awaiting_payment' ? (
+            <DepositPanel
               instructions={order.paymentInstructions}
               simulating={busy === 'simulating'}
               onSimulate={() => void flow.simulate('fiat')}

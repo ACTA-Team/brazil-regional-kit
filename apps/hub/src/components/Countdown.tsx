@@ -38,7 +38,7 @@ function secondsUntil(iso?: string): number {
   return Number.isFinite(ms) ? Math.max(0, Math.ceil(ms / 1000)) : 0;
 }
 
-export function ExpiryPill({ expiresAt }: { expiresAt?: string }) {
+export function ExpiryPill({ expiresAt }: { expiresAt?: string } = {}) {
   const { t } = useI18n();
   const seconds = useCountdown(expiresAt);
 

@@ -177,5 +177,11 @@
   "anchors.koywe.note": "Simulada — a Koywe ainda não opera no Brasil. O adaptador tem forma de produção.",
   "onramp.tryAnotherAmount": "Tentar outro valor",
   "onramp.duplicateHint": "A âncora já tem uma ordem pendente para esta conta e este valor, e não oferece como cancelá-la. Um valor diferente resolve.",
-  "onramp.amountAdjusted": "A âncora já tinha uma ordem pendente com esse valor exato, então esta foi criada com {amount}."
+  "onramp.amountAdjusted": "A âncora já tinha uma ordem pendente com esse valor exato, então esta foi criada com {amount}.",
+  "onramp.depositTitle": "Envie o pagamento",
+  "onramp.depositHint": "Transfira este valor pelo meio abaixo. A âncora libera o ativo assim que ele chegar.",
+  "onramp.rail": "Meio",
+  "onramp.beneficiary": "Beneficiário",
+  "onramp.reference": "Referência",
+  "onramp.sandboxNoReference": "O sandbox informa o meio mas não emite uma referência pagável — não há para onde transferir de verdade. Use o botão abaixo para avisar a âncora que o pagamento chegou, que é exatamente para isso que serve o gancho de liquidação do sandbox."
 }

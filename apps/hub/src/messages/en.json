@@ -177,5 +177,11 @@
   "anchors.koywe.note": "Simulated — Koywe is not live in Brazil yet. The adapter is production-shaped.",
   "onramp.tryAnotherAmount": "Try another amount",
   "onramp.duplicateHint": "The anchor already has a pending order for this bank account and amount, and offers no way to cancel it. A different amount clears it.",
-  "onramp.amountAdjusted": "The anchor already had a pending order for that exact amount, so this one was placed for {amount} instead."
+  "onramp.amountAdjusted": "The anchor already had a pending order for that exact amount, so this one was placed for {amount} instead.",
+  "onramp.depositTitle": "Send the payment",
+  "onramp.depositHint": "Transfer this amount using the rail below. The anchor releases the asset once it lands.",
+  "onramp.rail": "Rail",
+  "onramp.beneficiary": "Beneficiary",
+  "onramp.reference": "Reference",
+  "onramp.sandboxNoReference": "The sandbox names the rail but does not issue a payable reference — there is nothing real to transfer to. Use the button below to tell the anchor the payment arrived, which is exactly what its sandbox settlement hook is for."
 }

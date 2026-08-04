@@ -98,9 +98,20 @@ const STATUS_MAP: Record<string, OrderStatus> = {
  * Unknown statuses map to `processing`, not `failed`. An anchor inventing a new
  * intermediate state should stall the UI at worst — never tell a user their
  * money failed when it is merely somewhere we have not seen before.
+ *
+ * `CREATED` needs the direction to be useful. Etherfuse leaves a live order in
+ * `created` until the money moves, but from the customer's side that is not a
+ * neutral waiting room: on an on-ramp they owe a PIX payment, on an off-ramp
+ * they owe a signature. Reporting it as a bare `created` leaves the UI showing
+ * step one with nothing to click, which reads as a hung integration.
  */
-export function mapStatus(raw: string): OrderStatus {
-  return STATUS_MAP[raw?.toUpperCase?.() ?? ''] ?? 'processing';
+export function mapStatus(raw: string, direction?: RampDirection): OrderStatus {
+  const mapped = STATUS_MAP[raw?.toUpperCase?.() ?? ''] ?? 'processing';
+
+  if (mapped === 'created' && direction) {
+    return direction === 'onramp' ? 'awaiting_payment' : 'awaiting_signature';
+  }
+  return mapped;
 }
 
 // ── Configuration ─────────────────────────────────────────────────────────────
@@ -460,7 +471,7 @@ export class EtherfuseAdapter implements RampAdapter {
     const nowIso = new Date().toISOString();
     // The create response omits `status` entirely; an order that exists but has
     // not been fetched yet is `created`, not "unknown".
-    const status = mapStatus(raw.status ?? 'CREATED');
+    const status = mapStatus(raw.status ?? 'CREATED', resolvedDirection);
 
     // The same amount is `amountInFiat` when fetched and `depositAmount` when
     // created — and `sourceAmount` in the shape the docs describe.
