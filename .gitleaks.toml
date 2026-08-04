@@ -44,6 +44,12 @@ regexes = [
   '''\bG[A-Z2-7]{55}\b''',
   # Contract addresses (Soroban). Also public identifiers.
   '''\bC[A-Z2-7]{55}\b''',
+  # Decentralised identifiers. A DID exists to be handed out and resolved by
+  # strangers — publishing one is the entire mechanism, and its identifier
+  # segment is derived from a PUBLIC key. The default rule flags them only
+  # because a base32 run scores high on entropy, the same reason it flagged
+  # `G...` addresses above.
+  '''\bdid:[a-z0-9]+:[a-zA-Z0-9.:_-]+''',
   # Transaction and ledger hashes are public record.
   '''\b[a-f0-9]{64}\b''',
 ]
