@@ -235,6 +235,48 @@ export async function signTransactionXdr(xdr: string, opts: SignOptions = {}): P
 }
 
 /**
+ * Sign an arbitrary message, for proof of control rather than for a payment.
+ *
+ * Separate from `signTransactionXdr` because it is a genuinely different act:
+ * nothing is submitted, nothing moves, and the signature proves possession of a
+ * key rather than authorising a transfer.
+ *
+ * **Not every wallet implements it**, and the ones that do are not consistent
+ * about what they sign — some hash the message first, some prepend a prefix.
+ * That is why this returns `null` for an unsupported wallet instead of throwing:
+ * the caller can then say so plainly rather than showing a wallet-internal
+ * string, and a signature that comes back but does not verify is a wallet
+ * disagreeing about the format, not a wrong key.
+ */
+export async function signMessageWithWallet(
+  message: string,
+  opts: SignOptions = {},
+): Promise<string | null> {
+  const { StellarWalletsKit } = await kit();
+
+  if (typeof StellarWalletsKit.signMessage !== 'function') return null;
+
+  try {
+    const { signedMessage } = await StellarWalletsKit.signMessage(message, {
+      networkPassphrase: opts.networkPassphrase ?? TESTNET_PASSPHRASE,
+      ...(opts.address ? { address: opts.address } : {}),
+    });
+    if (!signedMessage) return null;
+    // Wallets differ on the return type: some hand back base64, some raw bytes.
+    return typeof signedMessage === 'string'
+      ? signedMessage
+      : Buffer.from(signedMessage).toString('base64');
+  } catch (cause) {
+    // A user who declines is not an unsupported wallet, and the caller needs to
+    // tell those apart.
+    if (/declin|reject|denied|cancel/i.test(String((cause as Error)?.message ?? cause))) {
+      raise(cause, 'The wallet did not sign the message.');
+    }
+    return null;
+  }
+}
+
+/**
  * Whether an error means the wallet has forgotten this site, rather than that
  * the user said no.
  *

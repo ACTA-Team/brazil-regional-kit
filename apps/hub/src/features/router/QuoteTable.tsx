@@ -1,11 +1,51 @@
 'use client';
 
+import Link from 'next/link';
 import { assetCode, isFiat, parseAsset } from '@brk/ramp-core';
+import type { AnchorEligibility } from '@brk/identity-kit';
 import { ModeBadge } from '@brk/ramp-ui';
 import type { AnchorResult, RankedQuote } from '@brk/ramp-router';
 import { formatMoney, formatToken, useI18n } from '@/client/i18n';
 
-export type PublicRankedQuote = Omit<RankedQuote, 'raw'>;
+/**
+ * `eligibility` is optional because it is: it arrives only when the request
+ * carried a DID, and only when the identity layer answered. Absent means we do
+ * not know, and not knowing renders as nothing rather than as a guess.
+ */
+export type PublicRankedQuote = Omit<RankedQuote, 'raw'> & {
+  eligibility?: AnchorEligibility;
+};
+
+/**
+ * The chip that says whether you can actually take this price.
+ *
+ * Only two states earn a chip. `eligible` is worth a mark because it is the
+ * good news; `needs-onboarding` is worth one because it is actionable, and it
+ * links to where the action is. `not-required` says nothing useful — most rows
+ * would carry it and it would become wallpaper — and `no-did` / `unknown` are
+ * statements about us, not about the user, so they get no chip at all.
+ */
+function EligibilityChip({ eligibility }: { eligibility?: AnchorEligibility }) {
+  const { t } = useI18n();
+
+  if (eligibility?.status === 'eligible') {
+    return <span className="chip chip-success">{t('router.eligibility.eligible')}</span>;
+  }
+
+  if (eligibility?.status === 'needs-onboarding') {
+    return (
+      <Link href="/identity" className="chip chip-gold transition-colors hover:border-gold/60">
+        {t(
+          eligibility.reason === 'revoked'
+            ? 'router.eligibility.revoked'
+            : 'router.eligibility.needsOnboarding',
+        )}
+      </Link>
+    );
+  }
+
+  return null;
+}
 
 function amountLabel(amount: string, asset: string, tag: string): string {
   const { code } = parseAsset(asset);
@@ -48,6 +88,7 @@ function QuoteRow({ quote: q }: { quote: PublicRankedQuote }) {
           {contested && !q.best ? (
             <span className="chip chip-neutral tabular-nums">−{q.worseByPct}%</span>
           ) : null}
+          <EligibilityChip eligibility={q.eligibility} />
           <span className="label text-[10px]">{t(`router.firmness.${q.firmness}`)}</span>
         </div>
       </td>
