@@ -206,5 +206,9 @@
   "onramp.inYourWallet": "está en tu billetera, on-chain y verificable.",
   "offramp.roundTripDone": "Ida y vuelta completa",
   "router.oneCall": "Eso fue una sola petición. El kit le preguntó a {count} anchors al mismo tiempo, tradujo cada respuesta a un mismo formato y las ordenó por lo que realmente recibís.",
-  "router.showRequest": "Mostrar la petición"
+  "router.showRequest": "Mostrar la petición",
+  "sep.sessionHint": "Esa ventana es del anchor, así que puede verse vacía al principio: una transacción nueva realmente está incomplete y sin montos hasta que completes su formulario. Acá está lo que el anchor dice de ella, actualizado en vivo.",
+  "sep.kind": "Tipo",
+  "sep.transactionId": "Id de la transacción",
+  "sep.viewOnAnchor": "Ver en el anchor"
 }

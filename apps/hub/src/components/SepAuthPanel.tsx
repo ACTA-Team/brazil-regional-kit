@@ -1,11 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { USD, USDC } from '@brk/ramp-core';
 import { useI18n } from '@/lib/i18n';
 import { Check, ICON_WEIGHT } from './icons';
 import { useWallet } from '@/lib/wallet';
 import { Alert } from './Alert';
+
+/**
+ * What the app can say about a SEP-24 session on its own authority.
+ *
+ * The interactive window belongs to the anchor, and the SDF reference anchor
+ * opens it on a status screen with every field blank. That is accurate — a new
+ * transaction really is "incomplete" with no amounts until its form is filled —
+ * but it is indistinguishable from a broken integration. Reading the
+ * transaction back and showing its id and live status makes the step verifiable
+ * here, whatever the anchor's own UI chooses to render.
+ */
+interface Sep24Session {
+  id: string;
+  kind?: string;
+  status?: string;
+  amountIn?: string | null;
+  amountOut?: string | null;
+  moreInfoUrl?: string | null;
+}
 
 interface FirmQuote {
   id: string;
@@ -35,9 +54,53 @@ export function SepAuthPanel() {
   const [claims, setClaims] = useState<Record<string, unknown> | null>(null);
   const [quote, setQuote] = useState<FirmQuote | null>(null);
   const [busy, setBusy] = useState<null | 'auth' | 'quote' | 'interactive'>(null);
+  const [session, setSession] = useState<Sep24Session | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const connected = status === 'connected' && Boolean(address);
+
+  /**
+   * Follow the anchor's own record of the session while the popup is open.
+   *
+   * The transaction starts `incomplete` and only gains amounts once the user
+   * finishes the anchor's form, which happens in a window this app cannot see
+   * into. Polling is the only way to notice, and it stops on its own once the
+   * anchor reaches a state it will not move out of.
+   */
+  const sessionId = session?.id ?? null;
+  const sessionStatus = session?.status;
+  const settled = sessionStatus === 'completed' || sessionStatus === 'error';
+
+  const refreshSession = useCallback(
+    async (id: string) => {
+      if (!token) return;
+      try {
+        const res = await fetch('/api/sep/transaction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jwt: token, id }),
+        });
+        const payload = (await res.json()) as Sep24Session & { error?: unknown };
+        if (payload.id) setSession(payload);
+      } catch {
+        // A failed poll is not news worth interrupting the user with; the next
+        // tick tries again and the last known status stays on screen.
+      }
+    },
+    [token],
+  );
+
+  useEffect(() => {
+    if (!sessionId || settled) return;
+    // Deferred a tick so the first poll's setState never lands synchronously
+    // inside the effect body.
+    const first = setTimeout(() => void refreshSession(sessionId), 0);
+    const timer = setInterval(() => void refreshSession(sessionId), 4000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, [sessionId, settled, refreshSession]);
 
   const authenticate = async () => {
     setBusy('auth');
@@ -115,9 +178,15 @@ export function SepAuthPanel() {
           direction: 'deposit',
         }),
       });
-      const payload = (await res.json()) as { url?: string; error?: { message: string } };
+      const payload = (await res.json()) as {
+        url?: string;
+        id?: string;
+        error?: { message: string };
+      };
       if (!payload.url) throw new Error(payload.error?.message ?? 'No interactive URL returned.');
+
       window.open(payload.url, 'sep24', 'width=480,height=760');
+      if (payload.id) setSession({ id: payload.id });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -207,15 +276,58 @@ export function SepAuthPanel() {
           ) : null}
         </SepStep>
 
-        <SepStep index={3} title={t('sep.step3')} description={t('sep.step3Hint')} done={false}>
+        <SepStep
+          index={3}
+          title={t('sep.step3')}
+          description={t('sep.step3Hint')}
+          done={Boolean(session)}
+        >
           <button
             type="button"
             onClick={() => void openInteractive()}
             disabled={!token || busy !== null}
-            className="btn btn-ghost text-xs"
+            className="btn btn-outline btn-sm"
           >
             {busy === 'interactive' ? t('common.loading') : t('sep.openInteractive')}
           </button>
+
+          {/*
+            The anchor owns the popup and the SDF reference anchor opens it on a
+            blank status screen. Rather than leave that looking like a failure,
+            the app states what it knows for itself: the transaction exists, the
+            anchor answers for it, and this is its status right now.
+          */}
+          {session ? (
+            <div className="mt-4 space-y-3 border-t border-line pt-4">
+              <p className="text-xs leading-relaxed text-fg-muted">{t('sep.sessionHint')}</p>
+
+              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <Field label={t('common.status')} value={session.status ?? '…'} accent />
+                <Field label={t('sep.kind')} value={session.kind ?? '…'} />
+                <Field label={t('common.youSend')} value={session.amountIn ?? '—'} />
+                <Field label={t('common.youReceive')} value={session.amountOut ?? '—'} />
+                <div className="col-span-2 sm:col-span-4">
+                  <span className="text-xs uppercase tracking-wide text-fg-subtle">
+                    {t('sep.transactionId')}
+                  </span>
+                  <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
+                    {session.id}
+                  </p>
+                </div>
+              </dl>
+
+              {session.moreInfoUrl ? (
+                <a
+                  href={session.moreInfoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-link text-xs"
+                >
+                  {t('sep.viewOnAnchor')}
+                </a>
+              ) : null}
+            </div>
+          ) : null}
         </SepStep>
       </ol>
     </section>
