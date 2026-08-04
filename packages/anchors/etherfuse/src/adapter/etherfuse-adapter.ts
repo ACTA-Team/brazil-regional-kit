@@ -365,20 +365,73 @@ export class EtherfuseAdapter implements RampAdapter {
     const ctx = this.context.get(req.quoteId);
     const orderId = req.orderId ?? crypto.randomUUID();
 
+    const payload = {
+      orderId,
+      bankAccountId: req.bankAccountId ?? this.config.bankAccountId ?? '',
+      publicKey: assertClassicAddress(req.account),
+      quoteId: req.quoteId,
+    };
+
     let raw: EtherfuseOrderResponse;
     try {
-      raw = await this.api.createOrder({
-        orderId,
-        bankAccountId: req.bankAccountId ?? this.config.bankAccountId ?? '',
-        publicKey: assertClassicAddress(req.account),
-        quoteId: req.quoteId,
-      });
+      raw = await this.api.createOrder(payload);
     } catch (e) {
-      throw toRampError(e, ETHERFUSE_ID);
+      if (!isUnauthorizedWallet(e)) throw toRampError(e, ETHERFUSE_ID);
+
+      /*
+       * Etherfuse authorises wallets per customer, not per API key. Any visitor
+       * who is not whoever ran the setup script is refused here — and only
+       * here, because the quote before it succeeded: a price does not depend on
+       * who receives it. So the app looks like it works right up to the last
+       * step, for everyone except its author.
+       *
+       * Posting the address to the onboarding endpoint registers it, and the
+       * identical order then succeeds. Verified against the live sandbox with a
+       * freshly generated keypair: 400 before, 200 after. Doing it lazily costs
+       * one extra call the first time a wallet appears and nothing afterwards.
+       */
+      try {
+        await this.authorizeWallet(payload.publicKey, req.customerId, payload.bankAccountId);
+      } catch {
+        // A failure to self-register is not something the person staring at the
+        // screen can act on. The anchor's refusal is, so that is what surfaces.
+        throw toRampError(e, ETHERFUSE_ID);
+      }
+
+      try {
+        raw = await this.api.createOrder(payload);
+      } catch (retry) {
+        throw toRampError(retry, ETHERFUSE_ID);
+      }
     }
 
     if (ctx) this.context.set(raw.orderId ?? orderId, ctx);
     return this.toOrder(raw, ctx?.req, ctx?.direction);
+  }
+
+  /**
+   * Register a wallet against this operator's customer.
+   *
+   * The endpoint is named for the KYC URL it returns, but the registration is
+   * the part that matters here — the URL is discarded. A wallet belongs to
+   * exactly one organisation, so this cannot take an address away from another
+   * operator; a second attempt on an already-registered wallet is a no-op.
+   */
+  private async authorizeWallet(
+    publicKey: string,
+    customerId: string | undefined,
+    bankAccountId: string,
+  ): Promise<void> {
+    await this.api.createOnboardingUrl({
+      customerId: customerId ?? this.config.customerId ?? '',
+      bankAccountId,
+      publicKey,
+      blockchain: 'stellar',
+      userInfo: {
+        email: this.config.userEmail ?? 'sandbox@brazil-regional-kit.demo',
+        displayName: this.config.userDisplayName ?? 'BRK Sandbox',
+      },
+    });
   }
 
   async getOrder(orderId: string): Promise<Order> {
@@ -612,6 +665,20 @@ function feeFromBps(sellAmount: string, feeBps?: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The one refusal that a retry can fix.
+ *
+ * Etherfuse answers an unregistered wallet with a bare `400 Wallet not found or
+ * not authorized`. The status alone cannot be trusted to mean this — 400 also
+ * covers malformed payloads and sandbox limits, and re-registering a wallet in
+ * response to those would hide a real bug behind a pointless extra call. So the
+ * match is on the anchor's own sentence.
+ */
+function isUnauthorizedWallet(error: unknown): boolean {
+  const message = (error as { message?: string } | undefined)?.message ?? String(error ?? '');
+  return /wallet not found or not authori[sz]ed/i.test(message);
 }
 
 /**

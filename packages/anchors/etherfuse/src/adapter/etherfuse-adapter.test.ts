@@ -357,3 +357,158 @@ describe('missing crypto_received route', () => {
     expect(resolved.status).toBe('awaiting_signature');
   });
 });
+
+describe('a wallet the anchor has never seen', () => {
+  /**
+   * Etherfuse authorises wallets per customer, not per API key. A visitor who
+   * is not the operator gets `400 Wallet not found or not authorized` on
+   * `POST /ramp/order` — the quote succeeds, because a price does not depend on
+   * who receives it, so the failure lands at the last step of the flow.
+   *
+   * Confirmed against the live sandbox: posting the visitor's public key to
+   * `/ramp/onboarding-url` registers it, and the identical order then returns
+   * 200. Without this the app only ever works for whoever ran the setup script.
+   */
+  const STRANGER = 'GA5UUGFVQDOJLXZX4QH3MRX5I2M5M2CX4CUHV7XQXJX3A2EEFGSBMT3N';
+
+  /** A mock API that refuses orders until the wallet has been registered. */
+  function strictAnchor(inner: import('../api/api').EtherfuseApi) {
+    const registered = new Set<string>();
+    const orderAttempts: string[] = [];
+
+    return {
+      registered,
+      orderAttempts,
+      api: {
+        ...inner,
+        mode: inner.mode,
+        createOnboardingUrl: async (req: import('../api/api').EtherfuseOnboardingRequest) => {
+          registered.add(req.publicKey);
+          return { presigned_url: 'https://sandbox.etherfuse.com/ramp/onboarding' };
+        },
+        createOrder: async (req: import('../api/api').EtherfuseOrderRequest) => {
+          orderAttempts.push(req.publicKey);
+          if (!registered.has(req.publicKey)) {
+            const { RampError } = await import('@brk/ramp-core');
+            throw new RampError({
+              code: 'INVALID_REQUEST',
+              anchorId: 'etherfuse',
+              message: 'Wallet not found or not authorized',
+              status: 400,
+            });
+          }
+          return inner.createOrder(req);
+        },
+      } as import('../api/api').EtherfuseApi,
+    };
+  }
+
+  it('registers the wallet and retries the order once', async () => {
+    const backing = adapter();
+    const quote = await backing.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: STRANGER,
+    });
+
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+    const anchor = strictAnchor(inner);
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: anchor.api,
+    });
+
+    const order = await a.createOrder({ quoteId: quote.id, account: STRANGER });
+
+    expect(order.id).toBeTruthy();
+    expect(anchor.registered.has(STRANGER)).toBe(true);
+    // Exactly one retry — the first refusal, then the authorised attempt.
+    expect(anchor.orderAttempts).toEqual([STRANGER, STRANGER]);
+  });
+
+  it('does not retry, or register anything, for an unrelated failure', async () => {
+    const backing = adapter();
+    const quote = await backing.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: STRANGER,
+    });
+
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+    const registered: string[] = [];
+    let attempts = 0;
+
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        createOnboardingUrl: async (req: import('../api/api').EtherfuseOnboardingRequest) => {
+          registered.push(req.publicKey);
+          return { presigned_url: 'https://example.com' };
+        },
+        createOrder: async () => {
+          attempts += 1;
+          const { RampError } = await import('@brk/ramp-core');
+          throw new RampError({
+            code: 'INVALID_ORDER_STATE',
+            anchorId: 'etherfuse',
+            message: 'A pending onramp order already exists for this bank account and amount',
+            status: 409,
+          });
+        },
+      } as import('../api/api').EtherfuseApi,
+    });
+
+    await expect(a.createOrder({ quoteId: quote.id, account: STRANGER })).rejects.toThrow(
+      /pending onramp order/i,
+    );
+    expect(attempts).toBe(1);
+    expect(registered).toEqual([]);
+  });
+
+  it('surfaces the anchor’s original refusal when registering fails', async () => {
+    const backing = adapter();
+    const quote = await backing.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: STRANGER,
+    });
+
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        createOnboardingUrl: async () => {
+          throw new Error('onboarding is down');
+        },
+        createOrder: async () => {
+          const { RampError } = await import('@brk/ramp-core');
+          throw new RampError({
+            code: 'INVALID_REQUEST',
+            anchorId: 'etherfuse',
+            message: 'Wallet not found or not authorized',
+            status: 400,
+          });
+        },
+      } as import('../api/api').EtherfuseApi,
+    });
+
+    // The refusal is the actionable fact; a failure to auto-register is not
+    // something the person staring at the screen can do anything about.
+    await expect(a.createOrder({ quoteId: quote.id, account: STRANGER })).rejects.toThrow(
+      /not authorized/i,
+    );
+  });
+});
