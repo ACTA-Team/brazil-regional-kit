@@ -6,132 +6,121 @@
 @source '../../../../packages/kit/ui/src';
 
 /*
- * ACTA design system · v1.0
+ * Brazil Regional Kit · design system v2 — "glow"
  *
- * Every value below is transcribed from the brand manual, not invented here.
- * The manual's four rules drive the whole sheet:
+ * The canvas is black, not navy, and everything that is not text is either a
+ * hairline or a bloom. Four rules drive the sheet:
  *
- *   1. Objective trust        — sober surfaces, no hype, verification visible
- *   2. Dark by default        — content floats over a cosmic canvas
- *   3. A single accent        — gold #ffdf00 marks THE action, once per screen
- *   4. Clarity over decoration — space, type and contrast before ornament
+ *   1. Black ground        — the page is #000; colour arrives as diffuse light
+ *   2. Three lights        — verde, amarelo, azul, always as oklch glows
+ *   3. Hairlines, not fills — surfaces are 4%-white gradients over the ground
+ *   4. Mono for facts      — codes, rails, hashes and counters are IBM Plex Mono
  *
- * Rule 3 shapes the code most: the accent is a scarce resource. It marks the
- * primary action, focus and active state — nothing else. Success is green,
- * danger is red, and "live" is green because it is a status, not an action.
- * Where this app used to paint whole surfaces in colour, it now paints a
- * one-pixel border and lets the canvas do the work.
- *
- * The palette is the Brazilian flag, mapped so that only one of its colours
- * ever competes for attention: amarelo #ffdf00 is the accent, verde #009c3b is
- * success (which it already was), and azul #002776 is pulled almost to black to
- * become the canvas that tints every surface. Three flag colours, one accent,
- * hierarchy intact.
+ * The palette is still the Brazilian flag, but expressed in oklch so the glows
+ * stay perceptually even at 14–26% alpha: verde 152°, amarelo 96°, azul 262°.
+ * Only amarelo ever reaches full chroma, and only on THE action of a screen.
  */
 
 @theme {
   /* ── Canvas & surfaces ────────────────────────────────────────────────── */
-  --color-canvas: #060f20;
-  /* --card: cards float just above the canvas. */
-  --color-surface: oklch(0.205 0.03 258);
-  /* --secondary: chips and secondary surfaces. */
-  --color-surface-2: oklch(0.245 0.034 258);
-  /* Wells: inputs and code blocks sit BELOW the card, not above it. */
-  --color-inset: oklch(0.165 0.026 258);
-  /* The manual's navy, reserved for the secondary button. */
-  --color-navy: #16265c;
+  --color-canvas: #000000;
+  /* Cards float on the ground as a 4%→1% white wash, never as a solid slab. */
+  --color-surface: rgba(255, 255, 255, 0.035);
+  --color-surface-2: rgba(255, 255, 255, 0.06);
+  /* Wells: inputs, chips and code blocks sit BELOW the card — darker than it. */
+  --color-inset: rgba(0, 0, 0, 0.45);
+  --color-navy: oklch(0.32 0.11 262);
 
   /* ── Lines ────────────────────────────────────────────────────────────── */
-  --color-line: oklch(1 0 0 / 8%);
-  --color-line-strong: oklch(1 0 0 / 12%);
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
 
-  /* ── The single accent ────────────────────────────────────────────────── */
-  --color-gold: #ffdf00;
-  --color-gold-ink: #191400; /* text ON gold — near-black, never white */
+  /* ── The three lights ─────────────────────────────────────────────────── */
+  --color-gold: oklch(0.86 0.17 96);
+  --color-gold-soft: oklch(0.88 0.14 96);
+  --color-gold-ink: #12100a; /* text ON gold — near-black, never white */
+  --color-verde: oklch(0.72 0.17 152);
+  --color-azul: oklch(0.6 0.19 262);
 
   /* ── Text ─────────────────────────────────────────────────────────────── */
-  --color-fg: #f3f5f9;
-  --color-fg-muted: oklch(0.65 0 0);
-  --color-fg-subtle: oklch(0.5 0 0);
+  --color-fg: #ededed;
+  --color-fg-muted: rgba(237, 237, 237, 0.62);
+  --color-fg-subtle: rgba(237, 237, 237, 0.38);
 
   /* ── Status ───────────────────────────────────────────────────────────── */
-  --color-success: #009c3b;
-  --color-danger: #ff4d4f;
-  --color-warning: #ffdf00;
-  --color-info: #5b8dee;
+  --color-success: oklch(0.72 0.17 152);
+  --color-danger: oklch(0.68 0.2 22);
+  --color-warning: oklch(0.86 0.17 96);
+  --color-info: oklch(0.65 0.16 262);
 
   /* ── Type ─────────────────────────────────────────────────────────────── */
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, 'Cascadia Code', monospace;
+  --font-sans: var(--font-space-grotesk), 'Space Grotesk', Helvetica, sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* ── Shape · base radius 10px ─────────────────────────────────────────── */
+  /* ── Shape ────────────────────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-cutout: 28px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-cutout: 24px;
 
   /* ── Motion ───────────────────────────────────────────────────────────── */
-  --ease-out-soft: cubic-bezier(0.22, 0.68, 0.28, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
 
-  --animate-rise: rise 460ms var(--ease-out-soft) both;
-  --animate-fade: fade 320ms ease both;
+  --animate-rise: rise 700ms var(--ease-out-soft) both;
+  --animate-fade: fade 420ms ease both;
   --animate-pop: pop 380ms var(--ease-spring) both;
   --animate-shimmer: shimmer 1.5s linear infinite;
   --animate-halo: halo 2.4s ease-out infinite;
   --animate-sweep: sweep 1.4s var(--ease-out-soft) infinite;
   --animate-tick: tick 420ms var(--ease-spring) both;
+  --animate-drift: drift 26s ease-in-out infinite;
 }
 
 /* ── shadcn token layer ─────────────────────────────────────────────────────
-   The manual's "Official tokens" page is, name for name, the shadcn contract:
-   --background, --foreground, --card, --primary, --secondary,
-   --muted-foreground, --destructive, --border, --input, --ring, --radius.
-   That is not a coincidence to work around, it is the reason a shadcn block can
-   be dropped into this app and come out wearing ACTA. The values below are
-   transcribed from the manual; the handful shadcn needs that the manual does
-   not name (foregrounds for each surface) are derived from ones it does. */
+   The shadcn contract, pointed at the tokens above so a dropped-in block comes
+   out wearing the kit rather than the library's defaults. */
 
 :root {
-  --background: #060f20;
-  --foreground: oklch(0.96 0 0);
+  --background: #000000;
+  --foreground: #ededed;
 
-  --card: oklch(0.205 0.03 258);
+  --card: rgba(255, 255, 255, 0.035);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.205 0.03 258);
+  --popover: #0a0a0a;
   --popover-foreground: var(--foreground);
 
-  --primary: #ffdf00;
-  /* Never white on gold: the manual's accent needs near-black to stay legible. */
-  --primary-foreground: #191400;
+  --primary: oklch(0.86 0.17 96);
+  /* Never white on gold: the accent needs near-black to stay legible. */
+  --primary-foreground: #12100a;
 
-  --secondary: oklch(0.245 0.034 258);
+  --secondary: rgba(255, 255, 255, 0.06);
   --secondary-foreground: var(--foreground);
 
-  --muted: oklch(0.245 0.034 258);
-  --muted-foreground: oklch(0.65 0 0);
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(237, 237, 237, 0.62);
 
-  --accent: oklch(0.245 0.034 258);
+  --accent: rgba(255, 255, 255, 0.07);
   --accent-foreground: var(--foreground);
 
-  --destructive: oklch(0.704 0.191 22);
-  --destructive-foreground: oklch(0.96 0 0);
+  --destructive: oklch(0.68 0.2 22);
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: #ffdf00;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.14);
+  --ring: oklch(0.86 0.17 96);
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  --sidebar: oklch(0.205 0.03 258);
+  --sidebar: rgba(255, 255, 255, 0.035);
   --sidebar-foreground: var(--foreground);
-  --sidebar-primary: #ffdf00;
-  --sidebar-primary-foreground: #191400;
-  --sidebar-accent: oklch(0.245 0.034 258);
+  --sidebar-primary: oklch(0.86 0.17 96);
+  --sidebar-primary-foreground: #12100a;
+  --sidebar-accent: rgba(255, 255, 255, 0.07);
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: #ffdf00;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: oklch(0.86 0.17 96);
 }
 
 @theme inline {
@@ -170,14 +159,30 @@
 
 /* ── Keyframes ──────────────────────────────────────────────────────────── */
 
+/* The ambient blooms breathe rather than sit still. Three of them, each on its
+   own period, so the page never repeats a frame. */
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(26px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: none;
+    filter: blur(0);
   }
 }
 
@@ -207,17 +212,16 @@
   }
 }
 
-/* A ring breathing outward from the active step: "this is where you are".
-   Gold, matching the manual's active-state rule. */
+/* A ring breathing outward from the active step: "this is where you are". */
 @keyframes halo {
   0% {
-    box-shadow: 0 0 0 0 rgb(255 223 0 / 35%);
+    box-shadow: 0 0 0 0 oklch(0.86 0.17 96 / 35%);
   }
   70% {
-    box-shadow: 0 0 0 9px rgb(255 223 0 / 0%);
+    box-shadow: 0 0 0 9px oklch(0.86 0.17 96 / 0%);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(255 223 0 / 0%);
+    box-shadow: 0 0 0 0 oklch(0.86 0.17 96 / 0%);
   }
 }
 
@@ -248,19 +252,14 @@
 @layer base {
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
   }
 
   body {
-    /*
-      "A deep cosmic canvas." One very soft gold bloom high on the page — enough
-      that flat black does not feel dead, far too faint to compete with an
-      actual gold control.
-    */
-    background:
-      radial-gradient(46rem 30rem at 10% -6%, rgb(0 156 59 / 26%), transparent 56%),
-      radial-gradient(46rem 30rem at 90% -6%, rgb(255 223 0 / 16%), transparent 56%),
-      var(--color-canvas);
-    background-attachment: fixed;
+    /* Flat black. Every glow on this page belongs to <AmbientBackground>, which
+       is a fixed layer behind the content — painting them on the body too would
+       double the light and defeat the vignette. */
+    background: var(--color-canvas);
     color: var(--color-fg);
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
@@ -268,11 +267,11 @@
   }
 
   ::selection {
-    background: var(--color-gold);
-    color: var(--color-gold-ink);
+    background: oklch(0.55 0.15 152 / 35%);
+    color: #ffffff;
   }
 
-  /* One focus treatment everywhere: the gold ring from the manual. */
+  /* One focus treatment everywhere: the gold ring. */
   :focus-visible {
     outline: 2px solid var(--color-gold);
     outline-offset: 2px;
@@ -282,73 +281,189 @@
   h1,
   h2,
   h3 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }
 
 /* ── Components ─────────────────────────────────────────────────────────── */
 
 @layer components {
-  /* Standard card · header + content + footer */
-  .card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-xl);
+  /* ── Ambient chrome ──────────────────────────────────────────────────── */
+
+  /* The three-light hairline that caps the page and the header. */
+  .rule-spectrum {
+    background: linear-gradient(
+      90deg,
+      var(--color-verde),
+      var(--color-gold) 45%,
+      oklch(0.5 0.2 262)
+    );
   }
 
-  /* Cutout card · 28px radius, strong elevation. For the one thing on screen
-     that matters most — a hero, a result, a receipt. */
+  /* Headline emphasis: the same three lights, read left to right. */
+  .text-spectrum {
+    background: linear-gradient(
+      100deg,
+      oklch(0.78 0.12 152),
+      oklch(0.88 0.11 96) 55%,
+      oklch(0.7 0.11 262)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Mono micro-label: rails, counters, section indices, <dt>s, table heads.
+     ONE definition for every small uppercase label in the app. The landing set
+     the rule — labels are monospace and letter-spaced, headings are not — and a
+     sans `uppercase tracking-wider` label anywhere else is what made the
+     interior pages read as a different product. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-fg-subtle);
+  }
+
+  /* The same label at section scale — the hero eyebrow and its siblings. */
+  .label-lg {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-fg-subtle);
+  }
+
+  /* The heading on a card or a panel — one step down from a page title. Every
+     interior section used to pick its own tag and weight (h2 font-semibold,
+     h3 font-semibold, p font-medium), which is why two panels stacked on the
+     same page did not look related. */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+  }
+
+  /* The verde index chip. The landing numbers its four steps with it, so every
+     numbered thing inside a page — stepper, x402 legs, SEP handshake, corridor
+     legs — uses the same one rather than inventing a circle or a bare digit. */
+  .index-chip {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid oklch(0.72 0.17 152 / 50%);
+    background: oklch(0.72 0.17 152 / 15%);
+    color: var(--color-verde);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  /* A number the user is deciding on: amounts, totals, results. Semibold and
+     tightly tracked, never bold — nothing in this design is heavier than 600. */
+  .figure {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────────────── */
+
+  /* Standard card · a 4%→1% wash over the black ground, one hairline border. */
+  .card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+
+  /* Cutout card · deeper elevation. For the one thing on screen that matters
+     most — a hero, a result, a receipt. */
   .card-cutout {
-    background: var(--color-surface);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
     border: 1px solid var(--color-line);
     border-radius: var(--radius-cutout);
     box-shadow:
-      0 1px 0 0 rgb(255 255 255 / 4%) inset,
-      0 24px 60px -20px rgb(0 0 0 / 70%);
+      0 1px 0 0 rgb(255 255 255 / 5%) inset,
+      0 30px 80px -40px rgb(0 0 0 / 90%);
   }
 
-  /* Featured card · subtle gold border for success states. */
+  /* Featured card · a gold bloom for success states. */
   .card-featured {
-    background: linear-gradient(180deg, rgb(255 223 0 / 5%), transparent 40%), var(--color-surface);
-    border: 1px solid rgb(255 223 0 / 28%);
+    background:
+      radial-gradient(120% 100% at 0% 0%, oklch(0.86 0.17 96 / 10%), transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+    border: 1px solid oklch(0.86 0.17 96 / 28%);
     border-radius: var(--radius-xl);
   }
 
   .card-hover {
     transition:
-      border-color 180ms var(--ease-out-soft),
-      transform 180ms var(--ease-out-soft),
-      box-shadow 180ms var(--ease-out-soft);
+      border-color 240ms var(--ease-out-soft),
+      transform 240ms var(--ease-out-soft),
+      box-shadow 240ms var(--ease-out-soft);
   }
 
   .card-hover:hover {
-    border-color: rgb(0 156 59 / 55%);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px -16px rgb(0 0 0 / 80%);
+    box-shadow: 0 20px 50px -30px rgb(0 0 0 / 90%);
+  }
+
+  /* The verde bloom every step/scenario card carries in its top-right corner.
+     Decorative, so it is a pseudo-element rather than a div in every card. */
+  .card-glow::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -30%;
+    width: 70%;
+    height: 80%;
+    border-radius: 50%;
+    background: radial-gradient(circle, oklch(0.55 0.13 152 / 14%), transparent 65%);
+    filter: blur(50px);
+    pointer-events: none;
   }
 
   /* ── Buttons · six canonical variants ───────────────────────────────────
-     The manual is explicit: only ONE primary (gold) action per screen. Every
-     other control on that screen takes secondary, outline or ghost. */
+     Only ONE primary (gold) action per screen. Every other control on that
+     screen takes secondary, outline or ghost. */
   .btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.625rem;
     border: 1px solid transparent;
     border-radius: var(--radius-lg);
     font-weight: 600;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    padding: 0.625rem 1rem;
+    padding: 0.7rem 1.15rem;
     cursor: pointer;
     white-space: nowrap;
     transition:
-      background-color 160ms var(--ease-out-soft),
-      border-color 160ms var(--ease-out-soft),
-      color 160ms var(--ease-out-soft),
-      transform 120ms var(--ease-out-soft),
-      box-shadow 160ms var(--ease-out-soft);
+      background-color 200ms var(--ease-out-soft),
+      border-color 200ms var(--ease-out-soft),
+      color 200ms var(--ease-out-soft),
+      transform 160ms var(--ease-out-soft),
+      box-shadow 200ms var(--ease-out-soft);
+  }
+
+  .btn:not(:disabled):hover {
+    transform: translateY(-1px);
   }
 
   .btn:not(:disabled):active {
@@ -361,34 +476,39 @@
   }
 
   .btn-primary {
-    background: var(--color-gold);
+    background: linear-gradient(120deg, oklch(0.88 0.14 96), oklch(0.84 0.15 90));
     color: var(--color-gold-ink);
-    box-shadow: 0 6px 20px -8px rgb(255 223 0 / 55%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 16px 40px -26px oklch(0.86 0.15 96 / 70%);
   }
 
   .btn-primary:not(:disabled):hover {
-    background: #ffe84d;
-    box-shadow: 0 8px 26px -8px rgb(255 223 0 / 70%);
+    background: linear-gradient(120deg, oklch(0.92 0.14 96), oklch(0.88 0.15 90));
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 20px 48px -24px oklch(0.86 0.15 96 / 85%);
   }
 
   .btn-secondary {
-    background: var(--color-navy);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--color-line);
     color: var(--color-fg);
   }
 
   .btn-secondary:not(:disabled):hover {
-    background: #1e3372;
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .btn-outline {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.4);
     border-color: var(--color-line-strong);
     color: var(--color-fg);
   }
 
   .btn-outline:not(:disabled):hover {
-    border-color: rgb(255 255 255 / 26%);
-    background: rgb(255 255 255 / 3%);
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .btn-ghost {
@@ -397,17 +517,17 @@
   }
 
   .btn-ghost:not(:disabled):hover {
-    background: rgb(255 255 255 / 5%);
+    background: rgba(255, 255, 255, 0.06);
     color: var(--color-fg);
   }
 
   .btn-destructive {
     background: var(--color-danger);
-    color: #240607;
+    color: #1a0405;
   }
 
   .btn-destructive:not(:disabled):hover {
-    background: #ff6467;
+    background: oklch(0.74 0.2 22);
   }
 
   .btn-link {
@@ -418,15 +538,21 @@
     text-underline-offset: 3px;
   }
 
+  .btn-link:not(:disabled):hover {
+    transform: none;
+  }
+
   .btn-sm {
-    padding: 0.375rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     font-size: 0.8125rem;
+    border-radius: var(--radius-md);
+    gap: 0.45rem;
   }
 
   .btn-lg {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-    border-radius: var(--radius-xl);
+    padding: 0.95rem 1.6rem;
+    font-size: 0.9375rem;
+    border-radius: var(--radius-lg);
   }
 
   /* ── Fields ──────────────────────────────────────────────────────────── */
@@ -439,8 +565,8 @@
     width: 100%;
     outline: none;
     transition:
-      border-color 160ms var(--ease-out-soft),
-      box-shadow 160ms var(--ease-out-soft);
+      border-color 200ms var(--ease-out-soft),
+      box-shadow 200ms var(--ease-out-soft);
   }
 
   .field::placeholder {
@@ -449,65 +575,67 @@
 
   .field:focus {
     border-color: var(--color-gold);
-    box-shadow: 0 0 0 3px rgb(255 223 0 / 16%);
+    box-shadow: 0 0 0 3px oklch(0.86 0.17 96 / 16%);
     outline: none;
   }
 
-  /* ── Chips · the manual's badge row ──────────────────────────────────── */
+  /* ── Chips · the mono pill row ───────────────────────────────────────── */
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    border: 1px solid transparent;
+    gap: 0.4rem;
+    border: 1px solid var(--color-line-strong);
     border-radius: 999px;
-    padding: 0.125rem 0.625rem;
+    padding: 0.25rem 0.7rem;
+    font-family: var(--font-mono);
     font-size: 0.6875rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.25rem;
     letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .chip-success {
-    border-color: rgb(0 156 59 / 40%);
-    background: rgb(0 156 59 / 12%);
-    color: #58cd88;
+    border-color: oklch(0.72 0.17 152 / 40%);
+    background: oklch(0.72 0.17 152 / 12%);
+    color: oklch(0.85 0.16 152);
   }
 
   .chip-danger {
-    border-color: rgb(255 77 79 / 40%);
-    background: rgb(255 77 79 / 12%);
-    color: #ff9a9b;
+    border-color: oklch(0.68 0.2 22 / 40%);
+    background: oklch(0.68 0.2 22 / 12%);
+    color: oklch(0.82 0.13 22);
   }
 
   .chip-gold {
-    border-color: rgb(255 223 0 / 45%);
-    background: rgb(255 223 0 / 12%);
+    border-color: oklch(0.86 0.17 96 / 45%);
+    background: oklch(0.86 0.17 96 / 12%);
     color: var(--color-gold);
   }
 
   .chip-neutral {
     border-color: var(--color-line-strong);
-    background: rgb(255 255 255 / 4%);
+    background: rgba(0, 0, 0, 0.6);
     color: var(--color-fg-muted);
   }
 
-  /* The flag, as a two-pixel rule. Sits above the header, spans the page, and
-     is the one place both colours appear together. */
+  /* The three lights as a one-pixel rule. Spans the page above the header and
+     is the one place all three appear together. */
   .flag-rule {
     background: linear-gradient(
       90deg,
-      var(--color-success) 0%,
-      var(--color-success) 38%,
-      var(--color-gold) 62%,
-      var(--color-gold) 100%
+      var(--color-verde),
+      var(--color-gold) 45%,
+      oklch(0.5 0.2 262)
     );
+    opacity: 0.9;
   }
 
   /* A value well — DIDs, hashes, PIX strings, request lines. */
   .well {
-    background: var(--color-inset);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
     font-family: var(--font-mono);
   }
 
@@ -524,6 +652,10 @@
     border-radius: var(--radius-md);
   }
 }
+
+/* The no-JS fallback for <Reveal> lives in a <noscript><style> in layout.tsx:
+   the component's resting state is inline, so only !important can clear it, and
+   it only ever needs clearing when the observer that would clear it cannot run. */
 
 /* Respect users who ask for less motion — everything here animates. */
 @media (prefers-reduced-motion: reduce) {
