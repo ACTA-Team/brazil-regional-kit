@@ -5,7 +5,18 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**', '**/*.d.ts'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.next/**',
+      '**/coverage/**',
+      '**/*.d.ts',
+      // Vendored agent-skill templates. They are documentation for a tool, not
+      // code this repo ships, and linting someone else's template teaches us
+      // nothing about our own.
+      '.claude/**',
+      '.agents/**',
+    ],
   },
 
   js.configs.recommended,

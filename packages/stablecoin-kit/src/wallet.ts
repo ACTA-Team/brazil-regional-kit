@@ -234,6 +234,32 @@ export async function signTransactionXdr(xdr: string, opts: SignOptions = {}): P
   }
 }
 
+/**
+ * Whether an error means the wallet has forgotten this site, rather than that
+ * the user said no.
+ *
+ * Wallets separate reading an address from authorising a signature. Lobstr in
+ * particular keeps answering `getAddress` from cache long after the live
+ * connection to the page is gone, so the app believes it is connected and then
+ * fails at the one moment that matters with "The connection key is missing" —
+ * a string that means nothing to the person reading it.
+ *
+ * Recognising the state is what lets a caller reconnect and retry instead of
+ * showing wallet internals. A user-declined signature must NOT match: retrying
+ * that would re-prompt someone who already said no.
+ */
+export function isWalletSessionLost(error: unknown): boolean {
+  const message = (
+    (error as { message?: string } | undefined)?.message ?? String(error ?? '')
+  ).toLowerCase();
+
+  if (/declin|reject|denied|cancel/.test(message)) return false;
+
+  return /connection key|not connected|no connection|session (has )?expired|unauthori[sz]ed/.test(
+    message,
+  );
+}
+
 export async function disconnectWallet(): Promise<void> {
   const { StellarWalletsKit } = await kit();
   try {
