@@ -1,0 +1,42 @@
+{
+  "name": "@brk/identity-kit",
+  "version": "0.1.0",
+  "description": "did:stellar identity for ramps — onboarding attestations, router eligibility and proof of control. Live against ACTA, or a labelled mock.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup src/index.ts --format esm --dts --clean --sourcemap"
+  },
+  "dependencies": {
+    "@brk/ramp-core": "workspace:*",
+    "@scure/base": "^1.2.6"
+  },
+  "peerDependencies": {
+    "@stellar/stellar-sdk": ">=16"
+  },
+  "devDependencies": {
+    "@stellar/stellar-sdk": "^16.2.0",
+    "typescript": "^5.7.2",
+    "tsup": "^8.5.0"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  }
+}

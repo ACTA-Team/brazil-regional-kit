@@ -23,6 +23,7 @@ export const navLinks = [
   { key: 'nav.corridor', href: '/corridor', step: 3 },
   { key: 'nav.offramp', href: '/offramp', step: 4 },
   { key: 'nav.x402', href: '/x402', step: 5 },
+  { key: 'nav.identity', href: '/identity', step: 6 },
 ] as const;
 
 export function isActivePath(pathname: string, href: string): boolean {

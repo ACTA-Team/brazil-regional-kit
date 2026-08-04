@@ -25,6 +25,7 @@ import {
   type Icon,
 } from '@/components/icons';
 import { ApiError } from '@/client/api';
+import { recallDid } from '@/client/identity';
 import { QuoteTable, type PublicRankedQuote } from '@/features/router/QuoteTable';
 import { SepAuthPanel } from '@/features/sep/SepAuthPanel';
 import { useI18n } from '@/client/i18n';
@@ -127,12 +128,30 @@ export function RouterPage() {
   // sorts on the `code` that `e.message` would discard.
   const [error, setError] = useState<unknown>(null);
 
+  /*
+   * The DID is read once, on mount, rather than on every render.
+   *
+   * It only ever changes on the identity page, which is a navigation away — and
+   * reading localStorage during render would make the first server-rendered
+   * pass disagree with the first client one.
+   */
+  const [did, setDid] = useState<string | null>(null);
+  useEffect(() => {
+    // Deferred a tick so the read's setState never lands synchronously inside
+    // the effect body — same shape as the initial fetch below.
+    const id = setTimeout(() => setDid(recallDid()), 0);
+    return () => clearTimeout(id);
+  }, []);
+
   const query = useMemo(() => {
     const params = new URLSearchParams({ sell: scenario.sellAsset, amount });
     if (scenario.buyAsset) params.set('buy', scenario.buyAsset);
     if (scenario.country) params.set('country', scenario.country);
+    // Optional in the strict sense: without it the response is byte-for-byte
+    // what it was before identity existed.
+    if (did) params.set('did', did);
     return params.toString();
-  }, [scenario, amount]);
+  }, [scenario, amount, did]);
 
   const run = useCallback(async (q: string) => {
     setLoading(true);
@@ -159,9 +178,10 @@ export function RouterPage() {
       const params = new URLSearchParams({ sell: next.sellAsset, amount: next.defaultAmount });
       if (next.buyAsset) params.set('buy', next.buyAsset);
       if (next.country) params.set('country', next.country);
+      if (did) params.set('did', did);
       void run(params.toString());
     },
-    [run],
+    [run, did],
   );
 
   // First render answers the default scenario rather than showing a blank

@@ -13,6 +13,7 @@ import {
   isWalletSessionLost,
   listWallets,
   openWalletProfile,
+  signMessageWithWallet,
   signTransactionXdr,
   watchWallet,
 } from './wallet';
@@ -88,6 +89,7 @@ describe('server safety', () => {
       ['connectWalletById', () => connectWalletById('freighter')],
       ['getWalletNetwork', () => getWalletNetwork()],
       ['signTransactionXdr', () => signTransactionXdr('AAAA')],
+      ['signMessageWithWallet', () => signMessageWithWallet('prove it')],
       ['disconnectWallet', () => disconnectWallet()],
       ['openWalletProfile', () => openWalletProfile()],
       ['watchWallet', () => watchWallet(() => {})],

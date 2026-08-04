@@ -54,7 +54,7 @@ const PLATE_MASK = [
   'linear-gradient(to bottom, transparent 0%, #000 14%, #000 76%, transparent 100%)',
 ].join(', ');
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export function PageIntro({
   step,

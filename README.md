@@ -21,9 +21,10 @@ packages/
   adapter-sep        Any SEP-compliant anchor. SEP-1/10/24/38.
   adapter-mocks      Manteca + Koywe, production-shaped, always labelled.
   stablecoin-kit     Wallet, trustlines, DEX swaps, memo-safe payments, x402.
+  identity-kit       did:stellar, onboarding attestations, router eligibility.
 
 apps/
-  hub                The demo — on-ramp, router, corridor, off-ramp, x402.
+  hub                The demo — on-ramp, router, corridor, off-ramp, x402, identity.
   sample-remit       A second app that imports the packages. Proof of reuse.
 ```
 
@@ -78,6 +79,7 @@ cannot drift from what the code does.
 | **SDF Test Anchor** | **live, always** | SEP-1 discovery, SEP-38 quotes, SEP-10 auth, SEP-38 firm quotes, SEP-24 interactive. No credentials required. |
 | **Manteca** | simulated | Production-shaped adapter. No self-service sandbox exists; onboarding is commercial. |
 | **Koywe** | simulated | Production-shaped adapter. Live in CL/MX/CO/PE, **not yet in Brazil**. |
+| **ACTA identity** | live testnet / labelled mock | `did:stellar` registered in the on-chain registry, credentials issued through ACTA. Needs `ACTA_API_KEY` and `pnpm setup:identity`; without them the whole flow still runs and every result is marked simulated. |
 
 Always real, in every mode: Stellar accounts, trustlines, balances, DEX order
 books, path payments, transaction signing and submission.
@@ -103,6 +105,35 @@ flowchart LR
 3. **Send** — one Stellar payment, memo validated against the 28-byte limit.
 4. **Payout** — the router prices MXN across every anchor that serves Mexico.
 5. **Off-ramp** — sign the return transaction, receive BRL by PIX.
+6. **Identity** — mint a `did:stellar`, get attested per anchor, and watch the
+   router mark which of those prices you can actually execute.
+
+## One identity, many anchors
+
+The router unifies prices. It could not unify identity: onboarding is per
+anchor, so it returned quotes the user could not take and they found out from a
+failed payment. Pass a DID and every quote says whether it is executable.
+
+```bash
+curl "localhost:3000/api/quotes?sell=iso4217:BRL&amount=500&country=BR&did=did:stellar:testnet:…"
+```
+
+```jsonc
+{
+  "quotes": [
+    { "anchorId": "etherfuse",  "eligibility": { "status": "eligible", "vcId": "att-etherfuse-…" } },
+    { "anchorId": "testanchor", "eligibility": { "status": "not-required" } }
+  ]
+}
+```
+
+**This is not portable KYC** — no anchor accepts another's checks, because the
+obligation is per institution. What it removes is the guesswork. The limit is
+stated on the page, and it travels inside the credential itself. Details in
+[docs/identity.md](./docs/identity.md).
+
+Optional in the strict sense: `@brk/ramp-router` does not import identity, and a
+request without `did` returns exactly what it returned before.
 
 ## Architecture
 
@@ -187,6 +218,7 @@ Everything is optional. See [`.env.example`](./.env.example).
 | `SEP_ANCHOR_HOME_DOMAIN` | `testanchor.stellar.org` | Any SEP-compliant anchor |
 | `SWAP_MODE` | `simulated` | `dex` prefers real order books, falls back automatically |
 | `X402_PAY_TO` | issuer (burns) | Where x402 payments are collected |
+| `IDENTITY_MODE` | `mock` | Needs `ACTA_API_KEY` + `pnpm setup:identity` to go live |
 
 ## Going live with Etherfuse
 
@@ -212,6 +244,7 @@ environment variables to set.
 | [docs/architecture.md](./docs/architecture.md) | Why the kit is shaped this way |
 | [docs/anchors.md](./docs/anchors.md) | Every anchor, what is real, how to add one |
 | [docs/protocols.md](./docs/protocols.md) | SEP-1/10/24/38 and x402 as implemented here |
+| [docs/identity.md](./docs/identity.md) | did:stellar, attestations, router eligibility — and what they are not |
 | [docs/gotchas.md](./docs/gotchas.md) | The traps, and where each is handled |
 | [docs/deployment.md](./docs/deployment.md) | Deploying the hub |
 | [docs/contributing.md](./docs/contributing.md) | Local setup, tests, commit style |

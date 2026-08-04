@@ -12,6 +12,7 @@
  *   3. runs a full PIX on-ramp lifecycle
  *   4. prices a DEX swap against the live testnet order books
  *   5. checks a memo the way an anchor would
+ *   6. mints a DID and marks which of those anchors it can execute against
  *
  * If this file compiles and runs, the packages are genuinely reusable rather
  * than "extracted from an app but still married to it".
@@ -30,6 +31,7 @@ import { createEtherfuseAdapter } from '@brk/adapter-etherfuse';
 import { createSepAdapter, createSepFeeAdapter } from '@brk/adapter-sep';
 import { createRampRouter } from '@brk/ramp-router';
 import { quoteSwap } from '@brk/stablecoin-kit';
+import { annotateEligibility, createIdentityApi, issueAttestation } from '@brk/identity-kit';
 
 /** Any funded testnet account works; nothing here spends from it. */
 const DEMO_ACCOUNT = 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4';
@@ -170,10 +172,63 @@ async function main() {
     );
   }
 
+  // ── 6. Identity ────────────────────────────────────────────────────────────
+  //
+  // The router says who is cheapest. It cannot say whether you can take that
+  // price, because onboarding is per anchor — so the answer differs per row and
+  // a user who does not know it finds out from a failed payment.
+  //
+  // Mock mode throughout: no ACTA key, no network, nothing on-chain. What it
+  // proves is that the annotation is a package, not something welded into the
+  // hub — this file could not import hub code even if it wanted to.
+  heading('6 · Which of those quotes can you actually take?');
+
+  const identity = createIdentityApi({ mode: 'mock' });
+  const issuer = 'GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4';
+
+  const registration = await identity.prepareDidRegistration(DEMO_ACCOUNT);
+  await identity.submitDidTx(registration.xdr);
+  const did = registration.did!;
+  console.log(`  did      ${cyan(did)} ${dim('(simulated)')}`);
+
+  // Attested for Etherfuse only, so the difference between the two anchors is
+  // visible rather than asserted.
+  const attestation = await issueAttestation(identity, {
+    subjectDid: did,
+    anchorId: 'etherfuse',
+    anchorName: 'Etherfuse',
+    issuer: { publicKey: issuer, did: 'did:stellar:testnet:aaaaaaaaaaaaaaaaaaaaaaaaaa' },
+    signXdr: async (prepared) => prepared.xdr,
+  });
+  console.log(`  credential ${dim(attestation.vcId)}`);
+
+  const annotated = await annotateEligibility(
+    adapters.map((a) => ({ anchorId: a.capabilities().id, name: a.capabilities().name })),
+    {
+      api: identity,
+      issuerPublicKey: issuer,
+      did,
+      anchors: adapters.map((a) => ({
+        anchorId: a.capabilities().id,
+        // An anchor that cannot take an order has nothing to gate on onboarding.
+        requiresOnboarding: a.capabilities().features.orders,
+      })),
+    },
+  );
+
+  console.log('');
+  for (const row of annotated) {
+    const status = row.eligibility.status;
+    const verdict = pad(status, 18);
+    console.log(
+      `  ${status === 'eligible' ? green(verdict) : status === 'needs-onboarding' ? amber(verdict) : dim(verdict)} ${row.name}`,
+    );
+  }
+
   console.log(
     `\n${bold('Every line above came from the published packages.')} ${dim('No hub code was imported.')}\n` +
       `${dim('  @brk/ramp-core · @brk/ramp-router · @brk/adapter-etherfuse')}\n` +
-      `${dim('  @brk/adapter-sep · @brk/ramp-ui · @brk/stablecoin-kit')}\n`,
+      `${dim('  @brk/adapter-sep · @brk/ramp-ui · @brk/stablecoin-kit · @brk/identity-kit')}\n`,
   );
   console.log(dim(`  Hub demo: ${cyan('pnpm dev')}\n`));
 }

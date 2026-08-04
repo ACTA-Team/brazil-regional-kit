@@ -29,7 +29,7 @@ jobs:
       # Paths are two levels deep — packages are grouped `kit/` and `anchors/`.
       - name: Every package emits ESM and types
         run: |
-          for pkg in kit/core kit/router kit/stablecoin kit/ui anchors/etherfuse anchors/sep; do
+          for pkg in kit/core kit/router kit/stablecoin kit/ui kit/identity anchors/etherfuse anchors/sep; do
             test -f "packages/$pkg/dist/index.js"   || { echo "$pkg: missing dist/index.js"; exit 1; }
             test -f "packages/$pkg/dist/index.d.ts" || { echo "$pkg: missing dist/index.d.ts"; exit 1; }
             echo "$pkg ok"

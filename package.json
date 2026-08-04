@@ -29,6 +29,7 @@
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm audit:check",
     "demo:fund": "tsx scripts/fund-demo.ts",
     "setup:etherfuse": "tsx scripts/etherfuse-setup.ts",
+    "setup:identity": "tsx scripts/identity-setup.ts",
     "fixtures:record": "tsx scripts/record-fixtures.ts",
     "seed:liquidity": "tsx scripts/seed-liquidity.ts",
     "prepare": "husky",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@brk/adapter-etherfuse": "workspace:*",
     "@brk/adapter-sep": "workspace:*",
+    "@brk/identity-kit": "workspace:*",
     "@brk/ramp-core": "workspace:*",
     "@brk/ramp-router": "workspace:*",
     "@brk/stablecoin-kit": "workspace:*",
