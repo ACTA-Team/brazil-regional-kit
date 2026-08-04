@@ -7,6 +7,7 @@
 
 export * from './assets/assets';
 export * from './errors/errors';
+export * from './errors/classify';
 export * from './memo/memo';
 export * from './contract/mode';
 export * from './assets/money';
