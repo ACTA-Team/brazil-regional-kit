@@ -18,12 +18,12 @@ import { useI18n } from '@/client/i18n';
  */
 export const navLinks = [
   { key: 'nav.home', href: '/', step: null },
-  { key: 'nav.onramp', href: '/onramp', step: 1 },
-  { key: 'nav.router', href: '/router', step: 2 },
-  { key: 'nav.corridor', href: '/corridor', step: 3 },
-  { key: 'nav.offramp', href: '/offramp', step: 4 },
-  { key: 'nav.x402', href: '/x402', step: 5 },
-  { key: 'nav.identity', href: '/identity', step: 6 },
+  { key: 'nav.identity', href: '/identity', step: 1 },
+  { key: 'nav.onramp', href: '/onramp', step: 2 },
+  { key: 'nav.router', href: '/router', step: 3 },
+  { key: 'nav.corridor', href: '/corridor', step: 4 },
+  { key: 'nav.offramp', href: '/offramp', step: 5 },
+  { key: 'nav.x402', href: '/x402', step: 6 },
 ] as const;
 
 export function isActivePath(pathname: string, href: string): boolean {
