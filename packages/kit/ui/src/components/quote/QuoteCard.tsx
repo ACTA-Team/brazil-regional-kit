@@ -58,27 +58,23 @@ export function QuoteCard({
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-7 sm:gap-6">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">
-            {t('common.youSend')}
-          </p>
-          <p className="mt-1.5 truncate text-2xl font-bold tabular-nums">
+          <p className="label">{t('common.youSend')}</p>
+          <p className="figure mt-2 truncate text-[26px]">
             {displayAmount(quote.sellAmount, quote.sellAsset, locale)}
           </p>
         </div>
 
         <span
           aria-hidden="true"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-inset text-fg-subtle"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-black/40 text-verde"
         >
           <ArrowRight size={15} weight={ICON_WEIGHT} />
         </span>
 
         <div className="min-w-0 text-right">
-          <p className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">
-            {t('common.youReceive')}
-          </p>
+          <p className="label">{t('common.youReceive')}</p>
           {/* The one number the decision turns on. */}
-          <p className="mt-1.5 truncate text-2xl font-bold tabular-nums text-gold">
+          <p className="figure mt-2 truncate text-[26px] text-gold">
             {displayAmount(quote.buyAmount, quote.buyAsset, locale)}
           </p>
         </div>

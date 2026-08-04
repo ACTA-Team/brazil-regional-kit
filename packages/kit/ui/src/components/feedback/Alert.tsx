@@ -3,38 +3,43 @@
 import { Check, ICON_WEIGHT, Info, Warning, X, type Icon } from '../../internal/icons';
 
 /**
- * Feedback, in the manual's four semantic colours.
+ * Feedback, in the app's four semantic colours.
  *
- * Each tone is a tinted background behind a coloured left rail rather than a
- * saturated block: "clarity over decoration", and it keeps a success message
- * from shouting louder than the gold button next to it.
+ * Hairlines, not fills — the same rule the cards follow. Each tone is a 1px
+ * tinted border over an 8% wash and an icon in the tone's own colour; the
+ * earlier version painted a solid rail and a filled icon disc, which put more
+ * saturated colour on screen than the gold button beside it and inverted the
+ * hierarchy every time an alert appeared.
+ *
+ * `glow` is the tone's bloom, applied like the cards' — a radial that lights
+ * the left edge and dies out well before the text.
  */
 const TONES: Record<
   'error' | 'warning' | 'success' | 'info',
-  { wrap: string; rail: string; ink: string; icon: Icon }
+  { wrap: string; ink: string; glow: string; icon: Icon }
 > = {
   error: {
-    wrap: 'border-danger/35 bg-danger/8 text-[#ffb3b4]',
-    rail: 'bg-danger',
-    ink: 'text-canvas',
+    wrap: 'border-danger/35',
+    ink: 'text-danger',
+    glow: 'oklch(0.68 0.2 22 / 12%)',
     icon: X,
   },
   warning: {
-    wrap: 'border-gold/35 bg-gold/8 text-gold',
-    rail: 'bg-gold',
-    ink: 'text-gold-ink',
+    wrap: 'border-gold/35',
+    ink: 'text-gold',
+    glow: 'oklch(0.86 0.17 96 / 12%)',
     icon: Warning,
   },
   success: {
-    wrap: 'border-success/35 bg-success/8 text-[#7cd6a2]',
-    rail: 'bg-success',
-    ink: 'text-canvas',
+    wrap: 'border-verde/35',
+    ink: 'text-verde',
+    glow: 'oklch(0.72 0.17 152 / 12%)',
     icon: Check,
   },
   info: {
-    wrap: 'border-line-strong bg-white/3 text-fg-muted',
-    rail: 'bg-info',
-    ink: 'text-canvas',
+    wrap: 'border-line-strong',
+    ink: 'text-fg-subtle',
+    glow: 'rgba(255,255,255,0.05)',
     icon: Info,
   },
 };
@@ -54,15 +59,17 @@ export function Alert({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`animate-rise relative flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border py-3 pl-5 pr-4 text-sm ${style.wrap}`}
+      className={`animate-rise relative flex flex-wrap items-center gap-3.5 overflow-hidden rounded-xl border px-4 py-3.5 text-sm text-fg-muted ${style.wrap}`}
+      style={{
+        background: `radial-gradient(120% 140% at 0% 50%, ${style.glow}, transparent 62%), linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01))`,
+      }}
     >
-      <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1 ${style.rail}`} />
-      <span
+      <Glyph
         aria-hidden="true"
-        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${style.rail} ${style.ink}`}
-      >
-        <Glyph size={12} weight={ICON_WEIGHT} />
-      </span>
+        size={16}
+        weight={ICON_WEIGHT}
+        className={`shrink-0 ${style.ink}`}
+      />
       <span className="min-w-0 flex-1 leading-relaxed">{children}</span>
       {action}
     </div>

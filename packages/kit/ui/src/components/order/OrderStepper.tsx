@@ -79,11 +79,14 @@ export function OrderStepper({
             <div className="flex w-full items-center">
               <span
                 aria-hidden="true"
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[11px] font-bold transition-all duration-300 ${
+                // A rounded square in mono, matching the numbered chips the
+                // landing puts on every step card — the stepper and the cards
+                // are counting the same thing and should look like it.
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg border font-mono text-[11px] transition-all duration-300 ${
                   failed && current
                     ? 'border-danger bg-danger/20 text-danger'
                     : done
-                      ? 'border-success bg-success text-canvas'
+                      ? 'border-verde/50 bg-verde/15 text-verde'
                       : current
                         ? 'animate-halo border-gold bg-gold/12 text-gold'
                         : 'border-line-strong text-fg-subtle'
@@ -95,8 +98,8 @@ export function OrderStepper({
               {!isLast ? (
                 <span
                   aria-hidden="true"
-                  className={`relative mx-2 h-0.5 flex-1 overflow-hidden rounded-full ${
-                    done ? 'bg-success' : 'bg-line-strong'
+                  className={`relative mx-2 h-px flex-1 overflow-hidden rounded-full ${
+                    done ? 'bg-verde' : 'bg-line-strong'
                   }`}
                 >
                   {/* Work in progress, without inventing a percentage. */}
