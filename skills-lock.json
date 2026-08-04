@@ -25,6 +25,12 @@
       "skillPath": "skills/data/SKILL.md",
       "computedHash": "c5b1e884b2c6d32e932511b8d4eab0ec2f93dd951536ba538fbf6aa8baf19bec"
     },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "899b84384f74f540ea5284d9b2e9234e050998b42eacc805410b518d4226c0b3"
+    },
     "monorepo-management": {
       "source": "wshobson/agents",
       "sourceType": "github",
