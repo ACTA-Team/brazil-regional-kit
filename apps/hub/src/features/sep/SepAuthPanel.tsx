@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert } from '@brk/ramp-ui';
 import { USD, USDC } from '@brk/ramp-core';
 import { useI18n } from '@/client/i18n';
-import { Check, ICON_WEIGHT } from '@/components/icons';
+import { CaretRight, Check, ICON_WEIGHT, Lock } from '@/components/icons';
 import { useWallet } from '@/client/wallet';
 
 /**
@@ -220,168 +220,196 @@ export function SepAuthPanel() {
   };
 
   return (
-    <section className="card space-y-4 p-5">
-      <div>
-        <h2 className="font-semibold">{t('sep.title')}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-fg-muted">{t('sep.subtitle')}</p>
-      </div>
+    <section className="card p-5">
+      <h2 className="font-semibold">{t('sep.title')}</h2>
+      <p className="mt-1 max-w-2xl text-sm leading-relaxed text-fg-muted">{t('sep.claim')}</p>
 
-      {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {/*
+        Folded away by default.
 
-      <ol className="space-y-3">
-        <SepStep
-          index={1}
-          title={t('sep.step1')}
-          description={t('sep.step1Hint')}
-          done={Boolean(token)}
-        >
-          <button
-            type="button"
-            onClick={() => void authenticate()}
-            disabled={!connected || busy !== null}
-            className="btn btn-primary text-xs"
-          >
-            {busy === 'auth'
-              ? t('common.signing')
-              : token
-                ? t('sep.reauth')
-                : t('sep.authenticate')}
-          </button>
+        Three protocol steps, two of them greyed out until the first one runs,
+        is a wall of machinery at the bottom of a page whose job is comparing
+        prices. Nothing here is for the person deciding where to send money —
+        it is for the person asking whether this app really speaks the standard,
+        and that question deserves an answer on demand rather than a third of
+        the screen by default.
+      */}
+      <details className="group mt-3">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-xs text-fg-subtle transition-colors hover:text-fg">
+          <CaretRight
+            size={11}
+            weight={ICON_WEIGHT}
+            aria-hidden="true"
+            className="transition-transform group-open:rotate-90"
+          />
+          {t('sep.walk')}
+        </summary>
 
-          {claims ? (
-            <dl className="mt-3 grid gap-1 font-mono text-[11px] text-fg-muted">
-              {(['sub', 'iss', 'exp'] as const).map((key) =>
-                claims[key] !== undefined ? (
-                  <div key={key} className="flex gap-2">
-                    <dt className="text-fg-subtle">{key}</dt>
-                    <dd className="min-w-0 flex-1 truncate">
-                      {key === 'exp'
-                        ? new Date(Number(claims[key]) * 1000).toLocaleString()
-                        : String(claims[key])}
-                    </dd>
+        <div className="mt-4 space-y-4">
+          <p className="max-w-2xl text-sm leading-relaxed text-fg-muted">{t('sep.subtitle')}</p>
+
+          {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
+          {error ? <Alert tone="error">{error}</Alert> : null}
+
+          <ol className="space-y-3">
+            <SepStep
+              index={1}
+              title={t('sep.step1')}
+              description={t('sep.step1Hint')}
+              done={Boolean(token)}
+            >
+              <button
+                type="button"
+                onClick={() => void authenticate()}
+                disabled={!connected || busy !== null}
+                className="btn btn-primary text-xs"
+              >
+                {busy === 'auth'
+                  ? t('common.signing')
+                  : token
+                    ? t('sep.reauth')
+                    : t('sep.authenticate')}
+              </button>
+
+              {claims ? (
+                <dl className="mt-3 grid gap-1 font-mono text-[11px] text-fg-muted">
+                  {(['sub', 'iss', 'exp'] as const).map((key) =>
+                    claims[key] !== undefined ? (
+                      <div key={key} className="flex gap-2">
+                        <dt className="text-fg-subtle">{key}</dt>
+                        <dd className="min-w-0 flex-1 truncate">
+                          {key === 'exp'
+                            ? new Date(Number(claims[key]) * 1000).toLocaleString()
+                            : String(claims[key])}
+                        </dd>
+                      </div>
+                    ) : null,
+                  )}
+                </dl>
+              ) : null}
+            </SepStep>
+
+            <SepStep
+              index={2}
+              title={t('sep.step2')}
+              description={t('sep.step2Hint')}
+              done={Boolean(quote)}
+            >
+              <button
+                type="button"
+                onClick={() => void getFirmQuote()}
+                disabled={!token || busy !== null}
+                className="btn btn-ghost text-xs"
+              >
+                {busy === 'quote' ? t('common.loading') : t('sep.firmQuote')}
+              </button>
+              {!token ? <Locked label={t('sep.needsToken')} /> : null}
+
+              {quote ? (
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                  <Field label={t('common.youSend')} value={`${quote.sell_amount} USDC`} />
+                  <Field label={t('common.youReceive')} value={`$${quote.buy_amount}`} accent />
+                  <Field label={t('common.fee')} value={quote.fee.total} />
+                  <Field
+                    label={t('sep.expiresAt')}
+                    value={new Date(quote.expires_at).toLocaleTimeString()}
+                  />
+                  <div className="col-span-2 sm:col-span-4">
+                    <span className="text-xs uppercase tracking-wide text-fg-subtle">
+                      {t('sep.quoteId')}
+                    </span>
+                    <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
+                      {quote.id}
+                    </p>
                   </div>
-                ) : null,
-              )}
-            </dl>
-          ) : null}
-        </SepStep>
+                </dl>
+              ) : null}
+            </SepStep>
 
-        <SepStep
-          index={2}
-          title={t('sep.step2')}
-          description={t('sep.step2Hint')}
-          done={Boolean(quote)}
-        >
-          <button
-            type="button"
-            onClick={() => void getFirmQuote()}
-            disabled={!token || busy !== null}
-            className="btn btn-ghost text-xs"
-          >
-            {busy === 'quote' ? t('common.loading') : t('sep.firmQuote')}
-          </button>
+            <SepStep
+              index={3}
+              title={t('sep.step3')}
+              description={t('sep.step3Hint')}
+              done={Boolean(session)}
+            >
+              <button
+                type="button"
+                onClick={() => void openInteractive()}
+                disabled={!token || busy !== null}
+                className="btn btn-outline btn-sm"
+              >
+                {busy === 'interactive' ? t('common.loading') : t('sep.openInteractive')}
+              </button>
+              {!token ? <Locked label={t('sep.needsToken')} /> : null}
 
-          {quote ? (
-            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <Field label={t('common.youSend')} value={`${quote.sell_amount} USDC`} />
-              <Field label={t('common.youReceive')} value={`$${quote.buy_amount}`} accent />
-              <Field label={t('common.fee')} value={quote.fee.total} />
-              <Field
-                label={t('sep.expiresAt')}
-                value={new Date(quote.expires_at).toLocaleTimeString()}
-              />
-              <div className="col-span-2 sm:col-span-4">
-                <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                  {t('sep.quoteId')}
-                </span>
-                <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">{quote.id}</p>
-              </div>
-            </dl>
-          ) : null}
-        </SepStep>
-
-        <SepStep
-          index={3}
-          title={t('sep.step3')}
-          description={t('sep.step3Hint')}
-          done={Boolean(session)}
-        >
-          <button
-            type="button"
-            onClick={() => void openInteractive()}
-            disabled={!token || busy !== null}
-            className="btn btn-outline btn-sm"
-          >
-            {busy === 'interactive' ? t('common.loading') : t('sep.openInteractive')}
-          </button>
-
-          {/*
+              {/*
             The anchor owns the popup and the SDF reference anchor opens it on a
             blank status screen. Rather than leave that looking like a failure,
             the app states what it knows for itself: the transaction exists, the
             anchor answers for it, and this is its status right now.
           */}
-          {session ? (
-            <div className="mt-4 space-y-3 border-t border-line pt-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-success">
-                <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
-                {t('sep.sessionOpen')}
-              </p>
-
-              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                <Field label={t('sep.kind')} value={session.kind ?? '…'} />
-                <div title={session.status}>
-                  <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                    {t('common.status')}
-                  </span>
-                  <p className="mt-0.5 font-medium">
-                    {session.status
-                      ? (STATUS_KEY[session.status] ?? '') !== ''
-                        ? t(STATUS_KEY[session.status]!)
-                        : session.status
-                      : '…'}
+              {session ? (
+                <div className="mt-4 space-y-3 border-t border-line pt-4">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-success">
+                    <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
+                    {t('sep.sessionOpen')}
                   </p>
-                </div>
-                <Field label={t('sep.anchorLabel')} value="testanchor.stellar.org" />
-                <div className="col-span-2 sm:col-span-3">
-                  <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                    {t('sep.transactionId')}
-                  </span>
-                  <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
-                    {session.id}
-                  </p>
-                </div>
-              </dl>
 
-              <p className="text-xs leading-relaxed text-fg-muted">{t('sep.sessionHint')}</p>
+                  <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                    <Field label={t('sep.kind')} value={session.kind ?? '…'} />
+                    <div title={session.status}>
+                      <span className="text-xs uppercase tracking-wide text-fg-subtle">
+                        {t('common.status')}
+                      </span>
+                      <p className="mt-0.5 font-medium">
+                        {session.status
+                          ? (STATUS_KEY[session.status] ?? '') !== ''
+                            ? t(STATUS_KEY[session.status]!)
+                            : session.status
+                          : '…'}
+                      </p>
+                    </div>
+                    <Field label={t('sep.anchorLabel')} value="testanchor.stellar.org" />
+                    <div className="col-span-2 sm:col-span-3">
+                      <span className="text-xs uppercase tracking-wide text-fg-subtle">
+                        {t('sep.transactionId')}
+                      </span>
+                      <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
+                        {session.id}
+                      </p>
+                    </div>
+                  </dl>
 
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {session.url ? (
-                  <a
-                    href={session.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-link text-xs"
-                  >
-                    {t('sep.openWindow')}
-                  </a>
-                ) : null}
-                {session.moreInfoUrl ? (
-                  <a
-                    href={session.moreInfoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-link text-xs"
-                  >
-                    {t('sep.viewOnAnchor')}
-                  </a>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </SepStep>
-      </ol>
+                  <p className="text-xs leading-relaxed text-fg-muted">{t('sep.sessionHint')}</p>
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {session.url ? (
+                      <a
+                        href={session.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-link text-xs"
+                      >
+                        {t('sep.openWindow')}
+                      </a>
+                    ) : null}
+                    {session.moreInfoUrl ? (
+                      <a
+                        href={session.moreInfoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-link text-xs"
+                      >
+                        {t('sep.viewOnAnchor')}
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            </SepStep>
+          </ol>
+        </div>
+      </details>
     </section>
   );
 }
@@ -415,6 +443,23 @@ function SepStep({
         <div className="mt-3">{children}</div>
       </div>
     </li>
+  );
+}
+
+/**
+ * Why a button is dead.
+ *
+ * Steps 2 and 3 need the JWT that step 1 issues, so before authenticating they
+ * are correctly disabled — and a disabled button with no explanation is
+ * indistinguishable from a broken one. Saying what unlocks it costs one line
+ * and turns "this doesn't work" into "do the step above first".
+ */
+function Locked({ label }: { label: string }) {
+  return (
+    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-fg-subtle">
+      <Lock size={11} weight={ICON_WEIGHT} aria-hidden="true" />
+      {label}
+    </p>
   );
 }
 
