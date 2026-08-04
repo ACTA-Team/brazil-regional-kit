@@ -207,7 +207,7 @@
   "offramp.roundTripDone": "Ida e volta concluída",
   "router.oneCall": "Isso foi uma única requisição. O kit perguntou a {count} âncoras ao mesmo tempo, traduziu cada resposta para o mesmo formato e ordenou pelo que você realmente recebe.",
   "router.showRequest": "Mostrar a requisição",
-  "sep.sessionHint": "Aquela janela é da âncora, então pode parecer vazia no início: uma transação nova é mesmo incomplete e sem valores até você terminar o formulário dela. Aqui está o que a âncora diz sobre ela, atualizado ao vivo.",
+  "sep.sessionHint": "Aquela janela pertence à âncora. A âncora de referência da SDF abre ali uma tela de status em vez de um formulário, então fica em branco até o fluxo dela andar; uma âncora de produção mostra suas telas de KYC e pagamento no mesmo lugar. O que importa é que a sessão é real, e este é o registro da própria âncora, atualizado ao vivo.",
   "sep.kind": "Tipo",
   "sep.transactionId": "Id da transação",
   "sep.viewOnAnchor": "Ver na âncora"

@@ -207,7 +207,7 @@
   "offramp.roundTripDone": "Round trip complete",
   "router.oneCall": "That was one request. The kit asked {count} anchors at the same time, translated every answer into the same shape, and ranked them by what you actually receive.",
   "router.showRequest": "Show the request",
-  "sep.sessionHint": "The anchor owns that window, so it may look empty at first: a new transaction really is incomplete with no amounts until you finish the anchor form. Here is what the anchor says about it, refreshed live.",
+  "sep.sessionHint": "That window belongs to the anchor. The SDF reference anchor opens a status view there rather than a form, so it stays blank until its own flow moves; a production anchor renders its KYC and payment screens in the same place. What matters is that the session is real, and this is the anchor’s own record of it, refreshed live.",
   "sep.kind": "Kind",
   "sep.transactionId": "Transaction id",
   "sep.viewOnAnchor": "View on the anchor"
