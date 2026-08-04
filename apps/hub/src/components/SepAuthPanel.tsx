@@ -24,6 +24,8 @@ interface Sep24Session {
   amountIn?: string | null;
   amountOut?: string | null;
   moreInfoUrl?: string | null;
+  /** The interactive window, offered rather than forced open. */
+  url?: string;
 }
 
 interface FirmQuote {
@@ -81,7 +83,7 @@ export function SepAuthPanel() {
           body: JSON.stringify({ jwt: token, id }),
         });
         const payload = (await res.json()) as Sep24Session & { error?: unknown };
-        if (payload.id) setSession(payload);
+        if (payload.id) setSession((prev) => ({ ...payload, url: prev?.url ?? payload.url }));
       } catch {
         // A failed poll is not news worth interrupting the user with; the next
         // tick tries again and the last known status stays on screen.
@@ -185,8 +187,7 @@ export function SepAuthPanel() {
       };
       if (!payload.url) throw new Error(payload.error?.message ?? 'No interactive URL returned.');
 
-      window.open(payload.url, 'sep24', 'width=480,height=760');
-      if (payload.id) setSession({ id: payload.id });
+      if (payload.id) setSession({ id: payload.id, url: payload.url });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -299,14 +300,16 @@ export function SepAuthPanel() {
           */}
           {session ? (
             <div className="mt-4 space-y-3 border-t border-line pt-4">
-              <p className="text-xs leading-relaxed text-fg-muted">{t('sep.sessionHint')}</p>
+              <p className="flex items-center gap-2 text-sm font-semibold text-success">
+                <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
+                {t('sep.sessionOpen')}
+              </p>
 
-              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                <Field label={t('common.status')} value={session.status ?? '…'} accent />
+              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <Field label={t('sep.kind')} value={session.kind ?? '…'} />
-                <Field label={t('common.youSend')} value={session.amountIn ?? '—'} />
-                <Field label={t('common.youReceive')} value={session.amountOut ?? '—'} />
-                <div className="col-span-2 sm:col-span-4">
+                <Field label={t('common.status')} value={session.status ?? '…'} />
+                <Field label={t('sep.anchorLabel')} value="testanchor.stellar.org" />
+                <div className="col-span-2 sm:col-span-3">
                   <span className="text-xs uppercase tracking-wide text-fg-subtle">
                     {t('sep.transactionId')}
                   </span>
@@ -316,16 +319,30 @@ export function SepAuthPanel() {
                 </div>
               </dl>
 
-              {session.moreInfoUrl ? (
-                <a
-                  href={session.moreInfoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-link text-xs"
-                >
-                  {t('sep.viewOnAnchor')}
-                </a>
-              ) : null}
+              <p className="text-xs leading-relaxed text-fg-muted">{t('sep.sessionHint')}</p>
+
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {session.url ? (
+                  <a
+                    href={session.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-link text-xs"
+                  >
+                    {t('sep.openWindow')}
+                  </a>
+                ) : null}
+                {session.moreInfoUrl ? (
+                  <a
+                    href={session.moreInfoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-link text-xs"
+                  >
+                    {t('sep.viewOnAnchor')}
+                  </a>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </SepStep>

@@ -110,11 +110,11 @@
   "sep.step2": "SEP-38: firm quote",
   "sep.step2Hint": "With the token, the anchor reserves a real quote with an id and an expiry, instead of an indicative price that can move under you.",
   "sep.step3": "SEP-24: interactive flow",
-  "sep.step3Hint": "The anchor hands back a URL and owns the KYC and payment UI inside it. Works identically against every SEP-24 anchor.",
+  "sep.step3Hint": "The anchor hands back a URL and owns the KYC and payment interface inside it. This works the same against any SEP-24 anchor.",
   "sep.authenticate": "Authenticate with your wallet",
   "sep.reauth": "Re-authenticate",
   "sep.firmQuote": "Reserve a firm quote",
-  "sep.openInteractive": "Open the anchor's flow",
+  "sep.openInteractive": "Start a SEP-24 session",
   "sep.expiresAt": "Expires",
   "sep.quoteId": "Reserved quote id",
   "corridor.title": "São Paulo to Mexico",
@@ -207,8 +207,11 @@
   "offramp.roundTripDone": "Round trip complete",
   "router.oneCall": "That was one request. The kit asked {count} anchors at the same time, translated every answer into the same shape, and ranked them by what you actually receive.",
   "router.showRequest": "Show the request",
-  "sep.sessionHint": "That window belongs to the anchor. The SDF reference anchor opens a status view there rather than a form, so it stays blank until its own flow moves; a production anchor renders its KYC and payment screens in the same place. What matters is that the session is real, and this is the anchor’s own record of it, refreshed live.",
+  "sep.sessionHint": "From here the anchor owns the experience: its window is where KYC and payment happen. The SDF reference anchor ships a status screen instead of a form, so the session stays at incomplete and the window looks empty. A production anchor renders its own screens in that exact place. What this step proves is the handshake: the session exists, and the anchor answers for its id.",
   "sep.kind": "Kind",
   "sep.transactionId": "Transaction id",
-  "sep.viewOnAnchor": "View on the anchor"
+  "sep.viewOnAnchor": "View on the anchor",
+  "sep.sessionOpen": "Interactive session open with the anchor",
+  "sep.anchorLabel": "Anchor",
+  "sep.openWindow": "Open the anchor window"
 }

@@ -114,7 +114,7 @@
   "sep.authenticate": "Autenticar com sua carteira",
   "sep.reauth": "Autenticar de novo",
   "sep.firmQuote": "Reservar cotação firme",
-  "sep.openInteractive": "Abrir o fluxo da âncora",
+  "sep.openInteractive": "Iniciar uma sessão SEP-24",
   "sep.expiresAt": "Expira",
   "sep.quoteId": "Id da cotação reservada",
   "corridor.title": "São Paulo para o México",
@@ -207,8 +207,11 @@
   "offramp.roundTripDone": "Ida e volta concluída",
   "router.oneCall": "Isso foi uma única requisição. O kit perguntou a {count} âncoras ao mesmo tempo, traduziu cada resposta para o mesmo formato e ordenou pelo que você realmente recebe.",
   "router.showRequest": "Mostrar a requisição",
-  "sep.sessionHint": "Aquela janela pertence à âncora. A âncora de referência da SDF abre ali uma tela de status em vez de um formulário, então fica em branco até o fluxo dela andar; uma âncora de produção mostra suas telas de KYC e pagamento no mesmo lugar. O que importa é que a sessão é real, e este é o registro da própria âncora, atualizado ao vivo.",
+  "sep.sessionHint": "Daqui em diante a âncora é dona da experiência: a janela dela é onde acontecem KYC e pagamento. A âncora de referência da SDF traz uma tela de status em vez de um formulário, então a sessão fica em incomplete e a janela parece vazia. Uma âncora de produção desenha as próprias telas exatamente ali. O que este passo prova é o handshake: a sessão existe e a âncora responde pelo id dela.",
   "sep.kind": "Tipo",
   "sep.transactionId": "Id da transação",
-  "sep.viewOnAnchor": "Ver na âncora"
+  "sep.viewOnAnchor": "Ver na âncora",
+  "sep.sessionOpen": "Sessão interativa aberta com a âncora",
+  "sep.anchorLabel": "Âncora",
+  "sep.openWindow": "Abrir a janela da âncora"
 }

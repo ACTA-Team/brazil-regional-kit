@@ -114,7 +114,7 @@
   "sep.authenticate": "Autenticar con tu billetera",
   "sep.reauth": "Autenticar de nuevo",
   "sep.firmQuote": "Reservar cotización firme",
-  "sep.openInteractive": "Abrir el flujo del anchor",
+  "sep.openInteractive": "Iniciar una sesión SEP-24",
   "sep.expiresAt": "Expira",
   "sep.quoteId": "Id de la cotización reservada",
   "corridor.title": "São Paulo a México",
@@ -207,8 +207,11 @@
   "offramp.roundTripDone": "Ida y vuelta completa",
   "router.oneCall": "Eso fue una sola petición. El kit le preguntó a {count} anchors al mismo tiempo, tradujo cada respuesta a un mismo formato y las ordenó por lo que realmente recibís.",
   "router.showRequest": "Mostrar la petición",
-  "sep.sessionHint": "Esa ventana es del anchor. El anchor de referencia de la SDF abre ahí una pantalla de estado en vez de un formulario, así que queda en blanco hasta que su propio flujo avance; un anchor de producción muestra sus pantallas de KYC y pago en ese mismo lugar. Lo que importa es que la sesión es real, y este es el registro del propio anchor, actualizado en vivo.",
+  "sep.sessionHint": "De acá en adelante el anchor es dueño de la experiencia: su ventana es donde ocurren el KYC y el pago. El anchor de referencia de la SDF trae una pantalla de estado en vez de un formulario, así que la sesión queda en incomplete y la ventana se ve vacía. Un anchor de producción dibuja sus propias pantallas justo ahí. Lo que este paso prueba es el handshake: la sesión existe y el anchor responde por su id.",
   "sep.kind": "Tipo",
   "sep.transactionId": "Id de la transacción",
-  "sep.viewOnAnchor": "Ver en el anchor"
+  "sep.viewOnAnchor": "Ver en el anchor",
+  "sep.sessionOpen": "Sesión interactiva abierta con el anchor",
+  "sep.anchorLabel": "Anchor",
+  "sep.openWindow": "Abrir la ventana del anchor"
 }
