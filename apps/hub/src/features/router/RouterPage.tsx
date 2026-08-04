@@ -61,8 +61,10 @@ const SCENARIOS: Scenario[] = [
     hintKey: 'router.scenario.brlHint',
     sellAsset: BRL,
     country: 'BR',
-    defaultAmount: '500',
-    presets: ['100', '250', '500', '1000'],
+    // The sandbox refuses an on-ramp over 500 whatever the currency, so no
+    // preset offers a number that comes back as an error instead of a price.
+    defaultAmount: '250',
+    presets: ['50', '100', '250', '499'],
   },
   {
     id: 'mxn',
@@ -71,9 +73,8 @@ const SCENARIOS: Scenario[] = [
     hintKey: 'router.scenario.mxnHint',
     sellAsset: MXN,
     country: 'MX',
-    defaultAmount: '400',
-    // The Etherfuse sandbox caps MXN on-ramps at 500.
-    presets: ['100', '250', '400', '500'],
+    defaultAmount: '250',
+    presets: ['100', '250', '400', '499'],
   },
   {
     id: 'usdc',
