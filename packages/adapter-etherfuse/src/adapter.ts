@@ -17,6 +17,7 @@ import {
   USDC,
   stellarAsset,
   applyBps,
+  multiply,
   isFiat,
   isNative,
   parseAsset,
@@ -500,7 +501,17 @@ export class EtherfuseAdapter implements RampAdapter {
       sellAsset: req?.sellAsset ?? (resolvedDirection === 'onramp' ? BRL : TESOURO),
       buyAsset: req?.buyAsset ?? (resolvedDirection === 'onramp' ? TESOURO : BRL),
       sellAmount: resolvedDirection === 'onramp' ? fiatAmount : (raw.sourceAmount ?? fiatAmount),
-      buyAmount: raw.destinationAmount ?? '0',
+      /*
+       * Only the create response carries destinationAmount; the fetched order
+       * does not. Without this, every poll overwrote the delivered amount with
+       * zero — and the success banner announced "0 TESOURO" while the wallet
+       * showed the real balance. exchangeRate is post-fee destination-per-source,
+       * so the product is exactly what the anchor delivers.
+       */
+      buyAmount:
+        raw.destinationAmount ??
+        deriveBuyAmount(resolvedDirection, fiatAmount, raw.exchangeRate) ??
+        '0',
 
       paymentInstructions: pixCode
         ? {
@@ -542,6 +553,19 @@ export class EtherfuseAdapter implements RampAdapter {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function deriveBuyAmount(
+  direction: RampDirection,
+  fiatAmount: string,
+  exchangeRate?: string,
+): string | undefined {
+  if (direction !== 'onramp' || !exchangeRate || fiatAmount === '0') return undefined;
+  try {
+    return multiply(fiatAmount, exchangeRate);
+  } catch {
+    return undefined;
+  }
+}
 
 function safeDivide(a: string, b: string): string {
   try {
