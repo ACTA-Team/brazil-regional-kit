@@ -654,3 +654,60 @@ describe('an order response with no amounts on it', () => {
     expect(order.buyAmount).not.toBe('0');
   });
 });
+
+describe('when the second amount is taken too', () => {
+  /**
+   * Cents are picked at random from ninety-nine lanes, so about one attempt in
+   * a hundred collides again — and the moment that matters is exactly when
+   * several people are pressing the same preset at once. Retrying a bounded
+   * number of times is the difference between "works" and "usually works".
+   */
+  const A = 'GA5UUGFVQDOJLXZX4QH3MRX5I2M5M2CX4CUHV7XQXJX3A2EEFGSBMT3N';
+
+  it('keeps looking for a free amount, then gives up honestly', async () => {
+    const backing = adapter();
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+
+    /** Refuses the first `refusals` orders, whatever the amount. */
+    const stubborn = (refusals: number) => {
+      let seen = 0;
+      return createEtherfuseAdapter({
+        mode: 'mock',
+        customerId: 'cus_test',
+        bankAccountId: 'bank_test',
+        api: {
+          ...inner,
+          mode: inner.mode,
+          quote: (r: import('../api/api').EtherfuseQuoteRequest) => inner.quote(r),
+          getOrder: (id: string) => inner.getOrder(id),
+          createOrder: async (r: import('../api/api').EtherfuseOrderRequest) => {
+            if (seen++ < refusals) {
+              const { RampError } = await import('@brk/ramp-core');
+              throw new RampError({
+                code: 'INVALID_ORDER_STATE',
+                anchorId: 'etherfuse',
+                message: 'A pending onramp order already exists for this bank account and amount',
+                status: 409,
+              });
+            }
+            return inner.createOrder(r);
+          },
+        } as import('../api/api').EtherfuseApi,
+      });
+    };
+
+    const ask = { sellAsset: BRL, buyAsset: TESOURO, sellAmount: '500', account: A } as const;
+
+    // Three collisions in a row still lands an order on the fourth attempt.
+    const lucky = stubborn(3);
+    const order = await lucky.createOrder({ quoteId: (await lucky.getQuote(ask)).id, account: A });
+    expect(order.id).toBeTruthy();
+    expect(order.status).not.toBe('failed');
+
+    // But it does not retry forever — a genuinely exhausted anchor still says so.
+    const hopeless = stubborn(Number.MAX_SAFE_INTEGER);
+    await expect(
+      hopeless.createOrder({ quoteId: (await hopeless.getQuote(ask)).id, account: A }),
+    ).rejects.toThrow(/pending onramp order/i);
+  });
+});

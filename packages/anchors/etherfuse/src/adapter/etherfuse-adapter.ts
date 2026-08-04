@@ -55,6 +55,9 @@ export const ETHERFUSE_NAME = 'Etherfuse';
  */
 const QUOTE_PROBE_ACCOUNT = TESOURO_ISSUER_TESTNET;
 
+/** How many free amounts to look for when the requested one is taken. */
+const REPRICE_ATTEMPTS = 3;
+
 // ── Asset translation ─────────────────────────────────────────────────────────
 
 /** `iso4217:BRL` → `BRL`; `stellar:TESOURO:GC3C…` → `TESOURO:GC3C…`. */
@@ -387,6 +390,30 @@ export class EtherfuseAdapter implements RampAdapter {
     const ctx = this.context.get(req.quoteId);
     const orderId = req.orderId ?? crypto.randomUUID();
 
+    let raw: EtherfuseOrderResponse;
+    try {
+      raw = await this.place(req, orderId);
+    } catch (e) {
+      if (!isDuplicatePendingOrder(e)) throw toRampError(e, ETHERFUSE_ID);
+      return this.reprice(req, ctx, e);
+    }
+
+    if (ctx) this.context.set(raw.orderId ?? orderId, ctx);
+    return this.toOrder(raw, ctx);
+  }
+
+  /**
+   * One order attempt, including the wallet registration it might need.
+   *
+   * Kept separate from `createOrder` so that re-pricing can place an order
+   * without re-entering the re-pricing logic — an earlier version recursed
+   * through `createOrder` and turned three retries into three to the power of
+   * however deep it went.
+   *
+   * Errors leave here unwrapped: the callers decide what is worth retrying, and
+   * that decision reads the anchor's own message.
+   */
+  private async place(req: CreateOrderRequest, orderId: string): Promise<EtherfuseOrderResponse> {
     const payload = {
       orderId,
       bankAccountId: req.bankAccountId ?? this.config.bankAccountId ?? '',
@@ -394,12 +421,10 @@ export class EtherfuseAdapter implements RampAdapter {
       quoteId: req.quoteId,
     };
 
-    let raw: EtherfuseOrderResponse;
     try {
-      raw = await this.api.createOrder(payload);
+      return await this.api.createOrder(payload);
     } catch (e) {
-      if (isDuplicatePendingOrder(e)) return this.reprice(req, ctx, e);
-      if (!isUnauthorizedWallet(e)) throw toRampError(e, ETHERFUSE_ID);
+      if (!isUnauthorizedWallet(e)) throw e;
 
       /*
        * Etherfuse authorises wallets per customer, not per API key. Any visitor
@@ -418,19 +443,11 @@ export class EtherfuseAdapter implements RampAdapter {
       } catch {
         // A failure to self-register is not something the person staring at the
         // screen can act on. The anchor's refusal is, so that is what surfaces.
-        throw toRampError(e, ETHERFUSE_ID);
+        throw e;
       }
 
-      try {
-        raw = await this.api.createOrder(payload);
-      } catch (retry) {
-        if (!isDuplicatePendingOrder(retry)) throw toRampError(retry, ETHERFUSE_ID);
-        return this.reprice(req, ctx, retry);
-      }
+      return await this.api.createOrder(payload);
     }
-
-    if (ctx) this.context.set(raw.orderId ?? orderId, ctx);
-    return this.toOrder(raw, ctx);
   }
 
   /**
@@ -456,17 +473,34 @@ export class EtherfuseAdapter implements RampAdapter {
     // guessing the amount would be worse than reporting the refusal.
     if (!ctx?.req.sellAmount) throw toRampError(original, ETHERFUSE_ID);
 
-    const nudged = nudgeAmount(ctx.req.sellAmount);
-    try {
-      const quote = await this.getQuote({ ...ctx.req, sellAmount: nudged });
-      return await this.createOrder({ ...req, quoteId: quote.id, orderId: crypto.randomUUID() });
-    } catch (e) {
-      // If the second amount is also refused, say so with the anchor's first
-      // and clearest complaint rather than a confusing one about a number the
-      // user never typed.
-      if (isDuplicatePendingOrder(e)) throw toRampError(original, ETHERFUSE_ID);
-      throw toRampError(e, ETHERFUSE_ID);
+    /*
+     * Ninety-nine lanes and a random pick means roughly one in a hundred
+     * attempts lands on a taken one anyway. That is small until several people
+     * are trying the same preset at once, which is precisely when this code
+     * runs. Three tries takes the odds of a visible failure to about one in a
+     * million and costs nothing when the first one works.
+     */
+    let lastError = original;
+    for (let attempt = 0; attempt < REPRICE_ATTEMPTS; attempt++) {
+      const nudged = nudgeAmount(ctx.req.sellAmount);
+      const orderId = crypto.randomUUID();
+      try {
+        const quote = await this.getQuote({ ...ctx.req, sellAmount: nudged });
+        const next = this.context.get(quote.id);
+        const raw = await this.place({ ...req, quoteId: quote.id }, orderId);
+        if (next) this.context.set(raw.orderId ?? orderId, next);
+        return this.toOrder(raw, next);
+      } catch (e) {
+        // Anything other than another taken amount is a real failure and must
+        // not be retried behind the user's back.
+        if (!isDuplicatePendingOrder(e)) throw toRampError(e, ETHERFUSE_ID);
+        lastError = e;
+      }
     }
+
+    // Report the anchor's own complaint rather than one about a number the user
+    // never typed.
+    throw toRampError(lastError, ETHERFUSE_ID);
   }
 
   /**
