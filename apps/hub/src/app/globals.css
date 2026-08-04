@@ -173,6 +173,18 @@
   }
 }
 
+/* Value travelling along the corridor. A dash offset rather than a moving
+   element, so the line is one path the whole way and the motion reads as flow
+   through it rather than as a dot sliding over it. */
+@keyframes flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -240;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;

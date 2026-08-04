@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { ArrowRight, ICON_WEIGHT } from '@/components/icons';
 
 /**
@@ -20,21 +21,30 @@ import { ArrowRight, ICON_WEIGHT } from '@/components/icons';
  */
 
 /**
- * Halftone plates, one per step. The corridor and hero own the other two.
+ * Halftone plates, one per step. The hero and the corridor band own their own.
  *
- * `position` is the crop, and it is per plate rather than shared because the
- * subjects are not framed alike. Both source images are tall portraits being
- * cropped into a short landscape band, so the vertical anchor decides what
- * survives: the Cristo's head and outstretched arms sit in the top fifth of
- * its frame and get cut off at anything near centre, while Pão de Açúcar's
- * peak sits closer to the middle of its own.
+ * `position` is the vertical crop, and it is per plate because the band turns a
+ * tall portrait into a short landscape strip — the anchor is the ONLY thing
+ * deciding what survives. These values are measured rather than guessed: the
+ * ink in each plate was profiled by row, and the anchor put on the band that
+ * actually holds the subject.
+ *
+ *   pao-*          peak and ridge carry 40% of the ink across 30-50%
+ *   cristo-tall    the widest row — the outstretched arms — sits at 38%
+ *   cristo-square  a different framing entirely; the figure sits at 10-40%
+ *                  and the widest row down at 91% is the city, not the statue
+ *
+ * Names say subject and density so a page reads as what it shows. Density
+ * matters because the -v2/-v3 pairs are nested subsets of the same dot field,
+ * not different treatments: the lighter one is the heavier one with dots
+ * removed.
  */
 const PLATES = {
-  'cristo-a': { src: '/landmarks/cristo-dots.png', position: '50% 14%' },
-  'cristo-b': { src: '/landmarks/cristo-dots-v2.png', position: '50% 14%' },
-  'cristo-c': { src: '/landmarks/cristo-dots-v3.png', position: '50% 14%' },
-  'pao-a': { src: '/landmarks/pao-dots.png', position: '50% 38%' },
-  'pao-b': { src: '/landmarks/pao-dots-v2.png', position: '50% 38%' },
+  'pao-dense': { src: '/landmarks/pao-dots.png', position: '50% 38%' },
+  'pao-light': { src: '/landmarks/pao-dots-v2.png', position: '50% 38%' },
+  'cristo-dense': { src: '/landmarks/cristo-dots-v2.png', position: '50% 30%' },
+  'cristo-light': { src: '/landmarks/cristo-dots-v3.png', position: '50% 30%' },
+  'cristo-square': { src: '/landmarks/cristo-dots.png', position: '50% 22%' },
 } as const;
 
 /** The three masks the corridor band uses, intersected: no edges, only falloff. */
@@ -51,7 +61,7 @@ export function PageIntro({
   title,
   subtitle,
   route,
-  plate = 'cristo-a',
+  plate = 'pao-dense',
 }: {
   step?: number;
   title: string;
@@ -61,13 +71,55 @@ export function PageIntro({
   /** Which halftone plate sits behind this page. */
   plate?: keyof typeof PLATES;
 }) {
+  const plateRef = useRef<HTMLImageElement>(null);
+
+  /**
+   * Parallax: the plate scrolls slower than the copy over it, so the band reads
+   * as having depth instead of being a flat picture that leaves with the page.
+   *
+   * Written straight to the element rather than through state — this fires on
+   * every scroll frame, and re-rendering the whole header to change one
+   * transform is work with nothing to show for it. The listener is passive, so
+   * it cannot block the scroll it is reacting to.
+   */
+  useEffect(() => {
+    const el = plateRef.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const apply = () => {
+      const band = el.parentElement?.parentElement;
+      if (!band) return;
+      const rect = band.getBoundingClientRect();
+      // 0 when the band's top is at the viewport top, growing as it leaves.
+      const travelled = -rect.top / window.innerHeight;
+      el.style.transform = `translate3d(0, ${travelled * 56}px, 0) scale(1.12)`;
+    };
+
+    apply();
+    window.addEventListener('scroll', apply, { passive: true });
+    window.addEventListener('resize', apply);
+    return () => {
+      window.removeEventListener('scroll', apply);
+      window.removeEventListener('resize', apply);
+    };
+  }, []);
+
   return (
     // A floor on the height, not just padding: pages differ by a route row and
     // a line of subtitle, and without it the band — and so the plate's crop —
     // would be a different shape on every step.
     <section className="relative flex min-h-105 items-center overflow-hidden border-b border-line">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {/* Two nested layers so the two motions never fight over `transform`: the
+          wrapper carries the slow ambient drift, the image carries the scroll
+          parallax written by the effect above. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ animation: 'drift 38s ease-in-out infinite' }}
+      >
         <img
+          ref={plateRef}
           src={PLATES[plate].src}
           alt=""
           loading="lazy"
@@ -76,6 +128,10 @@ export function PageIntro({
           style={{
             objectPosition: PLATES[plate].position,
             opacity: 0.4,
+            // Scaled up so the parallax has somewhere to travel without
+            // dragging an edge into frame.
+            transform: 'scale(1.12)',
+            willChange: 'transform',
             maskImage: PLATE_MASK,
             WebkitMaskImage: PLATE_MASK,
             maskComposite: 'intersect',

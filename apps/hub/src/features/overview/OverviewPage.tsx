@@ -46,6 +46,50 @@ const STEPS = [
 /** Page gutter, shared by every band so their left edges line up down the page. */
 const GUTTER = 'mx-auto w-full max-w-[1560px] px-6 sm:px-10 lg:px-14';
 
+/**
+ * The connector between two corridor legs, with value visibly moving through it.
+ *
+ * A dashed stroke whose offset animates, rather than a dot travelling along a
+ * static rule: the corridor is one continuous path and it should read as one.
+ * The gradient carries the same two lights as the legs it joins, so the line
+ * says which hop it is as well as that something is moving.
+ */
+function FlowLine({ from, to }: { from: string; to: string }) {
+  const id = `flow-${from}-${to}`.replace(/[^a-z0-9-]/gi, '');
+  return (
+    <svg
+      aria-hidden="true"
+      width="32"
+      height="2"
+      viewBox="0 0 32 2"
+      className="shrink-0 overflow-visible"
+    >
+      <defs>
+        <linearGradient id={id} x1="0" x2="1">
+          <stop offset="0%" stopColor={from} />
+          <stop offset="100%" stopColor={to} />
+        </linearGradient>
+      </defs>
+      {/* The rail, always visible so the corridor never looks broken. */}
+      <line x1="0" y1="1" x2="32" y2="1" stroke={`url(#${id})`} strokeWidth="1" opacity="0.35" />
+      {/* The moving part. `flow` is the one keyframe here that animates a
+          stroke rather than a transform, which is why it can travel along a
+          path instead of across a box. */}
+      <line
+        x1="0"
+        y1="1"
+        x2="32"
+        y2="1"
+        stroke={`url(#${id})`}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeDasharray="6 26"
+        style={{ animation: 'flow 2.4s linear infinite' }}
+      />
+    </svg>
+  );
+}
+
 export function OverviewPage() {
   const { t } = useI18n();
 
@@ -236,23 +280,11 @@ export function OverviewPage() {
           <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2.5 font-mono text-xs text-fg-muted">
             <span className="flex items-center gap-3.5">
               <span className="chip chip-neutral">BRL</span>
-              <span
-                aria-hidden="true"
-                className="h-px w-8 shrink-0"
-                style={{
-                  background: 'linear-gradient(90deg, oklch(0.72 0.17 152), oklch(0.88 0.16 96))',
-                }}
-              />
+              <FlowLine from="oklch(0.72 0.17 152)" to="oklch(0.88 0.16 96)" />
             </span>
             <span className="flex items-center gap-3.5">
               <span className="chip chip-neutral">USDC</span>
-              <span
-                aria-hidden="true"
-                className="h-px w-8 shrink-0"
-                style={{
-                  background: 'linear-gradient(90deg, oklch(0.88 0.16 96), oklch(0.6 0.19 262))',
-                }}
-              />
+              <FlowLine from="oklch(0.88 0.16 96)" to="oklch(0.6 0.19 262)" />
             </span>
             <span className="chip chip-neutral">ARS · COP · MXN</span>
           </div>
