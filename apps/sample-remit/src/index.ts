@@ -27,8 +27,7 @@ import {
   type RampAdapter,
 } from '@brk/ramp-core';
 import { createEtherfuseAdapter } from '@brk/adapter-etherfuse';
-import { createKoyweAdapter, createMantecaAdapter } from '@brk/adapter-mocks';
-import { createSepAdapter } from '@brk/adapter-sep';
+import { createSepAdapter, createSepFeeAdapter } from '@brk/adapter-sep';
 import { createRampRouter } from '@brk/ramp-router';
 import { quoteSwap } from '@brk/stablecoin-kit';
 
@@ -63,13 +62,28 @@ async function main() {
     defaultCountry: 'US',
   });
 
-  // SEP anchors discover their own corridors from stellar.toml, so give it a
-  // chance to before asking the router what it can do.
-  await sep
-    .discover()
-    .catch(() => console.log(amber('  ! SEP discovery failed — continuing without it')));
+  const anclap = createSepFeeAdapter({
+    mode: 'live',
+    homeDomain: 'anclap.com',
+    id: 'anclap',
+    name: 'Anclap',
+    country: 'AR',
+    rail: 'CBU',
+  });
 
-  const adapters: RampAdapter[] = [etherfuse, sep, createMantecaAdapter(), createKoyweAdapter()];
+  // SEP anchors discover their own corridors from stellar.toml, so give both a
+  // chance to before asking the router what it can do. In parallel: one slow
+  // anchor should not decide how long the other takes.
+  await Promise.all([
+    sep
+      .discover()
+      .catch(() => console.log(amber('  ! SEP discovery failed — continuing without it'))),
+    anclap
+      .discover()
+      .catch(() => console.log(amber('  ! Anclap discovery failed — continuing without it'))),
+  ]);
+
+  const adapters: RampAdapter[] = [etherfuse, sep, anclap];
   const router = createRampRouter({ adapters });
 
   for (const caps of router.capabilities()) {
@@ -159,7 +173,7 @@ async function main() {
   console.log(
     `\n${bold('Every line above came from the published packages.')} ${dim('No hub code was imported.')}\n` +
       `${dim('  @brk/ramp-core · @brk/ramp-router · @brk/adapter-etherfuse')}\n` +
-      `${dim('  @brk/adapter-sep · @brk/adapter-mocks · @brk/stablecoin-kit')}\n`,
+      `${dim('  @brk/adapter-sep · @brk/ramp-ui · @brk/stablecoin-kit')}\n`,
   );
   console.log(dim(`  Hub demo: ${cyan('pnpm dev')}\n`));
 }

@@ -13,8 +13,7 @@ import 'server-only';
  */
 
 import { createEtherfuseAdapter, type EtherfuseAdapter } from '@brk/adapter-etherfuse';
-import { createKoyweAdapter, createMantecaAdapter } from '@brk/adapter-mocks';
-import { createSepAdapter, type SepAnchorAdapter } from '@brk/adapter-sep';
+import { createSepAdapter, createSepFeeAdapter, type SepAnchorAdapter } from '@brk/adapter-sep';
 import { createRampRouter, type RampRouter } from '@brk/ramp-router';
 import { resolveMode, type AdapterMode, type RampAdapter } from '@brk/ramp-core';
 
@@ -78,16 +77,43 @@ function build(): AnchorRegistry {
     defaultCountry: 'US',
   });
 
-  const all: RampAdapter[] = [etherfuse, sep, createMantecaAdapter(), createKoyweAdapter()];
+  /**
+   * Real regional anchors that publish a fee schedule instead of a SEP-38
+   * quote server.
+   *
+   * Probing the ecosystem found exactly one public SEP-38 endpoint, so anything
+   * beyond it would have had to be simulated. These anchors implement what they
+   * implement: an unauthenticated SEP-24 /info carrying assets, limits and
+   * fees, which is enough to quote their real terms. They settle on mainnet, so
+   * a testnet app reads genuine prices it cannot execute against, and
+   * `capabilities().network` says so rather than leaving it implied.
+   */
+  const regional = [
+    createSepFeeAdapter({
+      mode: 'live',
+      homeDomain: 'anclap.com',
+      id: 'anclap',
+      name: 'Anclap',
+      country: 'AR',
+      rail: 'CBU',
+      docsUrl: 'https://anclap.com',
+    }),
+  ];
+
+  const all: RampAdapter[] = [etherfuse, sep, ...regional];
 
   // Discovery failure is survivable: the SEP anchor simply contributes nothing
   // and the rest of the router keeps working. Never let it reject.
-  const ready = sep
-    .discover()
-    .then(() => undefined)
-    .catch((e: unknown) => {
+  const ready = Promise.all([
+    sep.discover().catch((e: unknown) => {
       console.warn('[brk] SEP discovery failed:', e instanceof Error ? e.message : e);
-    });
+    }),
+    ...regional.map((a) =>
+      a.discover().catch((e: unknown) => {
+        console.warn(`[brk] ${a.id} discovery failed:`, e instanceof Error ? e.message : e);
+      }),
+    ),
+  ]).then(() => undefined);
 
   return {
     etherfuse,

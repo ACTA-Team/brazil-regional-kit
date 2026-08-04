@@ -10,3 +10,11 @@ export * from './toml';
 export * from './sep38';
 export * from './sep10';
 export * from './adapter';
+
+export { createSepFeeAdapter, SepFeeAnchorAdapter, type SepFeeAdapterConfig } from './fee-adapter';
+export {
+  fetchFeeSchedule,
+  quoteFromSchedule,
+  type FeeSchedule,
+  type FeeScheduleEntry,
+} from './fees';

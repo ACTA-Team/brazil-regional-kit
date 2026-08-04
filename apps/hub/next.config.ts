@@ -61,7 +61,6 @@ const nextConfig: NextConfig = {
     '@brk/ramp-ui',
     '@brk/adapter-etherfuse',
     '@brk/adapter-sep',
-    '@brk/adapter-mocks',
     '@brk/ramp-router',
     '@brk/stablecoin-kit',
   ],

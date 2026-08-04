@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@brk/adapter-etherfuse": "workspace:*",
-    "@brk/adapter-mocks": "workspace:*",
     "@brk/adapter-sep": "workspace:*",
     "@brk/ramp-core": "workspace:*",
     "@brk/ramp-router": "workspace:*",

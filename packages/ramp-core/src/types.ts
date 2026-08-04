@@ -215,6 +215,12 @@ export interface AdapterCapabilities {
   id: string;
   name: string;
   mode: AdapterMode;
+  /**
+   * Which Stellar network the anchor settles on. A testnet app can read a
+   * mainnet anchor's real prices but cannot settle against it, and that
+   * difference has to reach the screen.
+   */
+  network?: 'mainnet' | 'testnet';
   countries: CountryCode[];
   corridors: SupportedCorridor[];
   features: AdapterFeatures;
