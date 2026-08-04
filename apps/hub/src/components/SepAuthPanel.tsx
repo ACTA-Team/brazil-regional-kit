@@ -28,6 +28,30 @@ interface Sep24Session {
   url?: string;
 }
 
+/**
+ * SEP-24 status codes are protocol identifiers, not sentences.
+ *
+ * `incomplete` in particular reads as a failure to anyone who has not memorised
+ * the spec, when all it means is that the anchor's own interactive flow has not
+ * run yet. Showing the raw enum as the headline was making a working handshake
+ * look broken, so each state is spelled out and the original value stays in the
+ * title attribute for anyone checking against the spec.
+ */
+const STATUS_KEY: Record<string, string> = {
+  incomplete: 'sep.status.incomplete',
+  pending_user_transfer_start: 'sep.status.pendingUserTransfer',
+  pending_user_transfer_complete: 'sep.status.pendingAnchor',
+  pending_anchor: 'sep.status.pendingAnchor',
+  pending_stellar: 'sep.status.pendingStellar',
+  pending_external: 'sep.status.pendingExternal',
+  pending_trust: 'sep.status.pendingTrust',
+  pending_user: 'sep.status.pendingUser',
+  completed: 'sep.status.completed',
+  refunded: 'sep.status.refunded',
+  expired: 'sep.status.expired',
+  error: 'sep.status.error',
+};
+
 interface FirmQuote {
   id: string;
   price: string;
@@ -307,7 +331,18 @@ export function SepAuthPanel() {
 
               <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <Field label={t('sep.kind')} value={session.kind ?? '…'} />
-                <Field label={t('common.status')} value={session.status ?? '…'} />
+                <div title={session.status}>
+                  <span className="text-xs uppercase tracking-wide text-fg-subtle">
+                    {t('common.status')}
+                  </span>
+                  <p className="mt-0.5 font-medium">
+                    {session.status
+                      ? (STATUS_KEY[session.status] ?? '') !== ''
+                        ? t(STATUS_KEY[session.status]!)
+                        : session.status
+                      : '…'}
+                  </p>
+                </div>
                 <Field label={t('sep.anchorLabel')} value="testanchor.stellar.org" />
                 <div className="col-span-2 sm:col-span-3">
                   <span className="text-xs uppercase tracking-wide text-fg-subtle">

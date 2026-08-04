@@ -213,5 +213,16 @@
   "sep.viewOnAnchor": "Ver na âncora",
   "sep.sessionOpen": "Sessão interativa aberta com a âncora",
   "sep.anchorLabel": "Âncora",
-  "sep.openWindow": "Abrir a janela da âncora"
+  "sep.openWindow": "Abrir a janela da âncora",
+  "sep.status.incomplete": "Aguardando o fluxo da âncora",
+  "sep.status.pendingUserTransfer": "Aguardando sua transferência",
+  "sep.status.pendingAnchor": "A âncora está processando",
+  "sep.status.pendingStellar": "Liquidando on-chain",
+  "sep.status.pendingExternal": "No sistema bancário",
+  "sep.status.pendingTrust": "Aguardando uma trustline",
+  "sep.status.pendingUser": "Aguardando você",
+  "sep.status.completed": "Concluída",
+  "sep.status.refunded": "Reembolsada",
+  "sep.status.expired": "Expirada",
+  "sep.status.error": "Falhou"
 }

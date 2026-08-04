@@ -213,5 +213,16 @@
   "sep.viewOnAnchor": "Ver en el anchor",
   "sep.sessionOpen": "Sesión interactiva abierta con el anchor",
   "sep.anchorLabel": "Anchor",
-  "sep.openWindow": "Abrir la ventana del anchor"
+  "sep.openWindow": "Abrir la ventana del anchor",
+  "sep.status.incomplete": "Esperando el flujo del anchor",
+  "sep.status.pendingUserTransfer": "Esperando tu transferencia",
+  "sep.status.pendingAnchor": "El anchor está procesando",
+  "sep.status.pendingStellar": "Liquidando on-chain",
+  "sep.status.pendingExternal": "En el sistema bancario",
+  "sep.status.pendingTrust": "Esperando una trustline",
+  "sep.status.pendingUser": "Esperando tu acción",
+  "sep.status.completed": "Completada",
+  "sep.status.refunded": "Reembolsada",
+  "sep.status.expired": "Expirada",
+  "sep.status.error": "Falló"
 }
