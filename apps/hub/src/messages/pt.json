@@ -195,5 +195,8 @@
   "router.scenario.usdcHint": "Onde dá para sacar? Toda moeda de saque, toda âncora, uma chamada.",
   "router.scenario.tesouro": "TESOURO de volta a reais",
   "router.scenario.tesouroHint": "O caminho de volta: quem paga BRL, e a que taxa?",
-  "router.amountFor": "Quanto de {asset}?"
+  "router.amountFor": "Quanto de {asset}?",
+  "router.receiveGroup": "Receber {asset}",
+  "router.groupContest": "{count} âncoras competindo — a melhor paga mais",
+  "router.groupSingle": "só uma âncora atende isto"
 }

@@ -195,5 +195,8 @@
   "router.scenario.usdcHint": "Where can it cash out? Every payout currency, every anchor, one call.",
   "router.scenario.tesouro": "TESOURO back to reais",
   "router.scenario.tesouroHint": "The return leg: who pays out BRL, and at what rate?",
-  "router.amountFor": "How much {asset}?"
+  "router.amountFor": "How much {asset}?",
+  "router.receiveGroup": "Receive {asset}",
+  "router.groupContest": "{count} anchors competing — best pays the most",
+  "router.groupSingle": "only one anchor serves this"
 }

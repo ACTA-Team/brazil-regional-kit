@@ -195,5 +195,8 @@
   "router.scenario.usdcHint": "¿Dónde se puede retirar? Cada moneda de salida, cada anchor, una sola llamada.",
   "router.scenario.tesouro": "TESOURO de vuelta a reales",
   "router.scenario.tesouroHint": "El camino de vuelta: quién paga BRL, y a qué tasa.",
-  "router.amountFor": "¿Cuánto {asset}?"
+  "router.amountFor": "¿Cuánto {asset}?",
+  "router.receiveGroup": "Recibir {asset}",
+  "router.groupContest": "{count} anchors compitiendo — el mejor paga más",
+  "router.groupSingle": "solo un anchor sirve esto"
 }
