@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Alert } from '@brk/ramp-ui';
 import { PAYMENT_HEADER, buildPaymentTx, explorerTxUrl } from '@brk/stablecoin-kit';
-import { Alert } from '@/components/Alert';
 import { PageIntro } from '@/components/PageIntro';
 import { Check, ICON_WEIGHT } from '@/components/icons';
 import { NetworkBanner } from '@/components/WalletButton';

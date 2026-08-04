@@ -1,9 +1,9 @@
 'use client';
 
 import { assetCode, isFiat, parseAsset } from '@brk/ramp-core';
+import { ModeBadge } from '@brk/ramp-ui';
 import type { AnchorResult, RankedQuote } from '@brk/ramp-router';
 import { formatMoney, formatToken, useI18n } from '@/lib/i18n';
-import { ModeBadge } from './ModeBadge';
 
 export type PublicRankedQuote = Omit<RankedQuote, 'raw'>;
 

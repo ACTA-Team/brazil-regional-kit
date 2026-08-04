@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import { I18nProvider } from '@/lib/i18n';
 import { WalletProvider } from '@/lib/wallet';
 import { Header } from '@/components/header';
+import { RampUIBridge } from '@/components/RampUIBridge';
 import './globals.css';
 
 /*
@@ -42,21 +43,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="font-sans antialiased">
         <I18nProvider>
-          <WalletProvider>
-            <div className="flex min-h-dvh flex-col">
-              <Header />
-              <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
-                {children}
-              </main>
-              <footer className="border-t border-line px-4 py-8">
-                <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-fg-subtle">
-                  <span>Stellar testnet</span>
-                  <span aria-hidden="true">·</span>
-                  <span>open source, MIT</span>
-                </div>
-              </footer>
-            </div>
-          </WalletProvider>
+          <RampUIBridge>
+            <WalletProvider>
+              <div className="flex min-h-dvh flex-col">
+                <Header />
+                <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+                  {children}
+                </main>
+                <footer className="border-t border-line px-4 py-8">
+                  <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-fg-subtle">
+                    <span>Stellar testnet</span>
+                    <span aria-hidden="true">·</span>
+                    <span>open source, MIT</span>
+                  </div>
+                </footer>
+              </div>
+            </WalletProvider>
+          </RampUIBridge>
         </I18nProvider>
       </body>
     </html>

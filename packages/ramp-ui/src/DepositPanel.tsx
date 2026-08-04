@@ -1,7 +1,7 @@
 'use client';
 
 import type { PaymentInstructions } from '@brk/ramp-core';
-import { formatMoney, useI18n } from '@/lib/i18n';
+import { formatMoney, useRampUI } from './i18n';
 import { ExpiryPill } from './Countdown';
 import { PixPanel } from './PixPanel';
 
@@ -25,7 +25,7 @@ export function DepositPanel({
   onSimulate?: () => void;
   simulating?: boolean;
 }) {
-  const { t, tag } = useI18n();
+  const { t, locale } = useRampUI();
 
   if (instructions.type === 'pix') {
     return <PixPanel instructions={instructions} onSimulate={onSimulate} simulating={simulating} />;
@@ -43,7 +43,7 @@ export function DepositPanel({
         <div>
           <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('common.amount')}</dt>
           <dd className="mt-1 text-2xl font-semibold tabular-nums">
-            {formatMoney(instructions.amount, instructions.currency, tag)}
+            {formatMoney(instructions.amount, instructions.currency, locale)}
           </dd>
         </div>
         <div>

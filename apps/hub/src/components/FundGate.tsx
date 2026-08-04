@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Alert } from '@brk/ramp-ui';
 import { FRIENDBOT } from '@brk/ramp-core';
 import { useI18n } from '@/lib/i18n';
 import { useWallet } from '@/lib/wallet';
-import { Alert } from './Alert';
 
 /** A fresh Freighter account has no ledger entry until friendbot funds it. */
 export function FundGate() {

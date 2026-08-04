@@ -1,7 +1,7 @@
 'use client';
 
 import type { OrderStatus, RampDirection } from '@brk/ramp-core';
-import { useI18n } from '@/lib/i18n';
+import { useRampUI } from './i18n';
 import { Check, ICON_WEIGHT } from './icons';
 
 /**
@@ -63,7 +63,7 @@ export function OrderStepper({
   direction: RampDirection;
   status: OrderStatus;
 }) {
-  const { t } = useI18n();
+  const { t } = useRampUI();
   const failed = status === 'failed' || status === 'expired';
   const currentIndex = ORDER.indexOf(activeStep(status));
 

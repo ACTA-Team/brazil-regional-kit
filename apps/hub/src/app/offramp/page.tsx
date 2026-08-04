@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { Alert, AmountField, QuoteCard, displayAmount } from '@brk/ramp-ui';
 import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
-import { Alert } from '@/components/Alert';
-import { AmountField } from '@/components/AmountField';
 import { FundGate } from '@/components/FundGate';
 import { OrderCard } from '@/components/OrderCard';
 import { PageIntro } from '@/components/PageIntro';
-import { QuoteCard, displayAmount } from '@/components/QuoteCard';
 import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { ReturnTxPanel } from '@/components/ReturnTxPanel';
 import { NetworkBanner } from '@/components/WalletButton';

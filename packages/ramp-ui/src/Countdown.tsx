@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useI18n } from '@/lib/i18n';
+import { useRampUI } from './i18n';
 
 /**
  * Seconds remaining until `isoTimestamp`, ticking once a second.
@@ -43,7 +43,7 @@ function secondsUntil(iso?: string): number {
 const ASSUMED_WINDOW_SECONDS = 120;
 
 export function ExpiryPill({ expiresAt }: { expiresAt?: string } = {}) {
-  const { t } = useI18n();
+  const { t } = useRampUI();
   const seconds = useCountdown(expiresAt);
 
   if (!expiresAt) return null;

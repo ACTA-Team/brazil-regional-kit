@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 import { checkMemo } from '@brk/ramp-core';
-import { useI18n } from '@/lib/i18n';
+import { useRampUI } from './i18n';
 
 /**
  * Memo input with a **byte** counter, not a character counter.
@@ -22,7 +22,7 @@ export function MemoField({
   onChange: (next: string) => void;
   label?: string;
 }) {
-  const { t } = useI18n();
+  const { t } = useRampUI();
   const id = useId();
   const check = checkMemo(value);
 

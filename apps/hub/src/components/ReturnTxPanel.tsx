@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { Alert } from '@brk/ramp-ui';
 import { assetCode, compare } from '@brk/ramp-core';
 import { explorerTxUrl, resolveReturnTransaction } from '@brk/stablecoin-kit';
 import type { PublicOrder } from '@/lib/api';
 import { submitSignedTx } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useWallet } from '@/lib/wallet';
-import { Alert } from './Alert';
 
 /**
  * The off-ramp's signing step.

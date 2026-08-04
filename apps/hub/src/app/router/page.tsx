@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, AmountField } from '@brk/ramp-ui';
 import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
-import { Alert } from '@/components/Alert';
 import { PageIntro } from '@/components/PageIntro';
 import {
   ArrowUUpLeft,
@@ -14,7 +14,6 @@ import {
   Wallet,
   type Icon,
 } from '@/components/icons';
-import { AmountField } from '@/components/AmountField';
 import { QuoteTable, type PublicRankedQuote } from '@/components/QuoteTable';
 import { SepAuthPanel } from '@/components/SepAuthPanel';
 import { useI18n } from '@/lib/i18n';

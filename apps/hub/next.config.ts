@@ -58,6 +58,7 @@ const nextConfig: NextConfig = {
    */
   transpilePackages: [
     '@brk/ramp-core',
+    '@brk/ramp-ui',
     '@brk/adapter-etherfuse',
     '@brk/adapter-sep',
     '@brk/adapter-mocks',

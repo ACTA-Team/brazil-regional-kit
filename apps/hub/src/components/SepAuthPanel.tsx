@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Alert } from '@brk/ramp-ui';
 import { USD, USDC } from '@brk/ramp-core';
 import { useI18n } from '@/lib/i18n';
 import { Check, ICON_WEIGHT } from './icons';
 import { useWallet } from '@/lib/wallet';
-import { Alert } from './Alert';
 
 /**
  * What the app can say about a SEP-24 session on its own authority.

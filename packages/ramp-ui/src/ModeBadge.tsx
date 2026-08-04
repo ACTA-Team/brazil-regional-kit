@@ -1,7 +1,7 @@
 'use client';
 
 import type { AdapterMode } from '@brk/ramp-core';
-import { useI18n } from '@/lib/i18n';
+import { useRampUI } from './i18n';
 
 /**
  * The honesty badge.
@@ -25,7 +25,7 @@ export function ModeBadge({
   title?: string;
   className?: string;
 }) {
-  const { t } = useI18n();
+  const { t } = useRampUI();
   const live = mode === 'live';
 
   return (

@@ -1,16 +1,22 @@
 'use client';
 
-import { assetCode, isFiat, parseAsset } from '@brk/ramp-core';
-import type { PublicQuote } from '@/lib/api';
-import { formatMoney, formatToken, useI18n } from '@/lib/i18n';
+import { assetCode, isFiat, parseAsset, type Quote } from '@brk/ramp-core';
+import { formatMoney, formatToken, useRampUI } from './i18n';
 import { ExpiryPill, useCountdown } from './Countdown';
 import { ArrowRight, ICON_WEIGHT, Spinner } from './icons';
 import { ModeBadge } from './ModeBadge';
 
+/**
+ * A quote as it reaches a browser: everything the core type carries except the
+ * anchor's untouched payload, which is server-side detail and occasionally
+ * contains data an anchor would rather not have echoed back.
+ */
+export type PublicQuote = Omit<Quote, 'raw'>;
+
 /** Fiat gets a currency symbol; tokens get a plain number and a ticker. */
-export function displayAmount(amount: string, asset: string, tag: string): string {
+export function displayAmount(amount: string, asset: string, locale: string): string {
   const { code } = parseAsset(asset);
-  return isFiat(asset) ? formatMoney(amount, code, tag) : formatToken(amount, code, tag);
+  return isFiat(asset) ? formatMoney(amount, code, locale) : formatToken(amount, code, locale);
 }
 
 /**
@@ -36,7 +42,7 @@ export function QuoteCard({
   confirmLabel: string;
   disabled?: boolean;
 }) {
-  const { t, tag } = useI18n();
+  const { t, locale } = useRampUI();
   const secondsLeft = useCountdown(quote.expiresAt);
   const expired = secondsLeft <= 0;
 
@@ -56,7 +62,7 @@ export function QuoteCard({
             {t('common.youSend')}
           </p>
           <p className="mt-1.5 truncate text-2xl font-bold tabular-nums">
-            {displayAmount(quote.sellAmount, quote.sellAsset, tag)}
+            {displayAmount(quote.sellAmount, quote.sellAsset, locale)}
           </p>
         </div>
 
@@ -73,7 +79,7 @@ export function QuoteCard({
           </p>
           {/* The one number the decision turns on. */}
           <p className="mt-1.5 truncate text-2xl font-bold tabular-nums text-gold">
-            {displayAmount(quote.buyAmount, quote.buyAsset, tag)}
+            {displayAmount(quote.buyAmount, quote.buyAsset, locale)}
           </p>
         </div>
       </div>

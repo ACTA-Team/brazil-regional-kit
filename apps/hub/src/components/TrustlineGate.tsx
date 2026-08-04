@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Alert } from '@brk/ramp-ui';
 import { assetCode, type AssetId } from '@brk/ramp-core';
 import { buildTrustlineTx } from '@brk/stablecoin-kit';
 import { submitSignedTx } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useWallet } from '@/lib/wallet';
-import { Alert } from './Alert';
 
 /**
  * A Stellar account cannot receive an asset it has no trustline for — the

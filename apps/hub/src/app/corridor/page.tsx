@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { Alert, AmountField, MemoField, ModeBadge } from '@brk/ramp-ui';
 import { MXN, TESOURO, USDC, assetCode, checkMemo, compare } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
 import { buildPaymentTx, buildSwapTx, explorerTxUrl, type SwapQuote } from '@brk/stablecoin-kit';
-import { Alert } from '@/components/Alert';
 import { PageIntro } from '@/components/PageIntro';
 import {
   ArrowRight,
@@ -14,9 +14,6 @@ import {
   PaperPlaneTilt,
   type Icon,
 } from '@/components/icons';
-import { AmountField } from '@/components/AmountField';
-import { MemoField } from '@/components/MemoField';
-import { ModeBadge } from '@/components/ModeBadge';
 import { QuoteTable, type PublicRankedQuote } from '@/components/QuoteTable';
 import { TrustlineGate } from '@/components/TrustlineGate';
 import { NetworkBanner } from '@/components/WalletButton';

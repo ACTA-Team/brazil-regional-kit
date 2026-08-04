@@ -1,9 +1,8 @@
 'use client';
 
 import type { PublicOrder } from '@/lib/api';
+import { ModeBadge, OrderStepper } from '@brk/ramp-ui';
 import { useI18n } from '@/lib/i18n';
-import { ModeBadge } from './ModeBadge';
-import { OrderStepper } from './OrderStepper';
 
 /**
  * A live order, presented the same way on both ramps.

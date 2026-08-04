@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import type { PixInstructions } from '@brk/ramp-core';
-import { formatMoney, useI18n } from '@/lib/i18n';
+import { formatMoney, useRampUI } from './i18n';
 import { ExpiryPill } from './Countdown';
 
 /**
@@ -23,7 +23,7 @@ export function PixPanel({
   onSimulate?: () => void;
   simulating?: boolean;
 }) {
-  const { t, tag } = useI18n();
+  const { t, locale } = useRampUI();
   const [generated, setGenerated] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -83,7 +83,7 @@ export function PixPanel({
               {t('common.amount')}
             </span>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatMoney(instructions.amount, instructions.currency, tag)}
+              {formatMoney(instructions.amount, instructions.currency, locale)}
             </p>
           </div>
 
