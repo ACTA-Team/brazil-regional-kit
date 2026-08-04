@@ -184,7 +184,7 @@ export default function OnRampPage() {
                 <span className="font-semibold">{order.anchorName}</span>
                 <ModeBadge mode={order.mode} />
               </div>
-              <span className="font-mono text-xs text-ink-500">{order.id.slice(0, 8)}</span>
+              <span className="font-mono text-xs text-ink-500">{order.id?.slice(0, 8) ?? '—'}</span>
             </div>
             <OrderStepper direction={order.direction} status={order.status} />
           </div>

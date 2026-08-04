@@ -270,3 +270,44 @@ describe('created orders are actionable', () => {
     expect(order.paymentInstructions).toBeDefined();
   });
 });
+
+describe('acknowledge-only settlement hooks', () => {
+  /**
+   * The live fiat_received endpoint answers 200 with an empty body. Mapping
+   * that emptiness as an order produced one with no id, which crashed the
+   * first component that touched it — so the adapter must fall back to
+   * fetching the order whenever a hook says nothing.
+   */
+  it('fetches the order when the hook returns an empty body', async () => {
+    const backing = createEtherfuseAdapter({
+      mode: 'mock',
+      mockOptions: { latencyMs: [0, 0], settlementMs: 40 },
+    });
+    const quote = await backing.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '500',
+      account: ACCOUNT,
+    });
+    const created = await backing.createOrder({ quoteId: quote.id, account: ACCOUNT });
+
+    // Wrap the mock API so the settlement hook acknowledges like the live one.
+    const inner = (backing as unknown as { api: import('./api').EtherfuseApi }).api;
+    const acknowledgeOnly = createEtherfuseAdapter({
+      mode: 'mock',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        simulateFiatReceived: async (id) => {
+          await inner.simulateFiatReceived(id);
+          return {} as import('./api').EtherfuseOrderResponse; // 200, empty body
+        },
+        getOrder: (id) => inner.getOrder(id),
+      },
+    });
+
+    const settled = await acknowledgeOnly.simulateFiatReceived(created.id);
+    expect(settled.id).toBe(created.id);
+    expect(settled.status).not.toBe('failed');
+  });
+});

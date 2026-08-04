@@ -392,17 +392,26 @@ export class EtherfuseAdapter implements RampAdapter {
     const ctx = this.context.get(orderId);
     try {
       const raw = await this.api.regenerateTx(orderId);
-      return this.toOrder(raw, ctx?.req, ctx?.direction);
+      // Same acknowledge-only behaviour as the settlement hooks.
+      const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
+      return this.toOrder(resolved, ctx?.req, ctx?.direction);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
   }
 
+  /*
+   * The settlement hooks answer 200 with an EMPTY body — they acknowledge, they
+   * do not describe. Mapping that emptiness as if it were an order produced one
+   * with no id, which crashed the first component that touched it. When the
+   * hook says nothing, ask the order itself.
+   */
   async simulateFiatReceived(orderId: string): Promise<Order> {
     const ctx = this.context.get(orderId);
     try {
       const raw = await this.api.simulateFiatReceived(orderId);
-      return this.toOrder(raw, ctx?.req, ctx?.direction);
+      const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
+      return this.toOrder(resolved, ctx?.req, ctx?.direction);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
@@ -412,7 +421,8 @@ export class EtherfuseAdapter implements RampAdapter {
     const ctx = this.context.get(orderId);
     try {
       const raw = await this.api.simulateCryptoReceived(orderId);
-      return this.toOrder(raw, ctx?.req, ctx?.direction);
+      const resolved = raw?.orderId ? raw : await this.api.getOrder(orderId);
+      return this.toOrder(resolved, ctx?.req, ctx?.direction);
     } catch (e) {
       throw toRampError(e, ETHERFUSE_ID);
     }
