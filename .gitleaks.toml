@@ -25,7 +25,7 @@ keywords = ["S"]
 # The scripts explain how to supply a seed; the placeholder is not one.
 regexes = ['''SXXXX+''', '''S\.\.\.''']
 
-[allowlist]
+[[allowlists]]
 description = "Public-by-construction values and vendored third-party templates"
 
 paths = [
@@ -44,12 +44,24 @@ regexes = [
   '''\bG[A-Z2-7]{55}\b''',
   # Contract addresses (Soroban). Also public identifiers.
   '''\bC[A-Z2-7]{55}\b''',
-  # Decentralised identifiers. A DID exists to be handed out and resolved by
-  # strangers — publishing one is the entire mechanism, and its identifier
-  # segment is derived from a PUBLIC key. The default rule flags them only
-  # because a base32 run scores high on entropy, the same reason it flagged
-  # `G...` addresses above.
-  '''\bdid:[a-z0-9]+:[a-zA-Z0-9.:_-]+''',
   # Transaction and ledger hashes are public record.
   '''\b[a-f0-9]{64}\b''',
 ]
+
+# Decentralised identifiers.
+#
+# A DID exists to be handed out and resolved by strangers — publishing one is
+# the entire mechanism — and its identifier segment is derived from a PUBLIC
+# key. `generic-api-key` flags them for the same reason it flagged `G...`
+# addresses: a base32 run scores high on entropy.
+#
+# Two deliberate details. `regexTarget = "line"`, because the secret gitleaks
+# hands the allowlist is the bare identifier without the `did:` prefix that
+# makes it recognisable — the line is the only place its nature is visible.
+# And `targetRules` confines this to the entropy heuristic, so a Stellar secret
+# seed sitting on the same line as a DID is still a failure.
+[[allowlists]]
+description = "did:method:identifier — public by construction"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''\bdid:[a-z0-9]+:[a-zA-Z0-9.:_-]+''']
