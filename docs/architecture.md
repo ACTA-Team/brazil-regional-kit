@@ -41,10 +41,12 @@ flowchart TD
   subgraph foundation
     Core[ramp-core]
     SK[stablecoin-kit]
+    ID[identity-kit]
   end
 
   Hub --> Router
   Hub --> SK
+  Hub --> ID
   Sample --> Router
   Sample --> SK
   Router --> AE & AS & AM
@@ -65,8 +67,16 @@ connection.
 | `adapter-mocks` | `ramp-core` | Anchors we cannot call yet, honestly modelled |
 | `ramp-router` | `ramp-core` | Fan-out, ranking, failure reporting |
 | `stablecoin-kit` | `ramp-core`, stellar-sdk¹ | Everything on-chain |
+| `identity-kit` | `ramp-core`, stellar-sdk¹, @scure/base | did:stellar, attestations, eligibility |
 
 ¹ peer dependency — the host app owns the SDK version.
+
+**Identity is a leaf, deliberately.** `ramp-router` does not import it and
+neither does `ramp-core`; the annotation is composed in the hub's `/api/quotes`
+route. Wiring it into the router would have put an identity concept into a
+public interface other people import, for the sake of exactly one consumer —
+and an app that never installs `identity-kit` would still pay for the type. See
+[identity.md](./identity.md).
 
 ## Where the seams are
 

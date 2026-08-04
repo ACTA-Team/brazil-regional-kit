@@ -5,6 +5,7 @@
 | [architecture.md](./architecture.md) | Why the kit is shaped this way, and where the seams are |
 | [anchors.md](./anchors.md) | Every anchor, what is genuinely real, and how to add one |
 | [protocols.md](./protocols.md) | SEP-1/10/24/38 and x402 as implemented here |
+| [identity.md](./identity.md) | did:stellar, attestations and router eligibility — and what they are not |
 | [gotchas.md](./gotchas.md) | The traps that cost real time, and where each is handled |
 | [deployment.md](./deployment.md) | Deploying the hub, and publishing the packages |
 | [contributing.md](./contributing.md) | Local setup, tests, style, commits |

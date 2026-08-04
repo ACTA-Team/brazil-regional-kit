@@ -86,6 +86,9 @@ importers:
       '@brk/adapter-sep':
         specifier: workspace:*
         version: link:../../packages/anchors/sep
+      '@brk/identity-kit':
+        specifier: workspace:*
+        version: link:../../packages/kit/identity
       '@brk/ramp-core':
         specifier: workspace:*
         version: link:../../packages/kit/core
@@ -165,6 +168,9 @@ importers:
       '@brk/adapter-sep':
         specifier: workspace:*
         version: link:../../packages/anchors/sep
+      '@brk/identity-kit':
+        specifier: workspace:*
+        version: link:../../packages/kit/identity
       '@brk/ramp-core':
         specifier: workspace:*
         version: link:../../packages/kit/core

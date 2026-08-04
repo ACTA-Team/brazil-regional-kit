@@ -35,7 +35,7 @@ jobs:
 
       - name: Every page renders
         run: |
-          for path in / /onramp /offramp /router /corridor /x402; do
+          for path in / /onramp /offramp /router /corridor /x402 /identity; do
             code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$path")
             echo "$path -> $code"
             [ "$code" = "200" ] || exit 1
@@ -65,6 +65,51 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"anchorId":"etherfuse","sellAsset":"iso4217:BRL","buyAsset":"stellar:TESOURO:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4","sellAmount":"500","account":"GDUY7J7A33TQWOSOQGDO776GGLM3UQERL4J3SPT56F6YS4ID7MLDERI4","country":"BR"}' \
             | grep -q '"quote"'
+
+      # Identity has to survive having no ACTA key at all, which is the state
+      # this whole job is in. Anything other than `mock` here means a
+      # credential-less clone would hit the credentials API and fail.
+      - name: Identity degrades to a labelled mock
+        run: |
+          body=$(curl -sf http://localhost:3000/api/identity/status)
+          echo "$body"
+          echo "$body" | grep -q '"mode":"mock"'
+
+      # The whole flow, end to end, with no credentials: mint a DID, attest for
+      # an anchor, and see the router mark the quote as executable.
+      - name: The identity flow works with no credentials
+        run: |
+          addr=GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVSGZ
+
+          prepared=$(curl -sf -X POST http://localhost:3000/api/identity/did/prepare \
+            -H 'Content-Type: application/json' -d "{\"address\":\"$addr\"}")
+          echo "$prepared"
+          did=$(echo "$prepared" | sed -n 's/.*"did":"\([^"]*\)".*/\1/p')
+          xdr=$(echo "$prepared" | sed -n 's/.*"xdr":"\([^"]*\)".*/\1/p')
+          [ -n "$did" ] || { echo 'no DID minted'; exit 1; }
+
+          curl -sf -X POST http://localhost:3000/api/identity/did/submit \
+            -H 'Content-Type: application/json' \
+            -d "{\"signedXdr\":\"$xdr\",\"did\":\"$did\"}" | grep -q '"txId"'
+
+          curl -sf "http://localhost:3000/api/identity/did/resolve?did=$did" \
+            | grep -q '"registered":true'
+
+          curl -sf -X POST http://localhost:3000/api/identity/attest \
+            -H 'Content-Type: application/json' \
+            -d "{\"did\":\"$did\",\"anchorId\":\"etherfuse\"}" | grep -q '"vcId"'
+
+          quotes=$(curl -sf "http://localhost:3000/api/quotes?sell=iso4217:BRL&amount=500&country=BR&did=$did")
+          echo "$quotes"
+          echo "$quotes" | grep -q '"status":"eligible"'
+
+      # The annotation is opt-in. Without a `did` the response must be what it
+      # was before identity existed — that is what "optional" has to mean.
+      - name: Quotes are untouched without a DID
+        run: |
+          body=$(curl -sf "http://localhost:3000/api/quotes?sell=iso4217:BRL&amount=500&country=BR")
+          echo "$body" | grep -q '"eligibility"' && { echo 'annotated without a did'; exit 1; }
+          echo "$body" | grep -q '"quotes"'
 
       - name: x402 challenges an unpaid request
         run: |
