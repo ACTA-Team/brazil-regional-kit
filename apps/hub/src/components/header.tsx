@@ -35,12 +35,19 @@ export function Header() {
 
   return (
     <header
-      className={cn('sticky top-0 z-50 w-full border-b border-transparent transition-colors', {
-        // Border and blur appear only once content is passing underneath, so the
-        // header is a plain part of the page until it has a job to do.
-        'border-border bg-background/85 backdrop-blur-xl': scrolled,
-      })}
+      className={cn(
+        // `sticky` already establishes the positioning context the flag rule
+        // below anchors to, so no `relative` is needed (and it would conflict).
+        'sticky top-0 z-50 w-full border-b border-transparent transition-colors',
+        {
+          // Border and blur appear only once content is passing underneath, so
+          // the header is a plain part of the page until it has a job to do.
+          'border-border bg-background/85 backdrop-blur-xl': scrolled,
+        },
+      )}
     >
+      <span aria-hidden="true" className="flag-rule absolute inset-x-0 top-0 h-[3px]" />
+
       <nav className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="shrink-0 rounded-lg" aria-label="Brazil Regional Kit">
           <Logo className="hidden sm:flex" />

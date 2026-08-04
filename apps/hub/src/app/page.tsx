@@ -50,7 +50,7 @@ export default function HomePage() {
           One small label, one headline, one subtitle, one primary action.
           Nothing else competes for the first screen. */}
       <section className="animate-rise pt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-success">
           Stellar · Brazil &amp; LATAM
         </p>
         <h1 className="mt-4 max-w-3xl text-4xl font-extrabold leading-[1.1] sm:text-5xl">
@@ -90,7 +90,7 @@ export default function HomePage() {
               style={{ animationDelay: `${(i + 1) * 70}ms` }}
             >
               <div className="flex items-center gap-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line-strong font-mono text-xs text-fg-muted transition-colors group-hover:border-gold/50 group-hover:text-gold">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-success/50 bg-success/10 font-mono text-xs text-success transition-colors group-hover:border-success group-hover:bg-success/20">
                   {i + 1}
                 </span>
                 <h3 className="font-bold">{t(step.titleKey)}</h3>
@@ -104,7 +104,7 @@ export default function HomePage() {
                   size={12}
                   weight={ICON_WEIGHT}
                   aria-hidden="true"
-                  className="text-fg-subtle transition-colors group-hover:text-gold"
+                  className="text-success/70 transition-colors group-hover:text-success"
                 />
                 <span className="well px-1.5 py-0.5 text-fg-muted">{step.to}</span>
                 <span className="ml-auto text-fg-subtle">{step.rail}</span>
@@ -125,7 +125,7 @@ export default function HomePage() {
           { value: 'MIT', labelKey: 'home.trust.license' },
         ].map((item) => (
           <div key={item.labelKey} className="bg-surface px-5 py-4">
-            <p className="font-mono text-xl font-medium text-gold">{item.value}</p>
+            <p className="font-mono text-xl font-medium text-success">{item.value}</p>
             <p className="mt-1 text-xs text-fg-muted">{t(item.labelKey)}</p>
           </div>
         ))}

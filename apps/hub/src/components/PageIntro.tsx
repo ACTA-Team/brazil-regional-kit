@@ -32,7 +32,7 @@ export function PageIntro({
         {step ? (
           <span
             aria-hidden="true"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gold/45 bg-gold/10 font-mono text-sm text-gold"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-success/60 bg-success/12 font-mono text-sm text-success"
           >
             {step}
           </span>
@@ -45,7 +45,7 @@ export function PageIntro({
       {route ? (
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
           <span className="well px-2 py-1 text-fg">{route.from}</span>
-          <ArrowRight size={13} weight={ICON_WEIGHT} className="text-gold" aria-hidden="true" />
+          <ArrowRight size={13} weight={ICON_WEIGHT} className="text-success" aria-hidden="true" />
           <span className="well px-2 py-1 text-fg">{route.to}</span>
           {route.rail ? <span className="chip chip-neutral">{route.rail}</span> : null}
           {route.anchor ? <span className="chip chip-neutral">{route.anchor}</span> : null}

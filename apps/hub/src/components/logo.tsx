@@ -20,7 +20,7 @@ export function Logo({
     <span className={cn('flex items-center gap-2.5', className)}>
       <span
         aria-hidden="true"
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-gold/45 bg-gold/10 font-mono text-[11px] font-medium text-gold"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-success/60 bg-success/12 font-mono text-[11px] font-medium text-gold"
       >
         BR
       </span>
