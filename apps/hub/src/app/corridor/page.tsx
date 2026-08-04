@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { MXN, TESOURO, USDC, assetCode, checkMemo, compare } from '@brk/ramp-core';
+import { MXN, TESOURO, USDC, assetCode, checkMemo, compare, isPositive } from '@brk/ramp-core';
 import type { AnchorResult } from '@brk/ramp-router';
 import { buildPaymentTx, buildSwapTx, explorerTxUrl, type SwapQuote } from '@brk/stablecoin-kit';
 import { Alert } from '@/components/Alert';
@@ -113,10 +113,25 @@ export default function CorridorPage() {
 
   // ── Leg 2: send ────────────────────────────────────────────────────────────
 
+  /**
+   * What this leg actually sends — the balance, never the quote.
+   *
+   * Two ways the quoted figure is a lie by the time we reach here. A *simulated*
+   * swap moved nothing at all, so the USDC it promises was never delivered. And
+   * a real path payment fills at whatever the order books give, which is the
+   * entire reason `destMin` exists — the fill can legitimately land under the
+   * quote. Building a payment for the quoted amount in either case hands the
+   * user a transaction that dies on-chain with `op_underfunded`, which reads as
+   * a broken app rather than as arithmetic.
+   */
+  const quotedOut = swap?.buyAmount ?? sentAmount ?? '0';
+  const sendable = compare(usdcHeld, quotedOut) < 0 ? usdcHeld : quotedOut;
+  const shortOfQuote = compare(sendable, quotedOut) < 0;
+
   const sendRemittance = () =>
     run('sending', async () => {
       if (!recipient.startsWith('G')) throw new Error(t('corridor.badRecipient'));
-      const value = swap?.buyAmount ?? sentAmount ?? '0';
+      const value = sendable;
 
       const xdr = await buildPaymentTx({
         from: address,
@@ -284,15 +299,33 @@ export default function CorridorPage() {
                 <button
                   type="button"
                   onClick={() => void sendRemittance()}
-                  disabled={busy !== null || !memoOk || !recipient || !onTestnet}
+                  disabled={
+                    busy !== null || !memoOk || !recipient || !onTestnet || !isPositive(sendable)
+                  }
                   className="btn btn-primary"
                 >
                   {busy === 'sending' ? t('common.signing') : t('corridor.send')}
                 </button>
                 <span className="font-mono text-xs text-fg-subtle">
-                  {formatToken(swap?.buyAmount ?? '0', 'USDC', tag)}
+                  {formatToken(sendable, 'USDC', tag)}
                 </span>
               </div>
+
+              {/*
+                Say it rather than quietly sending a different number. After a
+                simulated swap this is the honest explanation for why the amount
+                dropped; after a real one it is the order book, not a bug.
+              */}
+              {shortOfQuote ? (
+                <Alert tone="warning">
+                  {isPositive(sendable)
+                    ? t('corridor.sendingBalance', {
+                        held: formatToken(sendable, 'USDC', tag),
+                        quoted: formatToken(quotedOut, 'USDC', tag),
+                      })
+                    : t('corridor.noUsdc')}
+                </Alert>
+              ) : null}
             </>
           ) : (
             <Alert

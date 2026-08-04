@@ -53,8 +53,10 @@ why, so nobody "fixes" it.
 An order created a moment ago is not yet indexed; polling straight away returns
 not-found. Allow 3–10 seconds.
 
-**Handled:** `ORDER_INDEXING_DELAY_MS`, and `useRampFlow` treats a failed poll
-as "keep polling" rather than surfacing an error.
+**Handled:** `useRampFlow` treats a failed poll as "keep polling" rather than
+surfacing an error, so the order simply appears once the anchor has indexed it.
+Deliberately not a fixed `sleep` after `createOrder`: that would add seconds to
+the demo's critical path to solve a problem the polling already absorbs.
 
 ## Etherfuse: never regenerate `customerId`
 
@@ -151,6 +153,32 @@ survives and blows up at the first property access.
 
 **Handled:** the registry key is versioned (`brk.anchors.registry.v2`) and the
 cached object is shape-checked before reuse.
+
+## `globalThis` is per-instance, and serverless has many instances
+
+The flip side of the entry above. Three pieces of state live in process memory:
+
+| State | Where |
+|---|---|
+| Mock quotes and orders | `adapter-etherfuse/src/mock.ts` |
+| Order → corridor context | `EtherfuseAdapter.context` |
+| Spent x402 payment hashes | `stablecoin-kit/src/x402.ts` |
+
+On a single long-lived server — `pnpm start`, Docker, a warm Vercel instance —
+this is exactly right, and it is why an order survives a hot reload. Across
+*several* instances it is not: a quote issued by instance A is unknown to
+instance B, so a demo can meet `Unknown quote` between pressing Confirm and
+polling the order. The same split means x402's replay protection is per-instance
+— a hash already spent on one is spendable again on a cold one.
+
+In practice a demo session lands on one warm instance and this never fires. It
+is still the difference between "works" and "cannot fail", and it is the first
+thing to change if this kit is put in front of real users.
+
+**Handled:** honestly, rather than in code — the kit ships no database on
+purpose. The fix is a shared store (Redis, Postgres, Vercel KV) behind the same
+three seams, each of which is already isolated behind a function. For a
+single-instance deployment there is nothing to do.
 
 ## Turbopack does not resolve `.js` extensions in TypeScript source
 

@@ -211,15 +211,25 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
     [anchorId, order],
   );
 
-  // Poll until terminal. Etherfuse needs a few seconds before an order is even
-  // readable, so a transient failure here is ignored rather than surfaced.
+  /*
+   * Poll until terminal. Etherfuse needs a few seconds before an order is even
+   * readable, so a transient failure here is ignored rather than surfaced.
+   *
+   * Keyed on the order's id and status rather than the order object: every poll
+   * sets a fresh object, so depending on the object itself tore down and rebuilt
+   * the interval on each response — restarting the clock every time and making
+   * the real interval a function of anchor latency instead of `pollMs`.
+   */
+  const orderId = order?.id;
+  const settled = order ? isTerminal(order.status) : true;
+
   useEffect(() => {
-    if (!order || isTerminal(order.status)) return;
+    if (!orderId || settled) return;
 
     let cancelled = false;
     const id = setInterval(async () => {
       try {
-        const { order: next } = await fetchOrder(order.id, anchorId);
+        const { order: next } = await fetchOrder(orderId, anchorId);
         if (!cancelled) setOrder(next);
       } catch {
         /* keep polling — the anchor may just be indexing */
@@ -230,7 +240,7 @@ export function useRampFlow(options: RampFlowOptions): RampFlowState {
       cancelled = true;
       clearInterval(id);
     };
-  }, [order, anchorId, pollMs]);
+  }, [orderId, settled, anchorId, pollMs]);
 
   const reset = useCallback(() => {
     retriedRef.current = false;

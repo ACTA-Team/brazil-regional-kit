@@ -128,6 +128,8 @@
   "corridor.memoTooLong": "Too long. Accented characters take more than one byte.",
   "corridor.recipientLabel": "Recipient's Stellar address",
   "corridor.send": "Send remittance",
+  "corridor.sendingBalance": "Sending {held} — the balance actually in this account, not the {quoted} the swap quoted.",
+  "corridor.noUsdc": "No USDC in this account yet. The simulated swap moved nothing on-chain, so there is nothing to send. Run `pnpm demo:fund` or complete a real on-ramp first.",
   "corridor.recipientView": "Recipient's view",
   "corridor.payout": "Cash out to MXN",
   "corridor.swapSimulated": "Simulated. No order-book path for this pair.",

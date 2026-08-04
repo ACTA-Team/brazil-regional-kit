@@ -2,7 +2,7 @@
  * Answer one question: is this configured to run for real, and if not, what is
  * missing?
  *
- *   pnpm doctor
+ *   pnpm diagnose
  *
  * Every check reports the actual state of the system rather than the intended
  * one — it calls the anchor, reads the chain, and creates a throwaway order to

@@ -58,12 +58,6 @@ export const ENDPOINTS = {
   assets: '/ramp/assets',
 } as const;
 
-/**
- * Orders are not immediately readable after creation — the guide calls for a
- * 3–10s pause. We wait at the low end and let the caller's polling cover the rest.
- */
-export const ORDER_INDEXING_DELAY_MS = 3_000;
-
 export interface EtherfuseClientOptions {
   apiKey: string;
   baseUrl?: string;

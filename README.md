@@ -4,7 +4,8 @@
 Take reais on-chain through PIX, move value across the region, and cash out to
 local rails — with live quotes from competing anchors at every step.
 
-[Docs](./docs) · Stellar Summit SP 2026 — *Brazil Ramps and Regional Kits*
+[Português](./README.pt-BR.md) · [Docs](./docs) · Stellar Summit SP 2026 —
+*Brazil Ramps and Regional Kits*
 
 ---
 

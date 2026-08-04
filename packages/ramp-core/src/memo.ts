@@ -5,7 +5,7 @@
  * does not bounce with a clear error — the payment can land with a truncated or
  * missing memo and the anchor never credits the customer. `"João da Conceição"`
  * is 17 characters but 20 bytes; `"Transferência família"` is 21 characters and
- * 24 bytes. So we measure bytes, and we throw rather than truncate.
+ * 23 bytes. So we measure bytes, and we throw rather than truncate.
  */
 
 import { RampError } from './errors';

@@ -128,6 +128,8 @@
   "corridor.memoTooLong": "Demasiado largo. Las letras acentuadas ocupan más de un byte.",
   "corridor.recipientLabel": "Dirección Stellar de quien recibe",
   "corridor.send": "Enviar remesa",
+  "corridor.sendingBalance": "Enviando {held} — el saldo que realmente hay en esta cuenta, no los {quoted} que cotizó el swap.",
+  "corridor.noUsdc": "Todavía no hay USDC en esta cuenta. El swap simulado no movió nada on-chain, así que no hay qué enviar. Corré `pnpm demo:fund` o hacé un on-ramp real primero.",
   "corridor.recipientView": "Vista de quien recibe",
   "corridor.payout": "Retirar en MXN",
   "corridor.swapSimulated": "Simulado. No hay ruta en el libro de órdenes para este par.",

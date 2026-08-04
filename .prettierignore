@@ -9,3 +9,7 @@ next-env.d.ts
 
 # Prose is hand-wrapped for readability; Prettier's reflow fights that.
 *.md
+
+# Vendored agent skills — third-party material, not ours to reformat.
+.agents
+.claude

@@ -251,14 +251,23 @@ export interface AdapterConfig {
   mode?: AdapterMode;
 }
 
+/**
+ * Does this adapter serve the corridor being asked for?
+ *
+ * Every field the caller supplies narrows the match; every field it omits is a
+ * wildcard. `direction` is part of that — an anchor can ramp BRL→TESOURO in one
+ * direction only, and treating a request that names a direction as if it had
+ * not is how an off-ramp ends up quoted by an on-ramp-only corridor.
+ */
 export function supportsCorridor(
   caps: AdapterCapabilities,
-  req: Pick<QuoteRequest, 'sellAsset' | 'buyAsset' | 'country'>,
+  req: Pick<QuoteRequest, 'sellAsset' | 'buyAsset' | 'country'> & { direction?: RampDirection },
 ): boolean {
   return caps.corridors.some(
     (c) =>
       c.sellAsset === req.sellAsset &&
       c.buyAsset === req.buyAsset &&
-      (!req.country || c.country === req.country),
+      (!req.country || c.country === req.country) &&
+      (!req.direction || c.direction === req.direction),
   );
 }

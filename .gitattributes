@@ -1,0 +1,22 @@
+# Line endings are LF everywhere, in the repository AND in the working tree.
+#
+# Without this, a Windows clone with the default `core.autocrlf=true` checks
+# every file out as CRLF while Prettier is configured with `endOfLine: lf` —
+# so `pnpm lint` fails on all ~135 source files locally and passes in CI, which
+# is the worst possible split: the gate is red for the person who can fix it and
+# green for the machine that reports it.
+#
+# `eol=lf` overrides autocrlf, so the checkout matches what CI sees.
+* text=auto eol=lf
+
+# Binary — never touch these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Generated. Keep it out of diffs.
+pnpm-lock.yaml linguist-generated=true -diff

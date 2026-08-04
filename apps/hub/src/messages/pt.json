@@ -128,6 +128,8 @@
   "corridor.memoTooLong": "Longa demais. Letras acentuadas ocupam mais de um byte.",
   "corridor.recipientLabel": "Endereço Stellar de quem recebe",
   "corridor.send": "Enviar remessa",
+  "corridor.sendingBalance": "Enviando {held} — o saldo que existe de fato nesta conta, não os {quoted} da cotação do swap.",
+  "corridor.noUsdc": "Ainda não há USDC nesta conta. O swap simulado não moveu nada on-chain, então não há o que enviar. Rode `pnpm demo:fund` ou faça um on-ramp real antes.",
   "corridor.recipientView": "Visão de quem recebe",
   "corridor.payout": "Sacar em MXN",
   "corridor.swapSimulated": "Simulado. Não há caminho no livro de ofertas para este par.",
