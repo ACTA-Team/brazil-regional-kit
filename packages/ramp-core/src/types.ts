@@ -162,6 +162,13 @@ export interface Order {
   txHash?: string;
 
   /**
+   * The anchor's own hosted page for this order, when it publishes one.
+   * Linking it is the strongest authenticity signal a demo can give: the same
+   * order id, on the anchor's domain, showing the same state.
+   */
+  anchorPage?: string;
+
+  /**
    * Stellar account the asset must be returned to on an off-ramp. Anchors that
    * hand back a ready-made `unsignedTxXdr` omit this; anchors that expect the
    * client to build the payment itself (and our own mock) provide it instead.

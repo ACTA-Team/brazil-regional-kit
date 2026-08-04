@@ -529,6 +529,7 @@ export class EtherfuseAdapter implements RampAdapter {
           : undefined,
 
       unsignedTxXdr: raw.burnTransaction ?? raw.stellarClaimTransaction,
+      anchorPage: raw.statusPage,
       txHash: raw.transactionHash,
       anchorAccount: typeof raw.anchorAccount === 'string' ? raw.anchorAccount : undefined,
 

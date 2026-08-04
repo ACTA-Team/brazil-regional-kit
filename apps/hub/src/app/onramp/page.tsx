@@ -184,7 +184,21 @@ export default function OnRampPage() {
                 <span className="font-semibold">{order.anchorName}</span>
                 <ModeBadge mode={order.mode} />
               </div>
-              <span className="font-mono text-xs text-ink-500">{order.id?.slice(0, 8) ?? '—'}</span>
+              <div className="flex items-center gap-3">
+                {order.anchorPage ? (
+                  <a
+                    href={order.anchorPage}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-brand-300 underline-offset-2 hover:underline"
+                  >
+                    {t('onramp.viewOnAnchor')}
+                  </a>
+                ) : null}
+                <span className="font-mono text-xs text-ink-500">
+                  {order.id?.slice(0, 8) ?? '—'}
+                </span>
+              </div>
             </div>
             <OrderStepper direction={order.direction} status={order.status} />
           </div>

@@ -185,5 +185,6 @@
   "onramp.reference": "Referencia",
   "onramp.sandboxNoReference": "El sandbox nombra el riel pero no emite una referencia pagable — no hay a dónde transferir de verdad. Usá el botón de abajo para avisarle al anchor que el pago llegó, que es justo para lo que existe su gancho de liquidación.",
   "onramp.autoSettle": "Confirmar el pago automáticamente",
-  "onramp.autoSettleHint": "El sandbox no mueve reales de verdad — el propio gancho de confirmación de Etherfuse hace las veces del PIX. Cotización, orden y liquidación on-chain son reales. Con una clave de producción, un PIX real dispara esto."
+  "onramp.autoSettleHint": "El sandbox no mueve reales de verdad — el propio gancho de confirmación de Etherfuse hace las veces del PIX. Cotización, orden y liquidación on-chain son reales. Con una clave de producción, un PIX real dispara esto.",
+  "onramp.viewOnAnchor": "Ver en Etherfuse"
 }

@@ -185,5 +185,6 @@
   "onramp.reference": "Reference",
   "onramp.sandboxNoReference": "The sandbox names the rail but does not issue a payable reference — there is nothing real to transfer to. Use the button below to tell the anchor the payment arrived, which is exactly what its sandbox settlement hook is for.",
   "onramp.autoSettle": "Confirm the payment automatically",
-  "onramp.autoSettleHint": "The sandbox moves no real reais — Etherfuse’s own payment-confirmation hook stands in for the PIX. Quote, order and on-chain settlement are real. With a production key, a real PIX payment triggers this instead."
+  "onramp.autoSettleHint": "The sandbox moves no real reais — Etherfuse’s own payment-confirmation hook stands in for the PIX. Quote, order and on-chain settlement are real. With a production key, a real PIX payment triggers this instead.",
+  "onramp.viewOnAnchor": "View on Etherfuse"
 }

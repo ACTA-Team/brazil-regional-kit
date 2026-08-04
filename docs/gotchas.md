@@ -166,3 +166,37 @@ In CLI output, `pad(green('ok'), 10)` counts the ANSI escape bytes as width and
 truncates mid-sequence. Pad the plain text, then colour it.
 
 **Handled:** `apps/sample-remit/src/index.ts`.
+
+## The Etherfuse sandbox issues no payable PIX reference — by design
+
+The definitive finding, established from three independent sources after a long
+hunt:
+
+1. **The API.** Neither `POST /ramp/order` nor `GET /ramp/order/{id}` nor the
+   undocumented public `GET /ramping/order/{id}/update` carries any PIX field
+   for a BRL order — `stpProxyClabe` comes back `null`, and no `pixKey` or
+   `pixCode` exists anywhere in the live responses.
+2. **The anchor's own frontend.** The transfer-details modal in Etherfuse's
+   sandbox bundle is hard-coded as "SPEI Transfer Details" and only renders
+   `stpProxyClabe` — there is no BRL branch at all.
+3. **The anchor's own portal.** The bank accounts page states it: *"Currently,
+   only bank accounts integrated with the Mexican banking system are
+   supported."*
+
+So: BRL orders route on the PIX rail, settle correctly, and deliver real
+TESOURO — but the sandbox cannot tell you where to send the reais, because in
+sandbox no reais move. `POST /ramp/order/fiat_received` is the sandbox's own
+stand-in for the payment. Mexican orders DO carry a real deposit CLABE.
+
+Guides that describe `pixKey`/`pixCode` response fields describe production, not
+today's sandbox.
+
+**Handled:** the hub renders bank-style deposit details when the anchor names
+only a rail, says plainly why there is no payable reference in sandbox, and
+links the anchor's own hosted order page (`statusPage`) so the same order can be
+seen on Etherfuse's domain.
+
+Related, learned on the same expedition: the anchor's portal can cancel orders
+(`POST /ramping/order/{id}/cancel`) but only with a portal session token — API
+keys get 401. For integrations, pending duplicates still cannot be cancelled;
+nudge the amount instead.
