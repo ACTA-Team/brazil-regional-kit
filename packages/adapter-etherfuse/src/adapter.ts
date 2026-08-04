@@ -487,6 +487,8 @@ export class EtherfuseAdapter implements RampAdapter {
     // The same amount is `amountInFiat` when fetched and `depositAmount` when
     // created — and `sourceAmount` in the shape the docs describe.
     const fiatAmount = raw.amountInFiat ?? raw.depositAmount ?? raw.sourceAmount ?? '0';
+    // Off-ramp orders put the amount on the token side under yet another name.
+    const tokenAmount = raw.amountInTokens ?? raw.sourceAmount ?? '0';
     const pixCode = raw.pixCode ?? raw.paymentInstructions?.pixCode;
 
     return {
@@ -500,7 +502,7 @@ export class EtherfuseAdapter implements RampAdapter {
 
       sellAsset: req?.sellAsset ?? (resolvedDirection === 'onramp' ? BRL : TESOURO),
       buyAsset: req?.buyAsset ?? (resolvedDirection === 'onramp' ? TESOURO : BRL),
-      sellAmount: resolvedDirection === 'onramp' ? fiatAmount : (raw.sourceAmount ?? fiatAmount),
+      sellAmount: resolvedDirection === 'onramp' ? fiatAmount : tokenAmount,
       /*
        * Only the create response carries destinationAmount; the fetched order
        * does not. Without this, every poll overwrote the delivered amount with
@@ -510,7 +512,11 @@ export class EtherfuseAdapter implements RampAdapter {
        */
       buyAmount:
         raw.destinationAmount ??
-        deriveBuyAmount(resolvedDirection, fiatAmount, raw.exchangeRate) ??
+        deriveBuyAmount(
+          resolvedDirection,
+          resolvedDirection === 'onramp' ? fiatAmount : tokenAmount,
+          raw.exchangeRate,
+        ) ??
         '0',
 
       paymentInstructions: pixCode
@@ -559,7 +565,8 @@ function deriveBuyAmount(
   fiatAmount: string,
   exchangeRate?: string,
 ): string | undefined {
-  if (direction !== 'onramp' || !exchangeRate || fiatAmount === '0') return undefined;
+  // exchangeRate is destination-per-source in both directions.
+  if (!exchangeRate || fiatAmount === '0') return undefined;
   try {
     return multiply(fiatAmount, exchangeRate);
   } catch {

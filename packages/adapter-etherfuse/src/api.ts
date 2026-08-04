@@ -94,6 +94,8 @@ export interface EtherfuseOrderResponse {
   /** The fetched order names it `amountInFiat`; the create response `depositAmount`. */
   amountInFiat?: string;
   depositAmount?: string;
+  /** Off-ramp orders carry the token side here instead. */
+  amountInTokens?: string;
   sourceAmount?: string;
   destinationAmount?: string;
 
