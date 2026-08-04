@@ -198,5 +198,6 @@
   "router.amountFor": "Quanto de {asset}?",
   "router.receiveGroup": "Receber {asset}",
   "router.groupContest": "{count} âncoras competindo — a melhor paga mais",
-  "router.groupSingle": "só uma âncora atende isto"
+  "router.groupSingle": "só uma âncora atende isto",
+  "offramp.sandboxFunded": "A sua parte está completa: a âncora recebeu o ativo on-chain e a ordem está financiada. Em produção o PIX em BRL sairia agora — o sandbox não movimenta reais de verdade, então a ordem para aqui."
 }

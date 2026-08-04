@@ -122,6 +122,16 @@ export default function OffRampPage() {
             />
           ) : null}
 
+          {/*
+            The sandbox's terminal state for an off-ramp is "funded": the
+            burn is on-chain and reconciled, but no real reais exist to pay
+            out, so the order rests here. Saying so beats letting the user
+            wait for a step the sandbox cannot reach.
+          */}
+          {order.status === 'processing' && order.mode === 'live' ? (
+            <Alert tone="success">{t('offramp.sandboxFunded')}</Alert>
+          ) : null}
+
           {settled ? (
             <Alert
               tone="success"

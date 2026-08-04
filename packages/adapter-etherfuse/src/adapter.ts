@@ -77,6 +77,8 @@ const STATUS_MAP: Record<string, OrderStatus> = {
   AWAITING_DEPOSIT: 'awaiting_signature',
   AWAITING_SIGNATURE: 'awaiting_signature',
   PAYMENT_RECEIVED: 'processing',
+  // Off-ramp: the anchor confirmed the on-chain leg and owes the fiat payout.
+  FUNDED: 'processing',
   CRYPTO_RECEIVED: 'processing',
   PROCESSING: 'processing',
   IN_PROGRESS: 'processing',

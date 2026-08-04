@@ -198,5 +198,6 @@
   "router.amountFor": "¿Cuánto {asset}?",
   "router.receiveGroup": "Recibir {asset}",
   "router.groupContest": "{count} anchors compitiendo — el mejor paga más",
-  "router.groupSingle": "solo un anchor sirve esto"
+  "router.groupSingle": "solo un anchor sirve esto",
+  "offramp.sandboxFunded": "Tu parte está completa: el anchor recibió el activo on-chain y la orden quedó fondeada. En producción el pago PIX en BRL saldría ahora — el sandbox no mueve reales de verdad, así que la orden queda acá."
 }

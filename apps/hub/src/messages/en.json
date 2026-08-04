@@ -198,5 +198,6 @@
   "router.amountFor": "How much {asset}?",
   "router.receiveGroup": "Receive {asset}",
   "router.groupContest": "{count} anchors competing — best pays the most",
-  "router.groupSingle": "only one anchor serves this"
+  "router.groupSingle": "only one anchor serves this",
+  "offramp.sandboxFunded": "Your side is complete: the anchor received the asset on-chain and the order is funded. In production the BRL PIX payout would fire now — the sandbox moves no real reais, so the order rests here."
 }
