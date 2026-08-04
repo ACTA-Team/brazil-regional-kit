@@ -38,18 +38,17 @@ function QuoteRow({ quote: q }: { quote: PublicRankedQuote }) {
       <td className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {contested && q.best ? (
-            <span className="rounded-full bg-success px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+            // The one filled chip in the app besides the logo. Black ink, not
+            // white: the verde is a light oklch, and white on it fails contrast
+            // where near-black passes comfortably.
+            <span className="chip border-transparent bg-verde font-semibold text-black uppercase">
               {t('router.best')}
             </span>
           ) : null}
           {contested && !q.best ? (
-            <span className="rounded-full bg-inset px-2 py-0.5 text-[10px] font-medium text-fg-muted">
-              −{q.worseByPct}%
-            </span>
+            <span className="chip chip-neutral tabular-nums">−{q.worseByPct}%</span>
           ) : null}
-          <span className="text-[10px] uppercase tracking-wide text-fg-subtle">
-            {t(`router.firmness.${q.firmness}`)}
-          </span>
+          <span className="label text-[10px]">{t(`router.firmness.${q.firmness}`)}</span>
         </div>
       </td>
     </tr>
@@ -96,8 +95,8 @@ export function QuoteTable({
     <div className="space-y-4">
       {[...groups.entries()].map(([buyAsset, group]) => (
         <section key={buyAsset} className="card overflow-hidden">
-          <header className="flex flex-wrap items-baseline gap-2 border-b border-line bg-inset/60 px-4 py-2.5">
-            <span className="text-sm font-semibold text-fg">
+          <header className="flex flex-wrap items-baseline gap-2.5 border-b border-line bg-black/30 px-4 py-3">
+            <span className="text-sm font-semibold tracking-[-0.01em] text-fg">
               {t('router.receiveGroup', { asset: assetCode(buyAsset) })}
             </span>
             <span className="text-xs text-fg-subtle">
@@ -109,7 +108,7 @@ export function QuoteTable({
           <div className="overflow-x-auto">
             <table className="w-full min-w-2xl text-sm">
               <thead>
-                <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-fg-subtle">
+                <tr className="label border-b border-line text-left">
                   <th className="px-4 py-2.5 font-medium">{t('common.anchor')}</th>
                   <th className="px-4 py-2.5 text-right font-medium">{t('common.youReceive')}</th>
                   <th className="px-4 py-2.5 text-right font-medium">{t('common.rate')}</th>
@@ -140,7 +139,7 @@ export function QuoteTable({
             {skipped.map((a, i) => (
               <li key={`${a.anchorId}-${i}`} className="flex flex-wrap items-baseline gap-2">
                 <span className="font-medium text-fg-muted">{a.anchorName}</span>
-                <span className="rounded bg-inset px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-fg-subtle">
+                <span className="chip chip-neutral uppercase">
                   {t(`router.outcome.${a.outcome}`)}
                 </span>
                 {a.reason ? (

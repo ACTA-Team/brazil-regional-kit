@@ -6,6 +6,7 @@ import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { FundGate } from '@/components/wallet/FundGate';
 import { OrderCard } from '@/features/ramp/OrderCard';
 import { PageIntro } from '@/components/layout/PageIntro';
+import { PageShell } from '@/components/layout/PageShell';
 import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { TrustlineGate } from '@/components/wallet/TrustlineGate';
 import { NetworkBanner } from '@/components/wallet/WalletButton';
@@ -73,19 +74,24 @@ export function OnRampPage() {
   const settled = order?.status === 'completed';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-7">
-      <PageIntro
-        step={1}
-        title={t('onramp.title')}
-        subtitle={t('onramp.subtitle')}
-        route={{
-          from: assetCode(BRL),
-          to: assetCode(TESOURO),
-          rail: 'PIX',
-          anchor: 'Etherfuse',
-        }}
-      />
-
+    <PageShell
+      width="narrow"
+      className="space-y-7"
+      intro={
+        <PageIntro
+          step={1}
+          title={t('onramp.title')}
+          subtitle={t('onramp.subtitle')}
+          plate="cristo-a"
+          route={{
+            from: assetCode(BRL),
+            to: assetCode(TESOURO),
+            rail: 'PIX',
+            anchor: 'Etherfuse',
+          }}
+        />
+      }
+    >
       <NetworkBanner />
       <FundGate />
 
@@ -205,11 +211,11 @@ export function OnRampPage() {
           {settled ? (
             <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                <p className="label flex items-center gap-2 text-verde">
                   <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
                   {t('onramp.done')}
                 </p>
-                <p className="mt-2 text-3xl font-extrabold tabular-nums">
+                <p className="figure mt-2.5 text-3xl">
                   {displayAmount(order.buyAmount, order.buyAsset, tag)}
                 </p>
                 <p className="mt-1 text-sm text-fg-muted">{t('onramp.inYourWallet')}</p>
@@ -228,6 +234,6 @@ export function OnRampPage() {
           ) : null}
         </div>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

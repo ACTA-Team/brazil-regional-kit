@@ -6,6 +6,7 @@ import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { FundGate } from '@/components/wallet/FundGate';
 import { OrderCard } from '@/features/ramp/OrderCard';
 import { PageIntro } from '@/components/layout/PageIntro';
+import { PageShell } from '@/components/layout/PageShell';
 import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { ReturnTxPanel } from '@/features/offramp/ReturnTxPanel';
 import { NetworkBanner } from '@/components/wallet/WalletButton';
@@ -38,19 +39,24 @@ export function OffRampPage() {
   const settled = order?.status === 'completed';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-7">
-      <PageIntro
-        step={4}
-        title={t('offramp.title')}
-        subtitle={t('offramp.subtitle')}
-        route={{
-          from: assetCode(TESOURO),
-          to: assetCode(BRL),
-          rail: 'PIX',
-          anchor: 'Etherfuse',
-        }}
-      />
-
+    <PageShell
+      width="narrow"
+      className="space-y-7"
+      intro={
+        <PageIntro
+          step={4}
+          title={t('offramp.title')}
+          subtitle={t('offramp.subtitle')}
+          plate="cristo-b"
+          route={{
+            from: assetCode(TESOURO),
+            to: assetCode(BRL),
+            rail: 'PIX',
+            anchor: 'Etherfuse',
+          }}
+        />
+      }
+    >
       <NetworkBanner />
       <FundGate />
 
@@ -140,7 +146,7 @@ export function OffRampPage() {
           {order.status === 'processing' && order.mode === 'live' ? (
             <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                <p className="label flex items-center gap-2 text-verde">
                   <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
                   {t('offramp.roundTripDone')}
                 </p>
@@ -164,11 +170,11 @@ export function OffRampPage() {
           {settled ? (
             <section className="card-featured animate-pop flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                <p className="label flex items-center gap-2 text-verde">
                   <Check size={13} weight={ICON_WEIGHT} aria-hidden="true" />
                   {t('offramp.done')}
                 </p>
-                <p className="mt-2 text-3xl font-extrabold tabular-nums">
+                <p className="figure mt-2.5 text-3xl">
                   {displayAmount(order.buyAmount, order.buyAsset, tag)}
                 </p>
               </div>
@@ -186,6 +192,6 @@ export function OffRampPage() {
           ) : null}
         </div>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

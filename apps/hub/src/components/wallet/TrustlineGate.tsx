@@ -46,7 +46,7 @@ export function TrustlineGate({ asset, onReady }: { asset: AssetId; onReady?: ()
           type="button"
           onClick={() => void establish()}
           disabled={busy}
-          className="btn btn-primary text-xs"
+          className="btn btn-primary btn-sm"
         >
           {busy ? t('common.signing') : t('onramp.trustlineSign')}
         </button>

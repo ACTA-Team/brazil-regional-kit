@@ -6,6 +6,7 @@ import { MXN, TESOURO, USDC, assetCode, checkMemo, compare } from '@brk/ramp-cor
 import type { AnchorResult } from '@brk/ramp-router';
 import { buildPaymentTx, buildSwapTx, explorerTxUrl, type SwapQuote } from '@brk/stablecoin-kit';
 import { PageIntro } from '@/components/layout/PageIntro';
+import { PageShell } from '@/components/layout/PageShell';
 import {
   ArrowRight,
   ArrowsLeftRight,
@@ -160,9 +161,17 @@ export function CorridorPage() {
   const enoughTesouro = compare(tesouroHeld, amount) >= 0;
 
   return (
-    <div className="space-y-7">
-      <PageIntro step={3} title={t('corridor.title')} subtitle={t('corridor.subtitle')} />
-
+    <PageShell
+      className="space-y-7"
+      intro={
+        <PageIntro
+          step={3}
+          title={t('corridor.title')}
+          subtitle={t('corridor.subtitle')}
+          plate="pao-b"
+        />
+      }
+    >
       <NetworkBanner />
       {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
       {error ? <Alert tone="error">{error}</Alert> : null}
@@ -170,10 +179,15 @@ export function CorridorPage() {
       <CorridorSteps step={step} />
 
       {/* ── Leg 1 ─────────────────────────────────────────────────────────── */}
-      <section className="card space-y-4 p-5">
+      <section className="card space-y-4 p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold">
-            1 · {t('corridor.step.swap')}: {assetCode(TESOURO)} to {assetCode(USDC)}
+          {/* The same verde index chip the landing puts on its step cards —
+              a bare "1 ·" in the heading was the odd one out. */}
+          <h2 className="section-title flex items-center gap-3">
+            <span aria-hidden="true" className="index-chip">
+              1
+            </span>
+            {t('corridor.step.swap')}: {assetCode(TESOURO)} → {assetCode(USDC)}
           </h2>
           {swap ? <ModeBadge mode={swap.mode === 'dex' ? 'live' : 'mock'} /> : null}
         </div>
@@ -232,7 +246,7 @@ export function CorridorPage() {
                   href={explorerTxUrl(swapHash)}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn btn-ghost text-xs"
+                  className="btn btn-ghost btn-sm"
                 >
                   {t('common.viewOnExplorer')}
                 </a>
@@ -247,8 +261,13 @@ export function CorridorPage() {
 
       {/* ── Leg 2 ─────────────────────────────────────────────────────────── */}
       {step !== 'swap' ? (
-        <section className="card space-y-4 p-5">
-          <h2 className="font-semibold">2 · {t('corridor.sendTitle')}</h2>
+        <section className="card space-y-4 p-6">
+          <h2 className="section-title flex items-center gap-3">
+            <span aria-hidden="true" className="index-chip">
+              2
+            </span>
+            {t('corridor.sendTitle')}
+          </h2>
           <p className="text-sm text-fg-muted">{t('corridor.sendHint')}</p>
 
           {step === 'send' ? (
@@ -300,7 +319,7 @@ export function CorridorPage() {
                     href={explorerTxUrl(sendHash)}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn btn-ghost text-xs"
+                    className="btn btn-ghost btn-sm"
                   >
                     {t('common.viewOnExplorer')}
                   </a>
@@ -317,10 +336,15 @@ export function CorridorPage() {
       {/* ── Leg 3 ─────────────────────────────────────────────────────────── */}
       {step === 'payout' ? (
         <section className="space-y-4">
-          <div className="card space-y-2 p-5">
+          <div className="card space-y-2 p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold">3 · {t('corridor.recipientTitle')}</h2>
-              <span className="rounded-full bg-inset px-2 py-0.5 text-xs text-fg-muted">
+              <h2 className="section-title flex items-center gap-3">
+                <span aria-hidden="true" className="index-chip">
+                  3
+                </span>
+                {t('corridor.recipientTitle')}
+              </h2>
+              <span className="chip chip-neutral">
                 <Bank size={16} weight={ICON_WEIGHT} aria-hidden="true" />
                 {t('corridor.recipientView')}
               </span>
@@ -362,7 +386,7 @@ export function CorridorPage() {
           )}
         </section>
       ) : null}
-    </div>
+    </PageShell>
   );
 }
 
@@ -381,11 +405,7 @@ function CorridorSteps({ step }: { step: Step }) {
     <ol className="flex flex-wrap items-center gap-2 text-sm">
       {steps.map((s, i) => (
         <li key={s.key} className="flex items-center gap-2">
-          <span
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 ${
-              i <= currentIndex ? 'bg-success/15 text-success' : 'bg-inset text-fg-subtle'
-            }`}
-          >
+          <span className={`chip ${i <= currentIndex ? 'chip-success' : 'chip-neutral'}`}>
             <s.Glyph size={14} weight={ICON_WEIGHT} aria-hidden="true" />
             {s.label}
           </span>
@@ -408,7 +428,7 @@ function SwapSummary({ quote }: { quote: SwapQuote }) {
   const dex = quote.mode === 'dex';
 
   return (
-    <div className="rounded-lg bg-inset p-4">
+    <div className="rounded-xl border border-line bg-black/40 p-4">
       <p className={`text-sm ${dex ? 'text-success' : 'text-gold'}`}>
         {dex ? t('corridor.swapDex') : t('corridor.swapSimulated')}
       </p>
@@ -416,27 +436,23 @@ function SwapSummary({ quote }: { quote: SwapQuote }) {
 
       <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
-            {t('common.youReceive')}
-          </dt>
+          <dt className="label">{t('common.youReceive')}</dt>
           <dd className="mt-0.5 font-semibold tabular-nums text-gold">
             {formatToken(quote.buyAmount, 'USDC', tag)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">{t('common.rate')}</dt>
+          <dt className="label">{t('common.rate')}</dt>
           <dd className="mt-0.5 font-mono text-sm tabular-nums">
             {Number(quote.price).toFixed(6)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">
-            {t('corridor.slippage')}
-          </dt>
+          <dt className="label">{t('corridor.slippage')}</dt>
           <dd className="mt-0.5 font-mono text-sm tabular-nums text-fg-muted">{quote.destMin}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-fg-subtle">Path</dt>
+          <dt className="label">Path</dt>
           <dd className="mt-0.5 text-sm text-fg-muted">
             {quote.path.length === 0
               ? t('corridor.swapDirect')

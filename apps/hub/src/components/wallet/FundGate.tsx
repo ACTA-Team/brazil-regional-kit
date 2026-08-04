@@ -37,7 +37,7 @@ export function FundGate() {
           type="button"
           onClick={() => void fund()}
           disabled={busy}
-          className="btn btn-primary text-xs"
+          className="btn btn-primary btn-sm"
         >
           {busy ? t('common.loading') : t('common.fund')}
         </button>

@@ -220,8 +220,8 @@ export function SepAuthPanel() {
   };
 
   return (
-    <section className="card p-5">
-      <h2 className="font-semibold">{t('sep.title')}</h2>
+    <section className="card p-6">
+      <h2 className="section-title">{t('sep.title')}</h2>
       <p className="mt-1 max-w-2xl text-sm leading-relaxed text-fg-muted">{t('sep.claim')}</p>
 
       {/*
@@ -262,7 +262,7 @@ export function SepAuthPanel() {
                 type="button"
                 onClick={() => void authenticate()}
                 disabled={!connected || busy !== null}
-                className="btn btn-primary text-xs"
+                className="btn btn-primary btn-sm"
               >
                 {busy === 'auth'
                   ? t('common.signing')
@@ -299,7 +299,7 @@ export function SepAuthPanel() {
                 type="button"
                 onClick={() => void getFirmQuote()}
                 disabled={!token || busy !== null}
-                className="btn btn-ghost text-xs"
+                className="btn btn-ghost btn-sm"
               >
                 {busy === 'quote' ? t('common.loading') : t('sep.firmQuote')}
               </button>
@@ -315,9 +315,7 @@ export function SepAuthPanel() {
                     value={new Date(quote.expires_at).toLocaleTimeString()}
                   />
                   <div className="col-span-2 sm:col-span-4">
-                    <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                      {t('sep.quoteId')}
-                    </span>
+                    <span className="label">{t('sep.quoteId')}</span>
                     <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
                       {quote.id}
                     </p>
@@ -358,9 +356,7 @@ export function SepAuthPanel() {
                   <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                     <Field label={t('sep.kind')} value={session.kind ?? '…'} />
                     <div title={session.status}>
-                      <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                        {t('common.status')}
-                      </span>
+                      <span className="label">{t('common.status')}</span>
                       <p className="mt-0.5 font-medium">
                         {session.status
                           ? (STATUS_KEY[session.status] ?? '') !== ''
@@ -371,9 +367,7 @@ export function SepAuthPanel() {
                     </div>
                     <Field label={t('sep.anchorLabel')} value="testanchor.stellar.org" />
                     <div className="col-span-2 sm:col-span-3">
-                      <span className="text-xs uppercase tracking-wide text-fg-subtle">
-                        {t('sep.transactionId')}
-                      </span>
+                      <span className="label">{t('sep.transactionId')}</span>
                       <p className="mt-0.5 break-all font-mono text-[11px] text-fg-muted">
                         {session.id}
                       </p>
@@ -428,12 +422,10 @@ function SepStep({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg bg-inset p-4">
+    <li className="flex gap-3.5 rounded-xl border border-line bg-black/30 p-4">
       <span
         aria-hidden="true"
-        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold ${
-          done ? 'border-success bg-success text-white' : 'border-line text-fg-subtle'
-        }`}
+        className={`index-chip ${done ? '' : 'border-line bg-transparent text-fg-subtle'}`}
       >
         {done ? <Check size={12} weight={ICON_WEIGHT} aria-hidden="true" /> : index}
       </span>
@@ -466,7 +458,7 @@ function Locked({ label }: { label: string }) {
 function Field({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-fg-subtle">{label}</dt>
+      <dt className="label">{label}</dt>
       <dd className={`mt-0.5 font-semibold tabular-nums ${accent ? 'text-gold' : ''}`}>{value}</dd>
     </div>
   );
