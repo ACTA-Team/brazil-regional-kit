@@ -103,7 +103,6 @@
   "router.outcome.timeout": "tiempo agotado",
   "router.timing": "{count} anchors consultados en paralelo · {ms}ms",
   "router.autoRefresh": "Actualizar solo",
-  "router.apiHint": "Toda esta tabla es una sola petición:",
   "sep.title": "Hablando el estándar: SEP-10, SEP-38, SEP-24",
   "sep.subtitle": "La tabla de arriba usa precios SEP-38 sin autenticación. Perfectos para comparar anchors, pero indicativos. Estos tres pasos recorren el resto del protocolo contra el anchor de prueba de la SDF: autenticar, reservar una cotización firme y abrir el flujo interactivo del propio anchor.",
   "sep.step1": "SEP-10: autenticar",
@@ -205,5 +204,7 @@
   "home.trust.network": "cada transacción pública y verificable",
   "home.trust.license": "código abierto, reutilizable como paquetes",
   "onramp.inYourWallet": "está en tu billetera, on-chain y verificable.",
-  "offramp.roundTripDone": "Ida y vuelta completa"
+  "offramp.roundTripDone": "Ida y vuelta completa",
+  "router.oneCall": "Eso fue una sola petición. El kit le preguntó a {count} anchors al mismo tiempo, tradujo cada respuesta a un mismo formato y las ordenó por lo que realmente recibís.",
+  "router.showRequest": "Mostrar la petición"
 }

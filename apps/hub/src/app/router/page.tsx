@@ -5,7 +5,15 @@ import { BRL, MXN, TESOURO, USDC, type AssetId, type CountryCode } from '@brk/ra
 import type { AnchorResult } from '@brk/ramp-router';
 import { Alert } from '@/components/Alert';
 import { PageIntro } from '@/components/PageIntro';
-import { ArrowUUpLeft, Coins, ICON_WEIGHT, Money, Wallet, type Icon } from '@/components/icons';
+import {
+  ArrowUUpLeft,
+  CaretRight,
+  Coins,
+  ICON_WEIGHT,
+  Money,
+  Wallet,
+  type Icon,
+} from '@/components/icons';
 import { AmountField } from '@/components/AmountField';
 import { QuoteTable, type PublicRankedQuote } from '@/components/QuoteTable';
 import { SepAuthPanel } from '@/components/SepAuthPanel';
@@ -222,12 +230,35 @@ export default function RouterPage() {
             elapsedMs={result.elapsedMs}
           />
 
-          {/* The point of the page, stated plainly: it is one call. */}
-          <div className="card p-4">
-            <p className="text-xs text-fg-subtle">{t('router.apiHint')}</p>
-            <code className="mt-1.5 block overflow-x-auto whitespace-nowrap font-mono text-xs text-gold">
-              GET /api/quotes?{query}
-            </code>
+          {/*
+            The page's whole argument, in a sentence anyone can read.
+
+            This used to be a bare percent-encoded URL, which is the one thing
+            on the page that means nothing to the person the demo is for:
+            `sell=stellar%3AUSDC%3AGBBD47IF…` is noise unless you already know
+            what it says. The claim is what matters, so the claim is what shows;
+            the request that backs it is one click away, decoded, for anyone who
+            wants to check.
+          */}
+          <div className="card p-5">
+            <p className="text-sm leading-relaxed">
+              {t('router.oneCall', { count: result.anchors.length })}
+            </p>
+
+            <details className="group mt-3">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-xs text-fg-subtle transition-colors hover:text-fg">
+                <CaretRight
+                  size={11}
+                  weight={ICON_WEIGHT}
+                  aria-hidden="true"
+                  className="transition-transform group-open:rotate-90"
+                />
+                {t('router.showRequest')}
+              </summary>
+              <code className="well mt-2 block break-all p-3 text-xs leading-relaxed text-success">
+                GET /api/quotes?{decodeURIComponent(query)}
+              </code>
+            </details>
           </div>
         </>
       ) : null}

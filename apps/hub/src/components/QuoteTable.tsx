@@ -97,7 +97,7 @@ export function QuoteTable({
       {[...groups.entries()].map(([buyAsset, group]) => (
         <section key={buyAsset} className="card overflow-hidden">
           <header className="flex flex-wrap items-baseline gap-2 border-b border-line bg-inset/60 px-4 py-2.5">
-            <span className="text-sm font-semibold text-gold">
+            <span className="text-sm font-semibold text-fg">
               {t('router.receiveGroup', { asset: assetCode(buyAsset) })}
             </span>
             <span className="text-xs text-fg-subtle">

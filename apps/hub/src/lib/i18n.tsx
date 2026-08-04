@@ -147,5 +147,5 @@ export function formatMoney(amount: string, currency: string, tag: string): stri
 export function formatToken(amount: string, code: string, tag: string): string {
   const n = Number(amount);
   if (!Number.isFinite(n)) return `${amount} ${code}`;
-  return `${new Intl.NumberFormat(tag, { maximumFractionDigits: 7 }).format(n)} ${code}`;
+  return `${new Intl.NumberFormat(tag, { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(n)} ${code}`;
 }
