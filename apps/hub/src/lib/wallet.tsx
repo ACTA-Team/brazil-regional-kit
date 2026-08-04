@@ -26,6 +26,7 @@ import {
   getWalletNetwork,
   hasWalletAvailable,
   isTestnet,
+  isWalletSessionLost,
   openWalletProfile,
   signTransactionXdr,
   watchWallet,
@@ -219,11 +220,28 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       disconnect,
       openProfile: openWalletProfile,
       refreshBalances: () => loadBalances(address),
-      sign: (xdr: string) =>
-        signTransactionXdr(xdr, {
+      sign: async (xdr: string) => {
+        const opts = {
           networkPassphrase: network?.networkPassphrase ?? TESTNET_PASSPHRASE,
           address,
-        }),
+        };
+
+        try {
+          return await signTransactionXdr(xdr, opts);
+        } catch (e) {
+          if (!isWalletSessionLost(e)) throw e;
+
+          /*
+           * The wallet still knows the address but has dropped its live
+           * connection to this page, so it reports something like "The
+           * connection key is missing" at the exact moment the user clicks
+           * sign. Reconnecting is the whole remedy, and making the user work
+           * that out from a wallet-internal string is not a reasonable ask.
+           */
+          await connectWallet();
+          return await signTransactionXdr(xdr, opts);
+        }
+      },
       balanceOf,
       hasTrustline: (asset: AssetId) => Boolean(balances?.some((b) => b.asset === asset)),
     };

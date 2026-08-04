@@ -11,11 +11,11 @@ export default tseslint.config(
       '**/.next/**',
       '**/coverage/**',
       '**/*.d.ts',
-      // Vendored agent skills. Third-party reference material and templates —
-      // linting someone else's example code fails the build over style choices
-      // this repo never made.
-      '.agents/**',
+      // Vendored agent-skill templates. They are documentation for a tool, not
+      // code this repo ships, and linting someone else's template teaches us
+      // nothing about our own.
       '.claude/**',
+      '.agents/**',
     ],
   },
 
