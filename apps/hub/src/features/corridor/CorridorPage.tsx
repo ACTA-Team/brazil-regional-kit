@@ -168,7 +168,6 @@ export function CorridorPage() {
       className="space-y-7"
       intro={
         <PageIntro
-          step={3}
           title={t('corridor.title')}
           subtitle={t('corridor.subtitle')}
           plate="pao-light"

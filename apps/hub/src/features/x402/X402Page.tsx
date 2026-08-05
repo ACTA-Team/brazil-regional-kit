@@ -133,12 +133,7 @@ export function X402Page() {
       width="default"
       className="max-w-3xl space-y-7"
       intro={
-        <PageIntro
-          step={5}
-          title={t('x402.title')}
-          subtitle={t('x402.subtitle')}
-          plate="cristo-square"
-        />
+        <PageIntro title={t('x402.title')} subtitle={t('x402.subtitle')} plate="cristo-square" />
       }
     >
       <NetworkBanner />

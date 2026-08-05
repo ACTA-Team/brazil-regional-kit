@@ -205,12 +205,7 @@ export function RouterPage() {
     <PageShell
       className="space-y-6"
       intro={
-        <PageIntro
-          step={2}
-          title={t('router.title')}
-          subtitle={t('router.subtitle')}
-          plate="cristo-dense"
-        />
+        <PageIntro title={t('router.title')} subtitle={t('router.subtitle')} plate="cristo-dense" />
       }
     >
       {/* ── Step 1: which situation are you in? ─────────────────────────── */}

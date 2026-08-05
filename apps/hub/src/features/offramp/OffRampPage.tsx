@@ -45,7 +45,6 @@ export function OffRampPage() {
       className="space-y-7"
       intro={
         <PageIntro
-          step={4}
           title={t('offramp.title')}
           subtitle={t('offramp.subtitle')}
           plate="cristo-light"

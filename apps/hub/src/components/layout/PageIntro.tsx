@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { ArrowRight, ICON_WEIGHT } from '@/components/icons';
+import { TOTAL_STEPS, stepFor } from '@/lib/nav';
 
 /**
  * One header shape for every page in the demo.
@@ -54,16 +56,12 @@ const PLATE_MASK = [
   'linear-gradient(to bottom, transparent 0%, #000 14%, #000 76%, transparent 100%)',
 ].join(', ');
 
-const TOTAL_STEPS = 6;
-
 export function PageIntro({
-  step,
   title,
   subtitle,
   route,
   plate = 'pao-dense',
 }: {
-  step?: number;
   title: string;
   subtitle: string;
   /** The corridor this page runs, rendered as `from → to` with its rail. */
@@ -72,6 +70,9 @@ export function PageIntro({
   plate?: keyof typeof PLATES;
 }) {
   const plateRef = useRef<HTMLImageElement>(null);
+  // The step is read off the route rather than passed in: a page cannot then
+  // claim a position the nav disagrees with.
+  const step = stepFor(usePathname());
 
   /**
    * Parallax: the plate scrolls slower than the copy over it, so the band reads
