@@ -76,7 +76,7 @@ export function LocaleSwitcher() {
       {open ? (
         <div
           role="menu"
-          className="animate-in fade-in zoom-in-95 absolute right-0 top-[calc(100%+0.5rem)] z-50 w-44 overflow-hidden rounded-xl border border-line-strong bg-surface p-1 shadow-2xl shadow-black/50 duration-150"
+          className="animate-in fade-in zoom-in-95 absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-line-strong bg-surface/98 p-1 shadow-2xl shadow-black/60 duration-150"
         >
           {LOCALES.map((l: Locale) => {
             const active = l === locale;

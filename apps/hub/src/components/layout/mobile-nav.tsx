@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,17 @@ export function MobileNav() {
   const pathname = usePathname();
   const { t } = useI18n();
 
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
   return (
     <div className="md:hidden">
       <Button
@@ -35,16 +46,25 @@ export function MobileNav() {
       </Button>
 
       {open ? (
-        <Portal className="top-16" id="mobile-menu">
-          <PortalBackdrop />
+        <Portal id="mobile-menu" role="dialog" aria-modal="true" aria-label={t('nav.home')}>
+          <PortalBackdrop className="bg-background/98 supports-backdrop-filter:bg-background/88" />
           <div
             className={cn(
-              'data-[slot=open]:zoom-in-97 ease-out data-[slot=open]:animate-in',
-              'size-full p-4',
+              'data-[slot=open]:fade-in data-[slot=open]:slide-in-from-top-2 ease-out data-[slot=open]:animate-in',
+              'size-full px-5 pt-24 pb-8',
             )}
             data-slot={open ? 'open' : 'closed'}
           >
-            <div className="grid gap-y-1">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close menu"
+              className="absolute top-5 right-5 grid h-11 w-11 place-items-center rounded-xl border border-line-strong bg-surface text-fg-muted transition-colors hover:border-gold/35 hover:text-fg"
+            >
+              <X size={18} weight={ICON_WEIGHT} aria-hidden="true" />
+            </button>
+
+            <div className="grid gap-y-1 rounded-2xl border border-line-strong bg-surface/95 p-2 shadow-2xl shadow-black/40">
               {navLinks.map((link) => {
                 const active = isActivePath(pathname, link.href);
                 return (

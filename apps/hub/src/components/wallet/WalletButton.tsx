@@ -3,6 +3,7 @@
 import { useI18n } from '@/client/i18n';
 import { shortAddress, useWallet } from '@/client/wallet';
 import { ICON_WEIGHT, Warning } from '@/components/icons';
+import { Alert } from '@brk/ramp-ui';
 
 export function WalletButton() {
   const { t } = useI18n();
@@ -64,6 +65,42 @@ export function WalletButton() {
     >
       {status === 'connecting' ? t('wallet.connecting') : t('wallet.connect')}
     </button>
+  );
+}
+
+export function ConnectWalletPrompt() {
+  const { t } = useI18n();
+  const { status, address, connect } = useWallet();
+
+  if (status === 'connected' && address) return null;
+
+  return (
+    <Alert
+      tone="info"
+      action={
+        status === 'unavailable' ? (
+          <a
+            href="https://stellar.org/ecosystem/wallets"
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-outline btn-sm"
+          >
+            {t('wallet.notInstalled')}
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void connect()}
+            disabled={status === 'connecting'}
+            className="btn btn-primary btn-sm"
+          >
+            {status === 'connecting' ? t('wallet.connecting') : t('wallet.connect')}
+          </button>
+        )
+      }
+    >
+      {t('common.connectFirst')}
+    </Alert>
   );
 }
 

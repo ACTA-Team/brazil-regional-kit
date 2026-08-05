@@ -55,6 +55,53 @@ function QuoteRow({ quote: q }: { quote: PublicRankedQuote }) {
   );
 }
 
+function QuoteMobileCard({ quote: q }: { quote: PublicRankedQuote }) {
+  const { t, tag } = useI18n();
+  const contested = q.groupSize > 1;
+
+  return (
+    <article className="border-b border-line/60 px-4 py-4 last:border-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold">{q.anchorName}</h3>
+            <ModeBadge mode={q.mode} />
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {contested && q.best ? (
+              <span className="chip border-transparent bg-verde font-semibold text-black uppercase">
+                {t('router.best')}
+              </span>
+            ) : null}
+            {contested && !q.best ? (
+              <span className="chip chip-neutral tabular-nums">-{q.worseByPct}%</span>
+            ) : null}
+            <span className="label text-[10px]">{t(`router.firmness.${q.firmness}`)}</span>
+          </div>
+        </div>
+        <p className="shrink-0 text-right font-semibold tabular-nums text-gold">
+          {amountLabel(q.buyAmount, q.buyAsset, tag)}
+        </p>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+        <div>
+          <dt className="label">{t('common.rate')}</dt>
+          <dd className="mt-1 font-mono tabular-nums text-fg-muted">
+            {Number(q.price).toFixed(6)}
+          </dd>
+        </div>
+        <div>
+          <dt className="label">{t('common.fee')}</dt>
+          <dd className="mt-1 font-mono tabular-nums text-fg-muted">
+            {q.fee.amount} {assetCode(q.fee.asset)}
+          </dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
 /**
  * The router's answer, grouped by what you would RECEIVE.
  *
@@ -105,7 +152,12 @@ export function QuoteTable({
                 : t('router.groupSingle')}
             </span>
           </header>
-          <div className="overflow-x-auto">
+          <div className="sm:hidden">
+            {group.map((q) => (
+              <QuoteMobileCard key={`${q.anchorId}-${q.buyAsset}`} quote={q} />
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-2xl text-sm">
               <thead>
                 <tr className="label border-b border-line text-left">

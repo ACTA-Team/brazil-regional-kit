@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Alert } from '@brk/ramp-ui';
 import { PAYMENT_HEADER, buildPaymentTx, explorerTxUrl } from '@brk/stablecoin-kit';
 import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import { Check, ICON_WEIGHT } from '@/components/icons';
-import { NetworkBanner } from '@/components/wallet/WalletButton';
+import { ConnectWalletPrompt, NetworkBanner } from '@/components/wallet/WalletButton';
 import { submitSignedTx } from '@/client/api';
 import { useI18n } from '@/client/i18n';
 import { useWallet } from '@/client/wallet';
@@ -142,7 +141,7 @@ export function X402Page() {
       }
     >
       <NetworkBanner />
-      {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
+      {!connected ? <ConnectWalletPrompt /> : null}
       {error ? <ErrorAlert error={error} /> : null}
 
       <ol className="space-y-4">

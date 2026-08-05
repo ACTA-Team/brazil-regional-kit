@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Alert, AmountField, QuoteCard, displayAmount } from '@brk/ramp-ui';
+import { AmountField, QuoteCard, displayAmount } from '@brk/ramp-ui';
 import { BRL, TESOURO, assetCode } from '@brk/ramp-core';
 import { ErrorAlert } from '@/components/feedback/ErrorAlert';
 import { FundGate } from '@/components/wallet/FundGate';
@@ -10,7 +10,7 @@ import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { ReturnTxPanel } from '@/features/offramp/ReturnTxPanel';
-import { NetworkBanner } from '@/components/wallet/WalletButton';
+import { ConnectWalletPrompt, NetworkBanner } from '@/components/wallet/WalletButton';
 import { useI18n } from '@/client/i18n';
 import { useRampFlow } from '@/client/useRampFlow';
 import { useWallet } from '@/client/wallet';
@@ -61,7 +61,7 @@ export function OffRampPage() {
       <NetworkBanner />
       <FundGate />
 
-      {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
+      {!connected ? <ConnectWalletPrompt /> : null}
 
       {error ? (
         <ErrorAlert
