@@ -10,7 +10,7 @@ import { PageIntro } from '@/components/layout/PageIntro';
 import { PageShell } from '@/components/layout/PageShell';
 import { ArrowRight, Check, ICON_WEIGHT, Spinner } from '@/components/icons';
 import { TrustlineGate } from '@/components/wallet/TrustlineGate';
-import { NetworkBanner } from '@/components/wallet/WalletButton';
+import { ConnectWalletPrompt, NetworkBanner } from '@/components/wallet/WalletButton';
 import { useI18n } from '@/client/i18n';
 import { useRampFlow } from '@/client/useRampFlow';
 import { useWallet } from '@/client/wallet';
@@ -87,7 +87,7 @@ export function OnRampPage() {
       <NetworkBanner />
       <FundGate />
 
-      {!connected ? <Alert tone="info">{t('common.connectFirst')}</Alert> : null}
+      {!connected ? <ConnectWalletPrompt /> : null}
 
       {error ? (
         <ErrorAlert
