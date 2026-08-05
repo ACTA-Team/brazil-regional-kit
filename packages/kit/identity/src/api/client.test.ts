@@ -17,6 +17,7 @@ import {
   DID_RESOLVER_URL,
   ENDPOINTS,
 } from './client';
+import { walletKeyToMultikey } from '../keys/stellar-key';
 
 const API_KEY = 'test-acta-key';
 const DID = 'did:stellar:testnet:znfxngsh46vkyqu6inrx4omphi';
@@ -137,9 +138,13 @@ describe('prepareDidRegistration', () => {
     expect(bodyOf(fetchImpl).did).toBe(prepared.did);
   });
 
-  it('puts the controller key in both authentication and assertionMethod', async () => {
-    // An issuer without an assertion key cannot sign credentials, and W3C
-    // verifiers reject what it does sign. Same key in both is the idiomatic shape.
+  /**
+   * This test used to assert the opposite — the same key in both relationships,
+   * which ACTA's docs call the idiomatic issuer shape. The deployed registry
+   * rejects it with `duplicate_key (#9)` at prepare time, so the assertion was
+   * pinning a document that can never be registered.
+   */
+  it('makes the controller key the authentication key', async () => {
     const fetchImpl = fetchReturning(PREPARED);
     await client(fetchImpl).prepareDidRegistration(CONTROLLER);
 
@@ -149,10 +154,9 @@ describe('prepareDidRegistration', () => {
       assertionMethod: Array<{ publicKeyMultibase: string }>;
     };
     expect(record.controller).toBe(CONTROLLER);
-    expect(record.authentication[0]!.publicKeyMultibase).toMatch(/^z6Mk/);
-    expect(record.assertionMethod[0]!.publicKeyMultibase).toBe(
-      record.authentication[0]!.publicKeyMultibase,
-    );
+    expect(record.authentication[0]!.publicKeyMultibase).toBe(walletKeyToMultikey(CONTROLLER));
+    // Never the same key twice: that is the document the registry refuses.
+    expect(record.assertionMethod).not.toContainEqual(record.authentication[0]);
   });
 
   it('rejects a passkey contract address before any network call', async () => {
@@ -380,5 +384,78 @@ describe('error mapping', () => {
     await expect(
       client(fetchImpl, { timeoutMs: 5 }).verifyVc({ owner: CONTROLLER, vcId: 'att-x' }),
     ).rejects.toThrow(expect.objectContaining({ code: 'ANCHOR_UNAVAILABLE' }));
+  });
+});
+
+describe('what the registry actually accepts', () => {
+  /**
+   * Two independent failures, both found against the live testnet registry with
+   * funded throwaway accounts:
+   *
+   *   same key in authentication + assertionMethod  ->  400 duplicate_key (#9)
+   *   submit without `network`                      ->  400 network_invalid
+   *
+   * The first contradicts ACTA's own documentation, which calls one key in both
+   * relationships "the idiomatic issuer shape". The deployed contract disagrees,
+   * and the contract is what runs. Two distinct keys registered cleanly
+   * (tx ac62851d…), which is the shape this package now builds.
+   */
+  it('never sends the same key as both authentication and assertion', async () => {
+    const fetchImpl = fetchReturning(PREPARED);
+    const assertionKey = 'z6MkfakeAssertionKeyForTestingOnly000000000000';
+
+    await client(fetchImpl).prepareDidRegistration(CONTROLLER, {
+      assertionKeyMultibase: assertionKey,
+    });
+
+    const record = bodyOf(fetchImpl).record as {
+      authentication: Array<{ publicKeyMultibase: string }>;
+      assertionMethod: Array<{ publicKeyMultibase: string }>;
+    };
+
+    expect(record.authentication).toHaveLength(1);
+    expect(record.assertionMethod).toHaveLength(1);
+    expect(record.assertionMethod[0]!.publicKeyMultibase).toBe(assertionKey);
+    expect(record.assertionMethod[0]!.publicKeyMultibase).not.toBe(
+      record.authentication[0]!.publicKeyMultibase,
+    );
+  });
+
+  /**
+   * A holder needs `authentication` and nothing else — that is what proves
+   * control. Every user of this app is a holder, so the default shape has to be
+   * theirs, and it must never carry an assertion key it has no use for.
+   */
+  it('registers a holder with authentication only', async () => {
+    const fetchImpl = fetchReturning(PREPARED);
+    await client(fetchImpl).prepareDidRegistration(CONTROLLER);
+
+    const record = bodyOf(fetchImpl).record as {
+      authentication: unknown[];
+      assertionMethod: unknown[];
+    };
+    expect(record.authentication).toHaveLength(1);
+    expect(record.assertionMethod).toEqual([]);
+  });
+
+  it('refuses an assertion key that repeats the controller key', async () => {
+    const fetchImpl = fetchReturning(PREPARED);
+    const controllerKey = walletKeyToMultikey(CONTROLLER);
+
+    await expect(
+      client(fetchImpl).prepareDidRegistration(CONTROLLER, {
+        assertionKeyMultibase: controllerKey,
+      }),
+    ).rejects.toThrow(/duplicate/i);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('tells submit which network it is on', async () => {
+    const fetchImpl = fetchReturning({ txId: 'abc' });
+    await client(fetchImpl, { network: 'testnet' }).submitDidTx('AAAAsigned');
+
+    // There is no DID in the submit path for the API to infer it from, so
+    // omitting this is a guaranteed 400 rather than a default.
+    expect(bodyOf(fetchImpl)).toMatchObject({ signedXdr: 'AAAAsigned', network: 'testnet' });
   });
 });
