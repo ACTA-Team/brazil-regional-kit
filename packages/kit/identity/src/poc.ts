@@ -21,7 +21,7 @@ import { base64urlnopad } from '@scure/base';
 import { RampError } from '@brk/ramp-core';
 import type { IdentityMode } from './api/api';
 import { isValidDid } from './did/did';
-import { verifyWithMultikey } from './keys/stellar-key';
+import { sha256, verifyWithMultikey } from './keys/stellar-key';
 
 /** The method's window. Long enough for a user to read a wallet prompt. */
 export const POC_WINDOW_MS = 5 * 60_000;
@@ -78,6 +78,34 @@ export function jcsCanonicalize(value: JsonValue): string {
 
 export function pocMessageBytes(challenge: PocChallenge): Uint8Array {
   return new TextEncoder().encode(jcsCanonicalize({ ...challenge }));
+}
+
+/** SEP-53's envelope. The newline is part of it. */
+const SEP53_PREFIX = 'Stellar Signed Message:\n';
+
+/**
+ * What a Stellar wallet actually signs.
+ *
+ * SEP-53 does not sign the bytes it is handed. It prefixes them, hashes the
+ * result, and signs the digest:
+ *
+ *   ed25519_sign(sk, SHA256("Stellar Signed Message:\n" || message))
+ *
+ * Every wallet that implements message signing does this, so verifying against
+ * the raw canonical JSON fails for all of them — and fails as "the signature
+ * does not match any authentication key", which reads as the wrong key rather
+ * than the wrong envelope. Reproduced against a real registered DID on testnet
+ * before this existed.
+ */
+export function sep53PayloadBytes(challenge: PocChallenge): Uint8Array {
+  const message = pocMessageBytes(challenge);
+  const prefix = new TextEncoder().encode(SEP53_PREFIX);
+
+  const encoded = new Uint8Array(prefix.length + message.length);
+  encoded.set(prefix, 0);
+  encoded.set(message, prefix.length);
+
+  return sha256(encoded);
 }
 
 // ── Nonce store ───────────────────────────────────────────────────────────────
@@ -239,17 +267,30 @@ export function verifyPocResponse(req: VerifyPocRequest): PocResult {
   const signature = decodeSignature(req.signature);
   if (!signature) return { verified: false, reason: 'bad-signature' };
 
-  const message = pocMessageBytes(challenge);
+  /*
+   * Two payloads, because there are two honest ways to have signed this.
+   *
+   * A browser wallet follows SEP-53 and signs the hashed, prefixed form. A
+   * holder using a library signs the canonical bytes directly. Both prove the
+   * same thing — possession of the key — so both are accepted, and neither
+   * weakens the check: an attacker still has to produce a valid Ed25519
+   * signature over a challenge that is nonce-bound, domain-bound and expires in
+   * five minutes.
+   */
+  const payloads = [sep53PayloadBytes(challenge), pocMessageBytes(challenge)];
+
   // The method says to check every authentication key: a document may hold up
   // to three, and any of them proves control.
   for (const key of req.authentication) {
-    try {
-      if (verifyWithMultikey(key, message, signature)) {
-        return { verified: true, matchedKey: key };
+    for (const payload of payloads) {
+      try {
+        if (verifyWithMultikey(key, payload, signature)) {
+          return { verified: true, matchedKey: key };
+        }
+      } catch {
+        // A key we cannot decode is a key that cannot have signed this. Skip it
+        // and keep going: one malformed entry must not veto the other two.
       }
-    } catch {
-      // A key we cannot decode is a key that cannot have signed this. Skip it
-      // and keep going: one malformed entry must not veto the other two.
     }
   }
   return { verified: false, reason: 'bad-signature' };

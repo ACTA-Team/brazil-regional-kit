@@ -12,6 +12,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Keypair } from '@stellar/stellar-sdk';
+import { createHash } from 'node:crypto';
 import { base64urlnopad } from '@scure/base';
 import { walletKeyToMultikey } from './keys/stellar-key';
 import {
@@ -324,5 +325,86 @@ describe('verifyPocResponse', () => {
         }),
       ).toEqual({ verified: false, reason: 'expired' });
     });
+  });
+});
+
+describe('a wallet that signs the SEP-53 way', () => {
+  /**
+   * Freighter and the other Stellar wallets do not sign the bytes you hand
+   * them. SEP-53 wraps the payload first:
+   *
+   *   signature = ed25519_sign(sk, SHA256("Stellar Signed Message:\n" || message))
+   *
+   * Verifying against the raw canonical JSON therefore never matches, and the
+   * user is told "the signature does not match any authentication key" — which
+   * reads as a wrong key, when it is a different envelope around the right one.
+   * Reproduced on testnet with a real registered DID before this was written.
+   */
+  it('verifies a signature made over the SEP-53 payload', () => {
+    const kp = Keypair.random();
+    const did = 'did:stellar:testnet:znfxngsh46vkyqu6inrx4omphi';
+    const challenge = createPocChallenge({ did, domain: 'example.com' });
+
+    const message = Buffer.from(jcsCanonicalize({ ...challenge }), 'utf8');
+    const payload = createHash('sha256')
+      .update(Buffer.concat([Buffer.from('Stellar Signed Message:\n', 'utf8'), message]))
+      .digest();
+    const signature = kp.sign(payload).toString('base64');
+
+    const result = verifyPocResponse({
+      challenge,
+      signature,
+      authentication: [walletKeyToMultikey(kp.publicKey())],
+      expectedDomain: 'example.com',
+      mode: 'live',
+    });
+
+    expect(result.verified).toBe(true);
+  });
+
+  /**
+   * The raw form still has to work: nothing about accepting SEP-53 should stop
+   * a holder who signs the canonical bytes directly with a library.
+   */
+  it('still verifies a signature made over the raw canonical bytes', () => {
+    const kp = Keypair.random();
+    const did = 'did:stellar:testnet:znfxngsh46vkyqu6inrx4omphi';
+    const challenge = createPocChallenge({ did, domain: 'example.com' });
+
+    const message = Buffer.from(jcsCanonicalize({ ...challenge }), 'utf8');
+    const signature = kp.sign(message).toString('base64');
+
+    expect(
+      verifyPocResponse({
+        challenge,
+        signature,
+        authentication: [walletKeyToMultikey(kp.publicKey())],
+        expectedDomain: 'example.com',
+        mode: 'live',
+      }).verified,
+    ).toBe(true);
+  });
+
+  it('still rejects a signature from a key that is not in the document', () => {
+    const signer = Keypair.random();
+    const stranger = Keypair.random();
+    const did = 'did:stellar:testnet:znfxngsh46vkyqu6inrx4omphi';
+    const challenge = createPocChallenge({ did, domain: 'example.com' });
+
+    const message = Buffer.from(jcsCanonicalize({ ...challenge }), 'utf8');
+    const payload = createHash('sha256')
+      .update(Buffer.concat([Buffer.from('Stellar Signed Message:\n', 'utf8'), message]))
+      .digest();
+
+    const result = verifyPocResponse({
+      challenge,
+      signature: signer.sign(payload).toString('base64'),
+      authentication: [walletKeyToMultikey(stranger.publicKey())],
+      expectedDomain: 'example.com',
+      mode: 'live',
+    });
+
+    expect(result.verified).toBe(false);
+    expect(result.reason).toBe('bad-signature');
   });
 });
