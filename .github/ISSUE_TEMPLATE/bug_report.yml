@@ -38,8 +38,9 @@ body:
         - ramp-router
         - adapter-etherfuse
         - adapter-sep
-        - adapter-mocks
         - stablecoin-kit
+        - identity-kit
+        - ramp-ui
         - hub (the demo app)
         - sample-remit
         - scripts

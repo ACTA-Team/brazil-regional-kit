@@ -39,7 +39,7 @@ Out of scope:
   service — report those to the relevant project.
 - The testnet secret printed by `pnpm seed:liquidity`. It is disposable by
   construction and funded by friendbot.
-- Rates in `packages/adapter-mocks/fixtures/` being wrong. They are labelled
+- Rates in the Etherfuse fixture replays being stale. They are labelled
   simulated everywhere they appear; that is a documentation matter, not a
   vulnerability.
 

@@ -14,7 +14,7 @@ page renders as a chip.
 
 **It is not portable KYC.** No anchor accepts another anchor's checks. KYC/AML
 obligations attach to the institution, not to the customer, and a credential
-cannot transfer them — Etherfuse cannot lawfully treat Koywe's diligence as its
+cannot transfer them — Etherfuse cannot lawfully treat Anclap's diligence as its
 own, and neither can anyone else.
 
 What an attestation removes is the blind re-discovery. The kit knows which

@@ -13,7 +13,7 @@ import { createRampRouter } from '@brk/ramp-router';
 import { BRL } from '@brk/ramp-core';
 
 const router = createRampRouter({
-  adapters: [etherfuse, testanchor, manteca, koywe],
+  adapters: [etherfuse, testanchor, anclap],
   defaultTimeoutMs: 6_000,
 });
 

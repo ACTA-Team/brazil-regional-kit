@@ -99,7 +99,7 @@ Conventional Commits, one logical change each:
 feat(router): rank quotes within a destination asset
 fix(etherfuse): reject C… contract addresses with an explanation
 test(ramp-core): cover accented memos at the byte boundary
-docs(anchors): explain why Manteca and Koywe are simulated
+docs(anchors): explain why a fee schedule only yields an indicative quote
 chore(ci): run the sample app so the reuse claim cannot rot
 ```
 

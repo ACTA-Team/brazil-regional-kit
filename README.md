@@ -10,7 +10,7 @@ local rails — with live quotes from competing anchors at every step.
 
 ## What this is
 
-Six publishable packages and two apps that use them. The packages are the
+Seven publishable packages and two apps that use them. The packages are the
 deliverable; the apps prove they work.
 
 ```
@@ -18,10 +18,11 @@ packages/
   ramp-core          The contract every adapter implements. Zero dependencies.
   ramp-router        One API, many anchors. Parallel fan-out, honest ranking.
   adapter-etherfuse  BRL ↔ TESOURO over PIX. Live sandbox or fixture replay.
-  adapter-sep        Any SEP-compliant anchor. SEP-1/10/24/38.
-  adapter-mocks      Manteca + Koywe, production-shaped, always labelled.
+  adapter-sep        Any SEP-compliant anchor. SEP-1/10/24/38, or a published
+                     fee schedule for the anchors that offer no quote server.
   stablecoin-kit     Wallet, trustlines, DEX swaps, memo-safe payments, x402.
   identity-kit       did:stellar, onboarding attestations, router eligibility.
+  ramp-ui            The React components the hub is built from.
 
 apps/
   hub                The demo — on-ramp, router, corridor, off-ramp, x402, identity.
@@ -77,8 +78,7 @@ cannot drift from what the code does.
 |---|---|---|
 | **Etherfuse** | live sandbox / fixture replay | Quotes, orders, PIX instructions, sandbox settlement hooks. Needs a key from [devnet.etherfuse.com/ramp](https://devnet.etherfuse.com/ramp); without one it replays recorded responses. |
 | **SDF Test Anchor** | **live, always** | SEP-1 discovery, SEP-38 quotes, SEP-10 auth, SEP-38 firm quotes, SEP-24 interactive. No credentials required. |
-| **Manteca** | simulated | Production-shaped adapter. No self-service sandbox exists; onboarding is commercial. |
-| **Koywe** | simulated | Production-shaped adapter. Live in CL/MX/CO/PE, **not yet in Brazil**. |
+| **Anclap** | **live, always** | Real ARS terms, read live from their unauthenticated SEP-24 `/info` — assets, limits and the fees they actually charge. Quotes only: they settle on **mainnet**, so a testnet app reads genuine prices it cannot execute against, and `capabilities().network` says so. |
 | **ACTA identity** | live testnet / labelled mock | `did:stellar` registered in the on-chain registry, credentials issued through ACTA. Needs `ACTA_API_KEY` and `pnpm setup:identity`; without them the whole flow still runs and every result is marked simulated. |
 
 Always real, in every mode: Stellar accounts, trustlines, balances, DEX order
@@ -93,8 +93,9 @@ flowchart LR
   W -->|2. path payment| DEX[(Stellar DEX)]
   DEX -->|USDC| W
   W -->|3. payment + memo| R([Family in Mexico])
-  R -->|4. router quotes| K[Koywe]
-  K -->|MXN via SPEI| R
+  R -->|4. router quotes MXN| RT[ramp-router]
+  RT -->|best anchor serving MX| E
+  E -->|MXN via SPEI| R
   W -->|5. return leg| E
   E -->|BRL via PIX| U
 ```
@@ -144,10 +145,8 @@ flowchart TD
   Router[ramp-router] --> Core[ramp-core]
   Router --> AE[adapter-etherfuse]
   Router --> AS[adapter-sep]
-  Router --> AM[adapter-mocks]
   AE --> Core
   AS --> Core
-  AM --> Core
   Hub --> SK[stablecoin-kit]
   SK --> Core
   AE -->|REST| EF[(Etherfuse API)]
@@ -166,7 +165,7 @@ adding a SEP-compliant anchor costs almost nothing.
 import { createRampRouter } from '@brk/ramp-router';
 import { BRL } from '@brk/ramp-core';
 
-const router = createRampRouter({ adapters: [etherfuse, testanchor, manteca, koywe] });
+const router = createRampRouter({ adapters: [etherfuse, testanchor, anclap] });
 
 const result = await router.route({ sellAsset: BRL, sellAmount: '500', country: 'BR' });
 ```

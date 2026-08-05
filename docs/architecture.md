@@ -36,22 +36,24 @@ flowchart TD
   subgraph adapters
     AE[adapter-etherfuse]
     AS[adapter-sep]
-    AM[adapter-mocks]
   end
   subgraph foundation
     Core[ramp-core]
     SK[stablecoin-kit]
     ID[identity-kit]
+    UI[ramp-ui]
   end
 
   Hub --> Router
   Hub --> SK
   Hub --> ID
+  Hub --> UI
   Sample --> Router
   Sample --> SK
-  Router --> AE & AS & AM
-  AE & AS & AM --> Core
+  Router --> AE & AS
+  AE & AS --> Core
   SK --> Core
+  UI --> Core
 ```
 
 Dependencies point one way. `ramp-core` depends on nothing at all — not on
@@ -64,10 +66,10 @@ connection.
 | `ramp-core` | — | Types, errors, asset ids, money maths, memo safety |
 | `adapter-etherfuse` | `ramp-core` | One company's REST API, translated |
 | `adapter-sep` | `ramp-core`, stellar-sdk¹ | The ecosystem protocol, for any anchor |
-| `adapter-mocks` | `ramp-core` | Anchors we cannot call yet, honestly modelled |
 | `ramp-router` | `ramp-core` | Fan-out, ranking, failure reporting |
 | `stablecoin-kit` | `ramp-core`, stellar-sdk¹ | Everything on-chain |
 | `identity-kit` | `ramp-core`, stellar-sdk¹, @scure/base | did:stellar, attestations, eligibility |
+| `ramp-ui` | `ramp-core`, react¹ | The React components the hub is built from |
 
 ¹ peer dependency — the host app owns the SDK version.
 
@@ -84,7 +86,7 @@ and an app that never installs `identity-kit` would still pay for the type. See
 concrete adapter. Register whatever you like:
 
 ```ts
-createRampRouter({ adapters: [etherfuse, testanchor, manteca, koywe, yours] });
+createRampRouter({ adapters: [etherfuse, testanchor, anclap, yours] });
 ```
 
 **Adapters are built by factories, not constructed as singletons.** Mode and
@@ -129,7 +131,7 @@ GET /api/quotes?sell=iso4217:BRL&amount=500&country=BR
   │    ├─ candidates()         which adapters serve this corridor?
   │    ├─ Promise.allSettled   every (adapter, destination) pair in parallel
   │    │    ├─ etherfuse.getQuote()  → REST or fixture
-  │    │    └─ manteca.getQuote()    → fixture
+  │    │    └─ anclap.getQuote()     → published fee schedule
   │    └─ rank()               group by destination asset, order by payout
   └─ publicQuote()             strip `raw` before it crosses the wire
 ```
@@ -153,7 +155,7 @@ There is no database.
 
 ## Security boundaries
 
-- `apps/hub/src/lib/anchors.ts` and `lib/sep.ts` are marked `server-only`. The
+- `apps/hub/src/server/anchors.ts` and `server/sep.ts` are marked `server-only`. The
   Etherfuse API key is read there and never reaches the browser.
 - `RampError.toJSON()` omits the raw anchor payload, which can hold customer
   data. API routes return only code, message and a retryable flag.

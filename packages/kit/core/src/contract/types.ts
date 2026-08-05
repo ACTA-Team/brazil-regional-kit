@@ -2,8 +2,9 @@
  * The contract every anchor adapter implements.
  *
  * Shaped after SEP-38 (quotes) and SEP-24/SEP-6 (orders) rather than after any
- * one anchor's private API. That direction matters: Etherfuse, Manteca and
- * Koywe each speak their own dialect, but if the *kit's* vocabulary is the
+ * one anchor's private API. That direction matters: a proprietary REST anchor,
+ * a SEP-38 quote server and an anchor that only publishes a fee schedule each
+ * speak their own dialect, but if the *kit's* vocabulary is the
  * ecosystem standard, then adding an anchor is writing one adapter and adding
  * a SEP-compliant anchor is nearly free.
  */

@@ -4,10 +4,9 @@
 
 | Anchor | id | Mode | Corridors | Credentials |
 |---|---|---|---|---|
-| Etherfuse | `etherfuse` | live sandbox, or fixture replay | BRL ↔ TESOURO (PIX) | Sandbox key, self-service |
+| Etherfuse | `etherfuse` | live sandbox, or fixture replay | BRL ↔ TESOURO/USDC (PIX), MXN ↔ MEXE/USDC (SPEI) | Sandbox key, self-service |
 | SDF Test Anchor | `testanchor` | **live, always** | USD/CAD ↔ USDC/SRT/XLM (wire) | None |
-| Manteca | `manteca` | simulated | BRL ↔ USDC (PIX), ARS ↔ USDC | Commercial onboarding |
-| Koywe | `koywe` | simulated | MXN ↔ USDC (SPEI), CLP/COP → USDC | Commercial onboarding |
+| Anclap | `anclap` | **live, always** | ARS ↔ their pegged assets (CBU), quotes only | None |
 
 `GET /api/anchors` serves this from the running system, so it cannot drift from
 what the code is actually doing.
@@ -39,10 +38,11 @@ price endpoints are unauthenticated**. `/info`, `/prices` and `/price` answer
 without a token, so a client can show real quotes before the user has signed
 anything.
 
-It serves USD and CAD against USDC, SRT and XLM. It does **not** serve BRL —
-so on the Brazilian corridor the competition is Etherfuse against Manteca, and
-the live anchor appears on the USD side. That asymmetry is real and the UI shows
-it rather than papering over it.
+It serves USD and CAD against USDC, SRT and XLM. It does **not** serve BRL — so
+on the Brazilian corridor Etherfuse is currently unopposed, and the live SEP
+anchor appears on the USD side instead. That asymmetry is real: the router shows
+`groupSize` so a single-anchor row reads as "the only option" rather than being
+dressed up as a winner.
 
 Point `adapter-sep` at any other compliant anchor by changing one env var:
 
@@ -50,25 +50,36 @@ Point `adapter-sep` at any other compliant anchor by changing one env var:
 SEP_ANCHOR_HOME_DOMAIN=anchor.example.com
 ```
 
-### Manteca and Koywe
+### Anclap
 
-Neither has a self-service sandbox. Koywe is live in Chile, Mexico, Colombia and
-Peru but **not yet in Brazil**.
+A real regional anchor that answers for itself, registered here for Argentina
+over CBU.
 
-Two honest options existed: leave them out of the router, or model them as
-adapters that implement the real interface and are loudly labelled as simulated.
-This repo takes the second, because the point of the router is that adding an
-anchor is one adapter — and demonstrating that costs nothing but honesty about
-which quotes are real.
+This slot used to hold simulated Manteca and Koywe adapters. Neither company
+offers a self-service sandbox, so their quotes were indicative numbers captured
+by hand — production-shaped, always labelled `mock`, but still numbers this repo
+had invented. They were removed in favour of an anchor whose terms can be read
+live, because one anchor that answers beats two that we answer for.
 
-Their `mode` is hard-wired to `mock`. It cannot be configured to `live`, because
-there is nothing to be live against. Rates in
-`packages/adapter-mocks/fixtures/anchors.json` are indicative mid-market
-references captured while building, not market data.
+The gap they filled was real, though: probing the ecosystem turned up exactly
+**one** public SEP-38 quote server. What there is instead is a long tail of
+regional anchors that publish a `stellar.toml` and an unauthenticated SEP-24
+`/info` carrying assets, limits and fees. That is enough to quote their real
+terms, so `adapter-sep` ships a second adapter — `createSepFeeAdapter` — that
+speaks the protocol those anchors actually implement.
 
-When credentials arrive, replacing the fixture engine with an HTTP client is the
-only change needed — the adapter shape, the corridors and the router
-registration all stay.
+Their assets are pegged (Anclap's ARS token is one Argentine peso), so a deposit
+of X fiat yields X minus the fee they publish. Every number comes from the
+anchor; the only thing the adapter contributes is arithmetic.
+
+Two limits, surfaced in code rather than documented and forgotten:
+
+- **Quotes are `indicative`.** Published terms are not a reserved price. Only
+  SEP-38 `/quote` gives a firm one, and these anchors do not offer it.
+- **They settle on mainnet.** `capabilities().network` says so, because a
+  testnet app reads their genuine prices and cannot execute against them. Their
+  `createOrder` throws `UNSUPPORTED_PAIR` with that reason rather than
+  pretending to open an order.
 
 ## Adding an anchor
 
@@ -91,7 +102,24 @@ await anchor.discover();  // reads stellar.toml and SEP-38 /info
 ```
 
 Corridors are derived from what `/info` advertises. Register it in
-`apps/hub/src/lib/anchors.ts`.
+`apps/hub/src/server/anchors.ts`.
+
+If it publishes a fee schedule but no SEP-38 quote server — the common case for
+regional anchors — use `createSepFeeAdapter` instead. Same registration, and it
+reads limits and fees from SEP-24 `/info`:
+
+```ts
+import { createSepFeeAdapter } from '@brk/adapter-sep';
+
+const anchor = createSepFeeAdapter({
+  mode: 'live',
+  homeDomain: 'anclap.com',
+  id: 'anclap',
+  name: 'Anclap',
+  country: 'AR',
+  rail: 'CBU',
+});
+```
 
 ### If it does not
 
@@ -131,8 +159,8 @@ is the whole reason a judge can trust the parts that are real.
 Then register it:
 
 ```ts
-// apps/hub/src/lib/anchors.ts
-const all: RampAdapter[] = [etherfuse, sep, manteca, koywe, example];
+// apps/hub/src/server/anchors.ts
+const all: RampAdapter[] = [etherfuse, sep, ...regional, example];
 ```
 
 The router, the quote table, the corridor payout and the sample app all pick it
