@@ -20,6 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    # Code scanning needs GitHub Advanced Security, which private repositories
+    # only get as a paid add-on. Without it the upload step fails with
+    # "Advanced Security must be enabled for this repository" — a billing fact,
+    # not a finding, and a red X that says nothing about the code is worse than
+    # no X at all.
+    #
+    # Skipping rather than deleting is the point: the analysis is free the
+    # moment this repository is public, and it starts running again on its own
+    # with no one having to remember to re-add it.
+    if: github.event.repository.visibility == 'public'
+
     permissions:
       security-events: write
       packages: read

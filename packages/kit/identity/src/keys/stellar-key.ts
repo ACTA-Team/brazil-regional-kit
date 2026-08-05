@@ -12,7 +12,7 @@
  * checksummed strkey codec, and Ed25519 verification.
  */
 
-import { Keypair, StrKey } from '@stellar/stellar-sdk';
+import { Keypair, StrKey, hash } from '@stellar/stellar-sdk';
 import { RampError } from '@brk/ramp-core';
 import { decodeMultikey, encodeMultikey } from '../did/did';
 
@@ -63,4 +63,16 @@ export function verifyWithMultikey(
     // is still just "this signature does not verify".
     return false;
   }
+}
+
+/**
+ * SHA-256, from the SDK that is already here.
+ *
+ * SEP-53 hashes its payload before signing, and this module is the package's
+ * single point of contact with `@stellar/stellar-sdk` — adding a hashing
+ * dependency elsewhere would spread that surface for one function the SDK
+ * already exports.
+ */
+export function sha256(bytes: Uint8Array): Uint8Array {
+  return new Uint8Array(hash(Buffer.from(bytes)));
 }

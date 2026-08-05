@@ -26,7 +26,9 @@ function bumpAmount(current: string): string {
 export function OnRampPage() {
   const { t, tag } = useI18n();
   const { address, status: walletStatus, refreshBalances, hasTrustline } = useWallet();
-  const [amount, setAmount] = useState('500');
+  // The sandbox refuses more than 500, so the presets stay under it — a demo
+  // whose default button is the one amount the anchor rejects is a trap.
+  const [amount, setAmount] = useState('250');
 
   /**
    * Live-demo mode: fire the sandbox's fiat_received hook the moment the order
@@ -122,6 +124,7 @@ export function OnRampPage() {
             onChange={setAmount}
             currency="BRL"
             suffix="R$"
+            presets={['50', '100', '250', '499']}
           />
 
           <button

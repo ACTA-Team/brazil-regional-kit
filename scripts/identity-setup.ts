@@ -22,7 +22,7 @@
  */
 
 import { Keypair, TransactionBuilder } from '@stellar/stellar-sdk';
-import { ActaIdentityClient, DID_RESOLVER_URL } from '@brk/identity-kit';
+import { ActaIdentityClient, DID_RESOLVER_URL, walletKeyToMultikey } from '@brk/identity-kit';
 import { bold, cyan, dim, green, heading, loadEnv, red, yellow } from './lib/env';
 
 loadEnv();
@@ -132,7 +132,20 @@ async function main() {
     network: 'testnet',
   });
 
-  const prepared = await client.prepareDidRegistration(publicKey);
+  /*
+   * The issuer needs a second key.
+   *
+   * ACTA's docs call one key in both `authentication` and `assertionMethod`
+   * the idiomatic issuer shape; the deployed registry rejects exactly that with
+   * `duplicate_key (#9)`. So the assertion key is generated here, and its
+   * secret is printed alongside the account's — a DID that advertises a key
+   * nobody holds would be claiming an ability the issuer does not have.
+   */
+  const assertionKeypair = Keypair.random();
+
+  const prepared = await client.prepareDidRegistration(publicKey, {
+    assertionKeyMultibase: walletKeyToMultikey(assertionKeypair.publicKey()),
+  });
   const tx = TransactionBuilder.fromXDR(
     prepared.xdr,
     prepared.networkPassphrase || TESTNET_PASSPHRASE,
@@ -161,6 +174,7 @@ async function main() {
 
   console.log(`\n  Put these in ${bold('.env.local')} — never in .env.example, never committed:\n`);
   console.log(`     IDENTITY_ISSUER_SECRET=${keypair.secret()}`);
+  console.log(`     IDENTITY_ISSUER_ASSERTION_SECRET=${assertionKeypair.secret()}`);
   console.log(`     IDENTITY_ISSUER_DID=${prepared.did}\n`);
   console.log(`  Then add your ACTA key and flip the layer to live:\n`);
   console.log(`     ACTA_API_KEY=...`);

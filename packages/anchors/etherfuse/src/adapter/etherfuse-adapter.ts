@@ -18,12 +18,14 @@ import {
   stellarAsset,
   add,
   applyBps,
+  compare,
   multiply,
   isFiat,
   isNative,
   parseAsset,
   divide,
   round,
+  subtract,
   toRampError,
   type AdapterCapabilities,
   type AdapterMode,
@@ -178,7 +180,7 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
     country: 'BR',
     rail: 'PIX',
     min: '10',
-    max: '20000',
+    max: '499',
   },
   {
     direction: 'offramp',
@@ -196,7 +198,7 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
     country: 'BR',
     rail: 'PIX',
     min: '10',
-    max: '20000',
+    max: '499',
   },
   {
     direction: 'offramp',
@@ -216,7 +218,7 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
     country: 'MX',
     rail: 'SPEI',
     min: '50',
-    max: '500',
+    max: '499',
   },
   {
     direction: 'offramp',
@@ -234,7 +236,7 @@ const DEFAULT_CORRIDORS: AdapterCapabilities['corridors'] = [
     country: 'MX',
     rail: 'SPEI',
     min: '50',
-    max: '500',
+    max: '499',
   },
   {
     direction: 'offramp',
@@ -788,16 +790,27 @@ function isDuplicatePendingOrder(error: unknown): boolean {
 }
 
 /**
- * Move an amount onto a free lane by adding one to ninety-nine centavos.
+ * Move an amount onto a free lane by shaving off one to ninety-nine centavos.
+ *
+ * Down, never up. Every corridor here has a ceiling — the sandbox refuses more
+ * than 500 whatever the currency — and a preset button is usually a round
+ * number sitting right under it. Nudging 500 upwards produced 500.43 and traded
+ * a duplicate-order error for a limit error, which is not an improvement.
+ * Subtracting cannot cross a maximum, and the floor is far enough below any
+ * plausible request to stay clear of the minimum.
  *
  * Random rather than derived from the wallet: a person who abandons an order
- * and tries the same button again would otherwise land on their own blocked
- * amount every time. Decimal strings throughout — `add` is the money helper,
- * because doing this in floating point is how a payment ends up a centavo off.
+ * and presses the same button again would otherwise land on their own blocked
+ * amount every time. Decimal strings throughout, because doing this in floating
+ * point is how a payment ends up a centavo off.
  */
 function nudgeAmount(amount: string): string {
   const centavos = 1 + Math.floor(Math.random() * 99);
-  return round(add(amount, divide(String(centavos), '100')), 2);
+  const shaved = round(subtract(amount, divide(String(centavos), '100')), 2);
+
+  // Only for an amount so small that shaving a real would take it to nothing.
+  // Adding is safe there: a minimum is a floor, and nobody is near a ceiling.
+  return compare(shaved, '1') > 0 ? shaved : round(add(amount, divide(String(centavos), '100')), 2);
 }
 
 /**

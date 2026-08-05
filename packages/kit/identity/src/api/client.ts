@@ -216,17 +216,54 @@ export class ActaIdentityClient implements IdentityApi {
     };
   }
 
-  async prepareDidRegistration(controller: string): Promise<PreparedTx> {
-    // The controller's own wallet key becomes the DID's verification key: same
-    // 32 Ed25519 bytes in a different encoding. An issuer needs an assertion
-    // key too, and reusing the authentication key is the idiomatic shape.
+  /**
+   * Build the registration transaction for a new `did:stellar`.
+   *
+   * The controller's own wallet key becomes the authentication key: the same 32
+   * Ed25519 bytes in a different encoding, which is what lets a wallet
+   * signature prove control with no second key to store.
+   *
+   * Assertion keys split the two roles apart, which is why this takes an option
+   * rather than always doing the same thing:
+   *
+   *   - A HOLDER — every user of this app — needs `authentication` and nothing
+   *     else. That is what proves control of the DID, and it is the whole job.
+   *   - An ISSUER needs an assertion key as well, or W3C verifiers reject the
+   *     credentials it signs. That key must be a DIFFERENT one.
+   *
+   * ACTA's documentation says the same key may appear in both relationships and
+   * calls that "the idiomatic issuer shape". The deployed registry answers
+   * exactly that with `duplicate_key (#9)`, at prepare time, every time.
+   * Verified against testnet with funded throwaway accounts: the same key in
+   * both was refused; holder-only and two-distinct-keys both registered.
+   *
+   * The assertion key is supplied rather than invented here, because a DID
+   * document advertising a key nobody holds is a lie about what that issuer can
+   * sign. Whoever generates it is whoever can keep it.
+   */
+  async prepareDidRegistration(
+    controller: string,
+    options: { assertionKeyMultibase?: string } = {},
+  ): Promise<PreparedTx> {
     const publicKeyMultibase = walletKeyToMultikey(controller);
+    const { assertionKeyMultibase } = options;
+
+    if (assertionKeyMultibase && assertionKeyMultibase === publicKeyMultibase) {
+      throw new RampError({
+        code: 'INVALID_REQUEST',
+        anchorId: 'acta',
+        message:
+          'The assertion key must differ from the controller key. The registry ' +
+          'refuses a document that repeats a key with duplicate_key (#9).',
+      });
+    }
+
     const did = buildDid(this.network, generateDidId());
 
     const record: DidRecordInput = {
       controller,
       authentication: [{ publicKeyMultibase }],
-      assertionMethod: [{ publicKeyMultibase }],
+      assertionMethod: assertionKeyMultibase ? [{ publicKeyMultibase: assertionKeyMultibase }] : [],
       keyAgreement: [],
       services: [],
     };
@@ -240,12 +277,20 @@ export class ActaIdentityClient implements IdentityApi {
     return this.prepared(payload, did);
   }
 
+  /**
+   * Submit the signed registration.
+   *
+   * `network` is not optional. Every other resolver call carries the DID in the
+   * path, so the API can read the network off it; this one does not, and
+   * without the field it answers `400 network_invalid` — "submit body must
+   * include network, no DID in the path to infer it from".
+   */
   async submitDidTx(signedXdr: string): Promise<{ txId: string }> {
     const payload = await this.request<{ txId?: string; tx_id?: string }>(
       this.resolverUrl,
       'POST',
       ENDPOINTS.didSubmit,
-      { signedXdr },
+      { signedXdr, network: this.network },
     );
     return { txId: payload?.txId ?? payload?.tx_id ?? '' };
   }

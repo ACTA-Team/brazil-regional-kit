@@ -78,8 +78,9 @@ describe('capabilities', () => {
     // MEXe and USDC, each way.
     expect(mx).toHaveLength(4);
     expect(mx.every((c) => c.rail === 'SPEI')).toBe(true);
-    // Sandbox on-ramps from MXN are capped at 500 by the anchor itself.
-    expect(mx.filter((c) => c.direction === 'onramp').every((c) => c.max === '500')).toBe(true);
+    // The anchor caps sandbox on-ramps at 500, so the corridor stops just under
+    // it: a maximum a user can actually reach beats one that returns an error.
+    expect(mx.filter((c) => c.direction === 'onramp').every((c) => c.max === '499')).toBe(true);
   });
 });
 
@@ -590,8 +591,10 @@ describe('two visitors asking for the same round number', () => {
     expect(anchor.amountsTried).toContain('500');
     const settled = anchor.amountsTried[anchor.amountsTried.length - 1]!;
     expect(settled).not.toBe('500');
-    expect(Number(settled)).toBeGreaterThan(500);
-    expect(Number(settled)).toBeLessThan(501);
+    // Downwards. Every corridor has a ceiling and a preset sits right under it,
+    // so a retry that asks for more trades one error for another.
+    expect(Number(settled)).toBeLessThan(500);
+    expect(Number(settled)).toBeGreaterThan(499);
 
     // What the user is asked to pay must be the amount that was actually
     // ordered — a panel showing 500 while the anchor waits for 500.37 is how
@@ -709,5 +712,81 @@ describe('when the second amount is taken too', () => {
     await expect(
       hopeless.createOrder({ quoteId: (await hopeless.getQuote(ask)).id, account: A }),
     ).rejects.toThrow(/pending onramp order/i);
+  });
+});
+
+describe('re-pricing near the sandbox ceiling', () => {
+  /**
+   * The sandbox refuses an on-ramp over 500 whatever the currency:
+   *
+   *   {"message":"Sandbox onramps are limited to 500 MXN",
+   *    "type":"SandboxAmountExceeded"}
+   *
+   * An earlier version nudged upwards, so a blocked `500` became `500.43` and
+   * traded a duplicate-order error for a limit error. Shaving cents off instead
+   * cannot cross a maximum, and every preset in the UI sits under the cap so the
+   * two never meet in the first place.
+   */
+  const A = 'GA5UUGFVQDOJLXZX4QH3MRX5I2M5M2CX4CUHV7XQXJX3A2EEFGSBMT3N';
+
+  it('never asks for more than the amount that was refused', async () => {
+    const backing = adapter();
+    const inner = (backing as unknown as { api: import('../api/api').EtherfuseApi }).api;
+    const asked: string[] = [];
+
+    const a = createEtherfuseAdapter({
+      mode: 'mock',
+      customerId: 'cus_test',
+      bankAccountId: 'bank_test',
+      api: {
+        ...inner,
+        mode: inner.mode,
+        getOrder: (id: string) => inner.getOrder(id),
+        quote: (r: import('../api/api').EtherfuseQuoteRequest) => {
+          asked.push(r.sourceAmount);
+          return inner.quote(r);
+        },
+        createOrder: async (r: import('../api/api').EtherfuseOrderRequest) => {
+          // Refuse the first order so the re-pricing path runs.
+          if (asked.length === 1) {
+            const { RampError } = await import('@brk/ramp-core');
+            throw new RampError({
+              code: 'INVALID_ORDER_STATE',
+              anchorId: 'etherfuse',
+              message: 'A pending onramp order already exists for this bank account and amount',
+              status: 409,
+            });
+          }
+          return inner.createOrder(r);
+        },
+      } as import('../api/api').EtherfuseApi,
+    });
+
+    const quote = await a.getQuote({
+      sellAsset: BRL,
+      buyAsset: TESOURO,
+      sellAmount: '499',
+      account: A,
+    });
+    const order = await a.createOrder({ quoteId: quote.id, account: A });
+
+    expect(order.id).toBeTruthy();
+    expect(asked[0]).toBe('499');
+
+    const retried = Number(asked[asked.length - 1]);
+    expect(retried).toBeLessThan(499);
+    expect(retried).toBeGreaterThan(498);
+    expect(Number(order.sellAmount)).toBeLessThan(500);
+  });
+
+  it('keeps every declared on-ramp ceiling under the sandbox limit', () => {
+    const onramps = adapter()
+      .capabilities()
+      .corridors.filter((c) => c.direction === 'onramp');
+
+    expect(onramps.length).toBeGreaterThan(0);
+    for (const c of onramps) {
+      expect(Number(c.max)).toBeLessThan(500);
+    }
   });
 });
